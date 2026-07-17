@@ -8,6 +8,7 @@
 * Braille displays are no longer disconnected and redetected during ordinary desktop switches that never entered the secure desktop. (#20550)
 * Windows Terminal waits longer for delayed UIA caret updates, reducing stale character announcements in remote sessions. (#20398)
 * Selection changes are announced for affected collapsed .NET Framework WinForms combo boxes. (#20481)
+* Checked ToolStrip menu items in .NET Framework WinForms applications are reported correctly through UIA. (#20485)
 
 ## 2026.2
 
