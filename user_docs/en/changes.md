@@ -1,5 +1,11 @@
 # What's New in NVDA
 
+## 2026.2 Future RC
+
+### Bug Fixes
+
+* Extension point handlers can now register or unregister handlers while being called without aborting dispatch. (#20545)
+
 ## 2026.2
 
 This release includes a new built-in Magnifier feature, improvements to touch gestures and navigation, and expanded speech and braille capabilities.
