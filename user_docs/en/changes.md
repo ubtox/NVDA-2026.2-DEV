@@ -7,6 +7,7 @@
 * Extension point handlers can now register or unregister handlers while being called without aborting dispatch. (#20545)
 * Braille displays are no longer disconnected and redetected during ordinary desktop switches that never entered the secure desktop. (#20550)
 * Windows Terminal waits longer for delayed UIA caret updates, reducing stale character announcements in remote sessions. (#20398)
+* Selection changes are announced for affected collapsed .NET Framework WinForms combo boxes. (#20481)
 
 ## 2026.2
 
