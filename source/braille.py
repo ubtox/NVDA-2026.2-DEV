@@ -2557,6 +2557,12 @@ class BrailleHandler(baseObject.AutoPropertyObject):
 			self.update()
 			self.setDisplayByName(NO_BRAILLE_DISPLAY_NAME, isFallback=True)
 		else:
+			# An ordinary desktop switch (for example, switching between an RDP session
+			# and the local desktop) is reported through the same event. Only restore
+			# braille when the secure desktop fallback actually replaced the display.
+			currentDisplayName = self.display.name if self.display is not None else None
+			if currentDisplayName == self._lastRequestedDisplayName:
+				return
 			configured = config.conf["braille"]["display"]
 			if configured == AUTO_DISPLAY_NAME:
 				lastRequested = (self._lastRequestedDisplayName, self._lastRequestedDeviceMatch)
