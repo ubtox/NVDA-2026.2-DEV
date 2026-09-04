@@ -44,3 +44,19 @@ an unmeasured comparison must never be reported as a pass.
 Before promotion, record the exact Git HEAD, clean status, unit-test count, Ruff,
 format, compileall, Pyright, source/dist/launcher results, GitHub Actions run,
 installer path, PE metadata, size, SHA-256, architecture, and signature state.
+
+## Latest validated RC candidate
+
+- Source commit: `6151a9aeac5ef630aca0f8174ab454f7509c6f37`
+- Unit tests: 1213 passed, 0 failed.
+- Ruff check and format check: passed.
+- Python compileall and Pyright: passed with zero errors.
+- Source, distribution, and launcher build: passed.
+- Product version: `2026.2rc1`.
+- PE machine: `0x014C` (x86 launcher capable of installing the bundled
+  multi-architecture distribution).
+- Authenticode: not signed; no signing certificate was supplied.
+- Candidate SHA-256: `767889AC4B6EEFAA33EB87C2D174E706F7757A8449B5F9201ED342D60FC64153`.
+
+This evidence describes the candidate built before this documentation update.
+Promotion still requires a rebuild and CI run from the final documentation commit.
