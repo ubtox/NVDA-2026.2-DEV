@@ -1,5 +1,6 @@
 # Intentional Evolution differences from nvaccess/nvda.
 # Entries classify known deltas; they never hide them from the generated report.
+# Ahead-of-upstream port: nvaccess/nvda#20782 @ 87bef90cca2edc4b7d40bbd39b02a8bf81e22475
 .pre-commit-config.yaml
 .github/workflows/durableValidation.yml
 .github/workflows/officialSourceInventory.yml
