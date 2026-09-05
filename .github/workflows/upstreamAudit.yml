@@ -1,0 +1,97 @@
+name: Upstream NVDA audit
+
+on:
+  schedule:
+    - cron: '31 4 * * *'
+  workflow_dispatch:
+    inputs:
+      target_ref:
+        description: Evolution branch or commit to compare
+        required: false
+        default: final/2027.1-nextgen
+        type: string
+      upstream_ref:
+        description: NV Access branch, tag or commit
+        required: false
+        default: master
+        type: string
+      fail_on_unexpected:
+        description: Fail for every difference not in the Evolution allowlist
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upstream-nvda-audit-${{ github.event.inputs.target_ref || 'final-2027.1-nextgen' }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: Compare Evolution with NV Access
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TARGET_REF: ${{ github.event.inputs.target_ref || 'final/2027.1-nextgen' }}
+      UPSTREAM_REF: ${{ github.event.inputs.upstream_ref || 'master' }}
+    steps:
+      - name: Checkout Evolution target
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TARGET_REF }}
+          path: current
+          fetch-depth: 1
+          submodules: false
+          persist-credentials: false
+
+      - name: Checkout NV Access upstream
+        uses: actions/checkout@v7
+        with:
+          repository: nvaccess/nvda
+          ref: ${{ env.UPSTREAM_REF }}
+          path: upstream
+          fetch-depth: 1
+          submodules: false
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Audit protected core and intentional deltas
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=(
+            --current current
+            --upstream upstream
+            --allowlist current/ci/upstream-audit-allowlist.txt
+            --json upstream-audit.json
+            --markdown upstream-audit.md
+            --fail-on-protected
+          )
+          if [[ "${{ github.event.inputs.fail_on_unexpected || 'false' }}" == "true" ]]; then
+            args+=(--fail-on-unexpected)
+          fi
+          python current/ci/scripts/upstreamAudit.py "${args[@]}"
+
+      - name: Publish audit summary
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          if [[ -f upstream-audit.md ]]; then
+            cat upstream-audit.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload audit report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: upstream-audit-${{ env.TARGET_REF }}
+          path: |
+            upstream-audit.json
+            upstream-audit.md
+          if-no-files-found: warn
