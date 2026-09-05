@@ -5,11 +5,11 @@
 
 """Unit tests for the hwIo module."""
 
+import threading
 import unittest
 from unittest.mock import patch
 
 import hwIo
-import threading
 
 
 class TestBgThreadApc(unittest.TestCase):
