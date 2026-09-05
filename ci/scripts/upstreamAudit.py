@@ -7,9 +7,9 @@ import json
 import subprocess
 import tempfile
 import zipfile
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from collections.abc import Iterable
 
 
 @dataclass(frozen=True)
