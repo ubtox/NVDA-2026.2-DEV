@@ -2,6 +2,11 @@
 
 ## 2026.2 Future RC
 
+### Changes
+
+* Updated Liblouis Braille translator to [3.39.0](https://github.com/liblouis/liblouis/releases/tag/v3.39.0). (#20269, #20776, @codeofdusk)
+  * Added new Elfdalian, Sami, Maori, New Zealand Unified English Braille, and Haitian Creole tables, a Norwegian table for Spanish text, and additional Swedish 6 and 8 dot variants.
+
 ### Changes for Developers
 
 * Python has been updated to 3.13.15 for development, CI, and the 32-bit synth driver runtime. (#20634, @dpy013)
