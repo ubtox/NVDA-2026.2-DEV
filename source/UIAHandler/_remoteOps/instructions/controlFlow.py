@@ -8,7 +8,7 @@ This module contains the instructions that control the flow of execution.
 Including to halt execution, fork execution, and manage loops and try blocks.
 """
 
-from __future__ import annotations  # noqa: I001
+from __future__ import annotations
 from dataclasses import dataclass
 from .. import lowLevel
 from .. import builder
@@ -64,3 +64,19 @@ class BreakLoop(_TypedInstruction):
 @dataclass
 class ContinueLoop(_TypedInstruction):
 	opCode = lowLevel.InstructionType.ContinueLoop
+
+
+class JumpElse(Fork):
+	"""
+	A specialized Fork instruction used specifically to jump over the else branch of an if statement.
+	The bytecode for this instruction is the same as Fork, but it is used to indicate that an else branch can be inserted here.
+	It also tracks the previous JumpElse instruction, so that they can all be incremented together, in the case of an if elif elif else chain.
+	"""
+	_prevJumpElse: Fork | None = None
+
+
+class JumpCatch(Fork):
+	"""
+	A specialized Fork instruction used specifically to jump over the catch branch of a try statement.
+	The bytecode for this instruction is the same as Fork, but it is used to indicate that a catch branch can be inserted here.
+	"""

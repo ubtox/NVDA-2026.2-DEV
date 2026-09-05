@@ -4,7 +4,7 @@
 # Copyright (C) 2023-2024 NV Access Limited
 
 
-from __future__ import annotations  # noqa: I001
+from __future__ import annotations
 from ..builder import (
 	InstructionBase,
 )
@@ -15,4 +15,4 @@ __all__ = ["_TypedInstruction"]
 class _TypedInstruction(InstructionBase):
 	@property
 	def params(self) -> dict[str, object]:
-		return vars(self)
+		return {k: v for k, v in vars(self).items() if not k.startswith("_")}

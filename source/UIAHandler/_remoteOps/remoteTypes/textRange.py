@@ -4,7 +4,7 @@
 # Copyright (C) 2023-2024 NV Access Limited
 
 
-from __future__ import annotations  # noqa: I001
+from __future__ import annotations
 from typing import (
 	cast,
 )
@@ -26,7 +26,6 @@ from . import (
 	RemoteIntEnum,
 	RemoteString,
 	RemoteExtensionTarget,
-	RemoteElement,
 )
 
 
@@ -91,6 +90,23 @@ class RemoteTextRange(RemoteExtensionTarget[POINTER(UIA.IUIAutomationTextRange)]
 				unit=RemoteIntEnum.ensureRemote(self.rob, unit),
 			),
 		)
+
+	@remoteMethod_mutable
+	def move(
+		self,
+		unit: RemoteIntEnum[lowLevel.TextUnit] | lowLevel.TextUnit,
+		count: RemoteInt | int,
+	) -> RemoteInt:
+		result = RemoteInt(self.rob, self.rob.requestNewOperandId())
+		self.rob.getDefaultInstructionList().addInstruction(
+			instructions.TextRangeMove(
+				result=result,
+				target=self,
+				unit=RemoteIntEnum.ensureRemote(self.rob, unit),
+				count=RemoteInt.ensureRemote(self.rob, count),
+			),
+		)
+		return result
 
 	@remoteMethod_mutable
 	def moveEndpointByUnit(
@@ -269,3 +285,9 @@ class RemoteTextRangeLogicalAdapter(builder._RemoteBase):
 
 	def clone(self):
 		return self.textRange.clone().getLogicalAdapter(self.isReversed)
+
+	def move(self, unit: RemoteIntEnum[lowLevel.TextUnit] | lowLevel.TextUnit, count: RemoteInt | int) -> RemoteInt:
+		realCount = (count * -1) if self.isReversed else count
+		return self.textRange.move(unit, realCount)
+
+from .element import RemoteElement

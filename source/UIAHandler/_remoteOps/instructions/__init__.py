@@ -14,7 +14,7 @@ which provides an implementation of the instruction that can be executed locally
 # Import all instructions so that they can be accessed as attributes of this module.
 # flake8: noqa: F401
 
-from ..builder import InstructionBase  # noqa: I001
+from ..builder import InstructionBase
 from .arithmetic import (
 	BinaryAdd,
 	BinarySubtract,
@@ -33,6 +33,15 @@ from .array import (
 	ArrayRemoveAt,
 	ArraySetAt,
 	ArraySize,
+)
+from .stringMap import (
+	NewStringMap,
+	IsStringmap,
+	StringMapInsert,
+	StringMapHasKey,
+	StringMapLookup,
+	StringMapRemove,
+	StringMapSize
 )
 from .bool import (
 	NewBool,
@@ -58,11 +67,14 @@ from .controlFlow import (
 	EndTryBlock,
 	BreakLoop,
 	ContinueLoop,
+	JumpElse,
+	JumpCatch,
 )
 from .element import (
 	IsElement,
 	ElementGetPropertyValue,
 	ElementNavigate,
+	ElementGetTextPattern,
 )
 from .extension import (
 	IsExtensionSupported,
@@ -80,6 +92,8 @@ from .general import (
 from .guid import (
 	NewGuid,
 	IsGuid,
+	GuidLookupId,
+	LookupGuid,
 )
 from .int import (
 	NewInt,
@@ -115,4 +129,7 @@ from .textRange import (
 	TextRangeExpandToEnclosingUnit,
 	TextRangeMoveEndpointByRange,
 	TextRangeCompareEndpoints,
+)
+from .textPattern import (
+	TextPatternRangeFromChild,
 )

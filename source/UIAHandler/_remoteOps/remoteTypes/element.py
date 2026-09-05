@@ -4,12 +4,15 @@
 # Copyright (C) 2023-2024 NV Access Limited
 
 
-from __future__ import annotations  # noqa: I001
+from __future__ import annotations
 from typing import (
 	cast,
 )
 from ctypes import (
 	POINTER,
+)
+from comtypes import (
+	GUID,
 )
 from UIAHandler import UIA
 from .. import lowLevel
@@ -23,6 +26,7 @@ from . import (
 	RemoteIntEnum,
 	RemoteBool,
 	RemoteVariant,
+	RemoteGuid,
 )
 from .cacheRequest import RemoteCacheRequest
 
@@ -60,6 +64,23 @@ class RemoteElement(RemoteExtensionTarget[POINTER(UIA.IUIAutomationElement)]):
 				result=result,
 				target=self,
 				propertyId=RemoteIntEnum.ensureRemote(self.rob, propertyId),
+				ignoreDefault=RemoteBool.ensureRemote(self.rob, ignoreDefault),
+			),
+		)
+		return result
+
+	@remoteMethod
+	def getCustomPropertyValue(
+		self,
+		propertyId: RemoteGuid | GUID,
+		ignoreDefault: RemoteBool | bool = False,
+	) -> RemoteVariant:
+		result = RemoteVariant(self.rob, self.rob.requestNewOperandId())
+		self.rob.getDefaultInstructionList().addInstruction(
+			instructions.ElementGetPropertyValue(
+				result=result,
+				target=self,
+				propertyId=RemoteGuid.ensureRemote(self.rob, propertyId).lookupId(lowLevel.AutomationIdentifierType.Property),
 				ignoreDefault=RemoteBool.ensureRemote(self.rob, ignoreDefault),
 			),
 		)
@@ -104,3 +125,16 @@ class RemoteElement(RemoteExtensionTarget[POINTER(UIA.IUIAutomationElement)]):
 	@remoteMethod
 	def getPreviousSiblingElement(self) -> RemoteElement:
 		return self._navigate(lowLevel.NavigationDirection.PreviousSibling)
+
+	@remoteMethod
+	def getTextPattern(self) -> RemoteTextPattern:
+		result = RemoteTextPattern(self.rob, self.rob.requestNewOperandId())
+		self.rob.getDefaultInstructionList().addInstruction(
+			instructions.ElementGetTextPattern(
+				result=result,
+				target=self,
+			),
+		)
+		return result
+
+from .textPattern import RemoteTextPattern

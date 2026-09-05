@@ -3,12 +3,14 @@
 # See the file COPYING for more details.
 # Copyright (C) 2023-2024 NV Access Limited
 
-from __future__ import annotations  # noqa: I001
+from __future__ import annotations
 import contextlib
 from typing import (
+	Type,
 	Any,
+	Generator,
+	Callable,
 )
-from collections.abc import Generator, Callable
 from dataclasses import dataclass
 from logHandler import log
 from UIAHandler import UIA
@@ -104,10 +106,10 @@ class RemoteExecutionResult(ExecutionResult):
 	resultSet: lowLevel.RemoteOperationResultSet
 
 	def hasOperand(self, operandId: lowLevel.OperandId) -> bool:
-		return self.resultSet.hasOperand(operandId)
+		return self.resultSet.hasOperand(operandId.value)
 
 	def getOperand(self, operandId: lowLevel.OperandId) -> object:
-		return self.resultSet.getOperand(operandId)
+		return self.resultSet.getOperand(operandId.value)
 
 
 class RemoteExecutor(Executor):
@@ -119,15 +121,15 @@ class RemoteExecutor(Executor):
 		self._ro = lowLevel.RemoteOperation()
 
 	def importElement(self, operandId: lowLevel.OperandId, element: UIA.IUIAutomationElement):
-		self._ro.importElement(operandId, element)
+		self._ro.importElement(operandId.value, element)
 		self._isConnectionBound = True
 
 	def importTextRange(self, operandId: lowLevel.OperandId, textRange: UIA.IUIAutomationTextRange):
-		self._ro.importTextRange(operandId, textRange)
+		self._ro.importTextRange(operandId.value, textRange)
 		self._isConnectionBound = True
 
 	def addToResults(self, operandId: lowLevel.OperandId):
-		self._ro.addToResults(operandId)
+		self._ro.addToResults(operandId.value)
 
 	def loadInstructions(self, rob: builder.RemoteOperationBuilder):
 		self._byteCode = rob.getByteCode()
@@ -145,7 +147,7 @@ class RemoteExecutor(Executor):
 
 
 class Operation:
-	_executorClass: type[Executor] = RemoteExecutor
+	_executorClass: Type[Executor] = RemoteExecutor
 	_compiletimeLoggingEnabled: bool
 	_runtimeLoggingEnabled: bool
 	_remoteLog: remoteAPI.RemoteString | None = None
@@ -297,7 +299,7 @@ class Operation:
 					f"Remote log for execution {self._executionCount}\n"
 					"--- Begin ---\n"
 					f"{logOutput}"
-					"--- end ---",  # fmt: skip  # noqa: RUF028
+					"--- end ---",  # fmt: skip
 				)
 
 	def _dumpCompiletimeLog(self):
@@ -305,7 +307,7 @@ class Operation:
 			f"Dumping instructions:\n--- Begin ---\n{self._rob.dumpInstructions()}--- End ---",
 		)
 
-	def _executeUntilSuccess(self, maxTries: int) -> Generator[ExecutionResult]:
+	def _executeUntilSuccess(self, maxTries: int) -> Generator[ExecutionResult, None, None]:
 		self._executionCount = 0
 		try:
 			while self._executionCount < maxTries:
@@ -342,9 +344,9 @@ class Operation:
 			raise NoReturnException()
 		return self._requestedResults[lowLevel.OperandId(returnId)].localValue
 
-	def iterExecute(self, maxTries: int = 1) -> Generator[Any]:
+	def iterExecute(self, maxTries: int = 1) -> Generator[Any, None, None]:
 		if self._yieldListOperand is None:
 			raise RuntimeError("RemoteOperation has no yield list operand")
 		for executionResult in self._executeUntilSuccess(maxTries):
-			for value in self._yieldListOperand.localValue:  # noqa: UP028
+			for value in self._yieldListOperand.localValue:
 				yield value

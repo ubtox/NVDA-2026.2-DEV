@@ -10,7 +10,7 @@ get a property value of an element,
 and navigate the UI Automation tree.
 """
 
-from __future__ import annotations  # noqa: I001
+from __future__ import annotations
 from typing import cast
 from dataclasses import dataclass
 from ctypes import POINTER
@@ -77,3 +77,19 @@ class ElementNavigate(_TypedInstruction):
 				registers[self.result.operandId] = treeWalker.GetPreviousSiblingElement(element)
 			case _:
 				raise ValueError(f"Unknown navigation direction {direction}")
+
+
+@dataclass
+class ElementGetTextPattern(_TypedInstruction):
+	opCode = lowLevel.InstructionType.ElementGetTextPattern
+	result: builder.Operand
+	target: builder.Operand
+
+	def localExecute(self, registers: dict[lowLevel.OperandId, object]):
+		element = cast(UIA.IUIAutomationElement, registers[self.target.operandId])
+		textPattern = element.GetCurrentPattern(
+			UIA.UIA_TextPatternId,
+		)
+		if textPattern:
+			textPattern = textPattern.QueryInterface(UIA.IUIAutomationTextPattern)
+		registers[self.result.operandId] = textPattern

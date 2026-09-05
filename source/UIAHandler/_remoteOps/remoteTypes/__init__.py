@@ -4,15 +4,15 @@
 # Copyright (C) 2023-2025 NV Access Limited
 
 
-from __future__ import annotations  # noqa: I001
-from typing import (  # noqa: UP035
+from __future__ import annotations
+from typing import (
 	Type,
 	Self,
+	Iterable,
 	Generic,
 	TypeVar,
 	cast,
 )
-from collections.abc import Iterable
 from types import NoneType
 import ctypes
 from ctypes import (
@@ -26,6 +26,7 @@ from comtypes import (
 	IUnknown,
 	COMError,
 )
+import comtypes.client.lazybind
 import enum
 from UIAHandler import UIA
 from .. import lowLevel
@@ -41,9 +42,9 @@ from .. import operation
 LocalTypeVar = TypeVar("LocalTypeVar")
 
 
-class RemoteBaseObject(builder.Operand, Generic[LocalTypeVar]):  # noqa: UP046
-	_IsTypeInstruction: type[builder.InstructionBase]
-	LocalType: type[LocalTypeVar] | None = None
+class RemoteBaseObject(builder.Operand, Generic[LocalTypeVar]):
+	_IsTypeInstruction: Type[builder.InstructionBase]
+	LocalType: Type[LocalTypeVar] | None = None
 	_initialValue: LocalTypeVar | None = None
 	_executionResult: operation.ExecutionResult | None = None
 
@@ -113,13 +114,13 @@ class RemoteBaseObject(builder.Operand, Generic[LocalTypeVar]):  # noqa: UP046
 			if not isinstance(cachedRemoteObj, RemoteType):
 				raise RuntimeError(f"Cache entry for {cacheKey} is not of type {RemoteType.__name__}")
 			rob.getDefaultInstructionList().addComment(
-				f"Using cached {cachedRemoteObj} for constant value {obj!r}",
+				f"Using cached {cachedRemoteObj} for constant value {repr(obj)}",
 			)
 			return cast(RemoteType, cachedRemoteObj)
 		with rob.overrideDefaultSection("const"):
 			remoteObj = RemoteType.createNew(rob, obj, const=True)
 		rob.getDefaultInstructionList().addComment(
-			f"Using cached {remoteObj} for constant value {obj!r}",
+			f"Using cached {remoteObj} for constant value {repr(obj)}",
 		)
 		rob._remotedArgCache[cacheKey] = remoteObj
 		return remoteObj
@@ -199,7 +200,7 @@ class RemoteVariant(RemoteBaseObject):
 			result=self,
 		)
 
-	def _isType(self, RemoteClass: type[RemoteBaseObject]) -> RemoteBool:
+	def _isType(self, RemoteClass: Type[RemoteBaseObject]) -> RemoteBool:
 		if not issubclass(RemoteClass, RemoteBaseObject):
 			raise TypeError("remoteClass must be a subclass of RemoteBaseObject")
 		result = RemoteBool(self.rob, self.rob.requestNewOperandId())
@@ -264,7 +265,7 @@ class RemoteVariant(RemoteBaseObject):
 
 	_TV_asType = TypeVar("_TV_asType", bound=RemoteBaseObject)
 
-	def asType(self, remoteClass: type[_TV_asType]) -> _TV_asType:
+	def asType(self, remoteClass: Type[_TV_asType]) -> _TV_asType:
 		return remoteClass(self.rob, self.operandId)
 
 
@@ -277,9 +278,9 @@ class RemoteNull(RemoteBaseObject):
 		)
 
 
-class RemoteIntegral(RemoteBaseObject[LocalTypeVar], Generic[LocalTypeVar]):  # noqa: UP046
-	_NewInstruction: type[builder.InstructionBase]
-	_ctype: type[_SimpleCData]
+class RemoteIntegral(RemoteBaseObject[LocalTypeVar], Generic[LocalTypeVar]):
+	_NewInstruction: Type[builder.InstructionBase]
+	_ctype: Type[_SimpleCData]
 
 	def _generateInitInstructions(self) -> Iterable[instructions.InstructionBase]:
 		yield self._NewInstruction(
@@ -355,7 +356,7 @@ class RemoteBool(RemoteIntegral[bool]):
 		return result
 
 
-class RemoteNumber(RemoteIntegral[LocalTypeVar], Generic[LocalTypeVar]):  # noqa: UP046
+class RemoteNumber(RemoteIntegral[LocalTypeVar], Generic[LocalTypeVar]):
 	@remoteMethod
 	def __gt__(self, other: Self | LocalTypeVar) -> RemoteBool:
 		return self._doCompare(lowLevel.ComparisonType.GreaterThan, other)
@@ -611,35 +612,24 @@ class RemoteString(RemoteBaseObject[str]):
 	@remoteMethod
 	def copy(self) -> Self:
 		copy = type(self)(self.rob, self.rob.requestNewOperandId())
-		copy += self
+		self.rob.getDefaultInstructionList().addInstruction(
+			instructions.NewString(
+				result=copy,
+				length=c_ulong(1),
+				value=ctypes.create_unicode_buffer(""),
+			),
+		)
+		self.rob.getDefaultInstructionList().addInstruction(
+			instructions.Set(
+				target=copy,
+				value=self,
+			),
+		)
 		return copy
 
 
 class RemoteArray(RemoteBaseObject):
-	_LOCAL_COM_INTERFACES = [  # noqa: RUF012
-		UIA.IUIAutomationElement,
-		UIA.IUIAutomationTextRange,
-	]
-
-	def _correctCOMPointers(self, *items: object) -> list:
-		correctedItems = []
-		for i, item in enumerate(items):
-			if isinstance(item, IUnknown):
-				for interface in self._LOCAL_COM_INTERFACES:
-					try:
-						item = item.QueryInterface(interface)
-						break
-					except COMError:
-						pass
-			elif isinstance(item, tuple):
-				item = self._correctCOMPointers(*item)
-			correctedItems.append(item)
-		return correctedItems
-
-	@property
-	def localValue(self) -> list:
-		items = super().localValue
-		return self._correctCOMPointers(*items)
+	_IsTypeInstruction = instructions.IsArray
 
 	def _generateInitInstructions(self) -> Iterable[instructions.InstructionBase]:
 		yield instructions.NewArray(
@@ -670,7 +660,7 @@ class RemoteArray(RemoteBaseObject):
 		return result
 
 	@remoteMethod_mutable
-	def append(self, value: RemoteBaseObject | float | str) -> None:
+	def append(self, value: RemoteBaseObject | int | float | str) -> None:
 		self.rob.getDefaultInstructionList().addInstruction(
 			instructions.ArrayAppend(
 				target=self,
@@ -682,7 +672,7 @@ class RemoteArray(RemoteBaseObject):
 	def __setitem__(
 		self,
 		index: RemoteIntBase | int,
-		value: RemoteBaseObject | float | str,
+		value: RemoteBaseObject | int | float | str,
 	) -> None:
 		self.rob.getDefaultInstructionList().addInstruction(
 			instructions.ArraySetAt(
@@ -702,6 +692,72 @@ class RemoteArray(RemoteBaseObject):
 		)
 
 
+class RemoteStringMap(RemoteBaseObject):
+
+	def _generateInitInstructions(self) -> Iterable[instructions.InstructionBase]:
+		yield instructions.NewStringMap(
+			result=self,
+		)
+
+	@remoteMethod
+	def hasKey(self, key: RemoteString | str) -> RemoteBool:
+		result = RemoteBool(self.rob, self.rob.requestNewOperandId())
+		self.rob.getDefaultInstructionList().addInstruction(
+			instructions.StringMapHasKey(
+				result=result,
+				target=self,
+				key=RemoteString.ensureRemote(self.rob, key),
+			),
+		)
+		return result
+
+	@remoteMethod
+	def __getitem__(self, key: RemoteString | str) -> RemoteVariant:
+		result = RemoteVariant(self.rob, self.rob.requestNewOperandId())
+		self.rob.getDefaultInstructionList().addInstruction(
+			instructions.StringMapLookup(
+				result=result,
+				target=self,
+				key=RemoteString.ensureRemote(self.rob, key),
+			),
+		)
+		return result
+
+	@remoteMethod
+	def size(self) -> RemoteUint:
+		result = RemoteUint(self.rob, self.rob.requestNewOperandId())
+		self.rob.getDefaultInstructionList().addInstruction(
+			instructions.StringMapSize(
+				result=result,
+				target=self,
+			),
+		)
+		return result
+
+	@remoteMethod_mutable
+	def __setitem__(
+		self,
+		key: RemoteString | str,
+		value: RemoteBaseObject | int | float | str,
+	) -> None:
+		self.rob.getDefaultInstructionList().addInstruction(
+			instructions.StringMapInsert(
+				target=self,
+				key=RemoteString.ensureRemote(self.rob, key),
+				value=RemoteBaseObject.ensureRemote(self.rob, value),
+			),
+		)
+
+	@remoteMethod_mutable
+	def remove(self, key: RemoteString | str) -> None:
+		self.rob.getDefaultInstructionList().addInstruction(
+			instructions.StringMapRemove(
+				target=self,
+				key=RemoteString.ensureRemote(self.rob, key),
+			),
+		)
+
+
 class RemoteGuid(RemoteBaseObject[GUID]):
 	_IsTypeInstruction = instructions.IsGuid
 	LocalType = GUID
@@ -716,8 +772,20 @@ class RemoteGuid(RemoteBaseObject[GUID]):
 			value=self.initialValue,
 		)
 
+	@remoteMethod
+	def lookupId(self, identifierType: lowLevel.AutomationIdentifierType) -> RemoteInt:
+		result = RemoteInt(self.rob, self.rob.requestNewOperandId())
+		self.rob.getDefaultInstructionList().addInstruction(
+			instructions.GuidLookupId(
+				result=result,
+				target=self,
+				identifierType=identifierType,
+			),
+		)
+		return result
 
-def getRemoteTypeForLocalType(LocalType: type[object]) -> type[RemoteBaseObject]:
+
+def getRemoteTypeForLocalType(LocalType: Type[object]) -> Type[RemoteBaseObject]:
 	if issubclass(LocalType, enum.IntEnum):
 		return RemoteIntEnum
 	elif issubclass(LocalType, NoneType):
@@ -738,8 +806,10 @@ def getRemoteTypeForLocalType(LocalType: type[object]) -> type[RemoteBaseObject]
 
 # Import some more complex types after defining the base classes to avoid circular imports
 # flake8: noqa: F401
-from .intEnum import RemoteIntEnum  # noqa: I001
+# flake8: noqa: E402
+from .intEnum import RemoteIntEnum
 from .extensionTarget import RemoteExtensionTarget
 from .cacheRequest import RemoteCacheRequest
 from .element import RemoteElement
+from .textPattern import RemoteTextPattern
 from .textRange import RemoteTextRange
