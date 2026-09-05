@@ -132,7 +132,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
         with:
-          name: upstream-audit-${{ env.TARGET_REF }}
+          name: upstream-audit
           path: |
             upstream-audit.json
             upstream-audit.md
