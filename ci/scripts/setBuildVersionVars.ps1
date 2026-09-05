@@ -20,7 +20,9 @@ if ($env:GITHUB_REF_TYPE -eq "tag" -and $env:GITHUB_REF_NAME.StartsWith("release
 	} elseif ($env:GITHUB_REF_NAME -eq "master") {
 		$version = "alpha-$BUILD_NUMBER,$commitVersion"
 	} else {
-		$version = "$env:GITHUB_REF_NAME-$BUILD_NUMBER,$commitVersion"
+		# Branch names can contain '/', which would turn the launcher filename into nested directories.
+		$versionRefName = $env:GITHUB_REF_NAME.Replace("/", "-")
+		$version = "$versionRefName-$BUILD_NUMBER,$commitVersion"
 		if ($env:GITHUB_REF_NAME.StartsWith("try-release-")) {
 			Write-Output "release=1" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 		}
