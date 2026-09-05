@@ -59,7 +59,8 @@ jobs:
     name: Build NVDA
     needs: matrix
     runs-on: ${{ needs.matrix.outputs.defaultRunner }}
-    timeout-minutes: 15
+    # A cold multi-architecture build plus runtime packaging and cache upload can exceed 15 minutes.
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
