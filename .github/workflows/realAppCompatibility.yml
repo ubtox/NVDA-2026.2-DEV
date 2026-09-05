@@ -61,9 +61,11 @@ jobs:
 
       - name: Set build variables
         shell: pwsh
-        run: |
-          ci/scripts/setBuildVersionVars.ps1
-          ci/scripts/setSconsArgs.ps1
+        run: ci/scripts/setBuildVersionVars.ps1
+
+      - name: Set SCons arguments
+        shell: pwsh
+        run: ci/scripts/setSconsArgs.ps1
 
       - name: Build NVDA source
         shell: cmd
