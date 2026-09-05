@@ -23,7 +23,7 @@ jobs:
           fetch-depth: 1
           submodules: false
 
-      - name: Initialize uv workspace submodules only
+      - name: Initialize local package submodules
         shell: pwsh
         run: git submodule update --init --depth 1 miscDeps include/nvda-mathcat
 
@@ -36,7 +36,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
 
-      - name: Migrate project pins to Python 3.14.7
+      - name: Migrate project pins and local package model to Python 3.14.7
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -48,6 +48,20 @@ jobs:
             $text = $text.Replace('requires-python = ">=3.13,<3.14"', 'requires-python = ">=3.14,<3.15"')
             Set-Content -NoNewline -Path $path -Value $text
           }
+
+          # uv workspaces require one intersecting requires-python range for every member.
+          # Keep the same local packages, but model them as path dependencies so their
+          # conservative upper bounds do not prevent NVDA from validating Python 3.14.
+          $rootProject = 'pyproject.toml'
+          $rootText = Get-Content -Raw $rootProject
+          $rootText = $rootText.Replace('nvda-misc-deps = { workspace = true }', 'nvda-misc-deps = { path = "miscDeps" }')
+          $rootText = $rootText.Replace('nvda-mathcat = { workspace = true }', 'nvda-mathcat = { path = "include/nvda-mathcat" }')
+          $rootText = [regex]::Replace(
+            $rootText,
+            '(?ms)^\[tool\.uv\.workspace\]\r?\nmembers = \[\r?\n\t"miscDeps",\r?\n\t"include/nvda-mathcat",\r?\n\]\r?\n',
+            ''
+          )
+          Set-Content -NoNewline -Path $rootProject -Value $rootText
 
           Get-ChildItem '.github/workflows' -Filter '*.yml' -File | ForEach-Object {
             $text = Get-Content -Raw $_.FullName
