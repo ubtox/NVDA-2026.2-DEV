@@ -83,7 +83,9 @@ jobs:
         shell: pwsh
         env:
           nvdaLauncherDir: ${{ github.workspace }}\output
-        run: ci/scripts/installNVDA.ps1
+        run: |
+          New-Item -ItemType Directory -Force -Path testOutput\install | Out-Null
+          ci/scripts/installNVDA.ps1
 
       - name: Run VS Code system tests
         shell: pwsh
