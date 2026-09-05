@@ -38,8 +38,8 @@ jobs:
         shell: bash
         run: |
           git remote add upstream https://github.com/nvaccess/nvda.git
-          git fetch --no-tags --depth=2 upstream db1768ac342ea9030ec7ac1970f8cd72b095aee4
-          git cherry-pick -x db1768ac342ea9030ec7ac1970f8cd72b095aee4
+          git fetch --no-tags --depth=2 upstream acb904f88ebdbfb7415cddc2188a38f36a675243
+          git cherry-pick -x acb904f88ebdbfb7415cddc2188a38f36a675243
 
       - name: Verify exact change scope
         shell: pwsh
