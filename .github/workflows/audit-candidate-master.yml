@@ -1,0 +1,43 @@
+name: Audit reconciled candidate against master
+
+on:
+  push:
+    branches:
+      - audit/upstream-2026.2-references
+    paths:
+      - '.github/workflows/audit-candidate-master.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Compare candidate to official master
+        shell: bash
+        run: |
+          set -euo pipefail
+          CANDIDATE=35f03a27b06385cd6675651737c8467580222dfb
+          UPSTREAM=4dd8aec18f27b4c583180fda235fd596cef74de0
+          git fetch --no-tags --depth=1 origin "$CANDIDATE"
+          git remote add nvaccess https://github.com/nvaccess/nvda.git
+          git fetch --no-tags --depth=1 nvaccess "$UPSTREAM"
+          {
+            echo "Candidate: $CANDIDATE"
+            echo "Upstream:  $UPSTREAM"
+            echo
+            echo "Changed paths:"
+            git diff --name-status "$UPSTREAM" "$CANDIDATE"
+            echo
+            echo "Numstat:"
+            git diff --numstat "$UPSTREAM" "$CANDIDATE"
+          } > CANDIDATE-VS-OFFICIAL-MASTER.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CANDIDATE-VS-OFFICIAL-MASTER.txt
+          git commit -m "audit: record reconciled candidate delta from official master"
+          git push origin HEAD:audit/upstream-2026.2-references
