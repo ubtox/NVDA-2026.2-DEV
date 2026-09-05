@@ -6,6 +6,7 @@
 """Unit tests for the languageHandler module."""
 
 import unittest
+from unittest.mock import patch
 import winBindings.kernel32
 import languageHandler
 from languageHandler import LCID_NONE, LCIDS_TO_TRANSLATED_LOCALES
@@ -48,6 +49,15 @@ class TestLocaleNameToWindowsLCID(unittest.TestCase):
 	def test_invalidLocale(self):
 		lcid = languageHandler.localeNameToWindowsLCID("zzzz")
 		self.assertEqual(lcid, LCID_NONE)
+
+
+class TestWindowsLCIDToLocaleName(unittest.TestCase):
+	def test_centralKurdishUsesTranslationCode(self):
+		with patch.dict(locale.windows_locale, {1170: "ku_IQ"}):
+			self.assertEqual(languageHandler.windowsLCIDToLocaleName(1170), "ckb")
+
+	def test_standardLocaleStillUsesPythonMapping(self):
+		self.assertEqual(languageHandler.windowsLCIDToLocaleName(LCID_ENGLISH_US), "en_US")
 
 
 class Test_Normalization_For_Win32(unittest.TestCase):

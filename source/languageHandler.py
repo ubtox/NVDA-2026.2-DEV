@@ -60,9 +60,8 @@ LCIDS_TO_TRANSLATED_LOCALES = {
 }
 """
 Map Windows locale identifiers to language codes.
-These are Windows LCIDs that are used in NVDA but are not found in locale.windows_locale.
-These have been added when new locales have been introduced to the translation system and
-we cannot use the results from the Windows function LCIDToLocaleName.
+These mappings take precedence over locale.windows_locale and Windows because their
+language codes must match NVDA's translation catalogues.
 """
 
 
@@ -135,15 +134,15 @@ def windowsLCIDToLocaleName(lcid: int) -> str | None:
 
 	localeName = _LCIDS_TO_TRANSLATED_LOCALES_OVERRIDES.get(lcid)
 	if not localeName:
+		# Python 3.13.15 maps Central Kurdish to ku_IQ, but NVDA's translation is ckb.
+		localeName = LCIDS_TO_TRANSLATED_LOCALES.get(lcid)
+	if not localeName:
 		# From the locale.windows_locale in-line code documentation: (#4203)
 		# This list has been updated to include every locale up to Windows Vista.
 		# NOTE: this mapping is incomplete and out of date.
 		# We should stop relying on it and use Windows API calls instead.
 		# https://github.com/python/cpython/issues/123853
 		localeName = locale.windows_locale.get(lcid)
-	# Check a manual mapping before using Windows to look up the correct LCID locale name.
-	if not localeName:
-		localeName = LCIDS_TO_TRANSLATED_LOCALES.get(lcid)
 	if not localeName:
 		localeName = winKernel.LCIDToLocaleName(lcid)
 	if localeName:
