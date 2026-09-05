@@ -80,7 +80,7 @@ class WordDocument(IAccessible, EditableTextWithoutAutoSelectDetection, winWordW
 				break
 			try:
 				headingFormat = row.headingFormat
-			except (COMError, AttributeError, NameError):
+			except COMError, AttributeError, NameError:
 				headingFormat = 0
 			if headingFormat == -1:  # is a header row
 				numHeaderRows += 1
@@ -129,7 +129,7 @@ class WordDocument(IAccessible, EditableTextWithoutAutoSelectDetection, winWordW
 		# but we get a COMError when accessing the range (#6827)
 		try:
 			tableRangesEqual = tableRange.isEqual(self._curHeaderCellTrackerTable.range)
-		except (COMError, AttributeError):
+		except COMError, AttributeError:
 			tableRangesEqual = False
 		if not tableRangesEqual:
 			self._curHeaderCellTracker = tableUtils.HeaderCellTracker()
@@ -350,7 +350,7 @@ class WordDocument(IAccessible, EditableTextWithoutAutoSelectDetection, winWordW
 		category=SCRCAT_SYSTEMCARET,
 		speakOnDemand=True,
 	)
-	def script_reportCurrentComment(self, gesture: "inputCore.InputGesture") -> None:
+	def script_reportCurrentComment(self, gesture: inputCore.InputGesture) -> None:
 		info = self.makeTextInfo(textInfos.POSITION_CARET)
 		info.expand(textInfos.UNIT_CHARACTER)
 		fields = info.getTextWithFields(formatConfig={"reportComments": True})

@@ -30,7 +30,7 @@ class EnabledStatus(DisplayStringEnum):
 	DISABLED = enum.auto()
 
 	@property
-	def _displayStringLabels(self) -> dict["EnabledStatus", str]:
+	def _displayStringLabels(self) -> dict[EnabledStatus, str]:
 		return {
 			# Translators: The label of an option to filter the list of add-ons in the add-on store dialog.
 			self.ALL: pgettext("addonStore", "All"),
@@ -77,7 +77,7 @@ class AvailableAddonStatus(DisplayStringEnum):
 	RUNNING = enum.auto()  # enabled and active.
 
 	@property
-	def _displayStringLabels(self) -> dict["AvailableAddonStatus", str]:
+	def _displayStringLabels(self) -> dict[AvailableAddonStatus, str]:
 		return {
 			# Translators: Status for addons shown in the add-on store dialog
 			self.PENDING_REMOVE: pgettext("addonStore", "Pending removal"),
@@ -165,7 +165,7 @@ class _StatusFilterKey(DisplayStringEnum):
 	INCOMPATIBLE = enum.auto()
 
 	@property
-	def _displayStringLabels(self) -> dict["_StatusFilterKey", str]:
+	def _displayStringLabels(self) -> dict[_StatusFilterKey, str]:
 		return {
 			# Translators: The label of a tab to display installed add-ons in the add-on store.
 			# Ensure the translation matches the label for the add-on list which includes an accelerator key.
@@ -182,7 +182,7 @@ class _StatusFilterKey(DisplayStringEnum):
 		}
 
 	@property
-	def _displayStringLabelsWithAccelerators(self) -> dict["_StatusFilterKey", str]:
+	def _displayStringLabelsWithAccelerators(self) -> dict[_StatusFilterKey, str]:
 		return {
 			# Translators: The label of the add-ons list in the corresponding panel.
 			# Preferably use the same accelerator key for the four labels.
@@ -214,7 +214,7 @@ class _StatusFilterKey(DisplayStringEnum):
 			raise e  # noqa: TRY201
 
 
-def _getDownloadableStatus(model: "_AddonGUIModel") -> AvailableAddonStatus | None:
+def _getDownloadableStatus(model: _AddonGUIModel) -> AvailableAddonStatus | None:
 	from ..dataManager import addonDataManager
 
 	assert addonDataManager is not None
@@ -241,8 +241,8 @@ def _getDownloadableStatus(model: "_AddonGUIModel") -> AvailableAddonStatus | No
 
 
 def _canUpdateAddon(
-	availableAddon: "_AddonStoreModel",
-	baseAddon: "_AddonStoreModel | AddonHandlerModel",
+	availableAddon: _AddonStoreModel,
+	baseAddon: _AddonStoreModel | AddonHandlerModel,
 ) -> bool | None:
 	"""Check if an add-on can be updated.
 
@@ -277,7 +277,7 @@ def _canUpdateAddon(
 		raise TypeError(f"Unexpected type: {type(baseAddon)}")
 
 
-def _getUpdateStatus(model: "_AddonGUIModel") -> AvailableAddonStatus | None:
+def _getUpdateStatus(model: _AddonGUIModel) -> AvailableAddonStatus | None:
 	"""Get the update status for an add-on.
 
 	:param model: Add-on to check if it can be updated.
@@ -329,7 +329,7 @@ def _getUpdateStatus(model: "_AddonGUIModel") -> AvailableAddonStatus | None:
 			raise ValueError(f"Unexpected value: {canUpdateAddon}")
 
 
-def _getInstalledStatus(model: "_AddonGUIModel") -> AvailableAddonStatus | None:
+def _getInstalledStatus(model: _AddonGUIModel) -> AvailableAddonStatus | None:
 	from addonHandler import state as addonHandlerState  # noqa: I001
 	from ..dataManager import addonDataManager
 
@@ -358,7 +358,7 @@ def _getInstalledStatus(model: "_AddonGUIModel") -> AvailableAddonStatus | None:
 	return None
 
 
-def getStatus(model: "_AddonGUIModel", context: _StatusFilterKey) -> AvailableAddonStatus:
+def getStatus(model: _AddonGUIModel, context: _StatusFilterKey) -> AvailableAddonStatus:
 	"""Get status for an add-on in the context of the current tab in the add-on store.
 	e.g. "update available" from the update tab, and "installed (incompatible)" from the installed tab.
 
@@ -484,7 +484,7 @@ and the values are which statuses should be shown for a given filter.
 
 class SupportsAddonState(SupportsVersionCheck, Protocol):
 	@property
-	def _stateHandler(self) -> "AddonsState":
+	def _stateHandler(self) -> AddonsState:
 		from addonHandler import state
 
 		return state

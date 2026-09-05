@@ -69,7 +69,7 @@ def newVARIANT_value_fset(self, value):
 	if isinstance(value, _Pointer):
 		try:
 			value = value.contents
-		except (NameError, AttributeError):
+		except NameError, AttributeError:
 			pass
 	VARIANT.VALUE_FSEWT_ORIG(self, value)
 	if realValue is not value:
@@ -92,7 +92,7 @@ def new__getattr__(self, name):
 
 	try:
 		return comtypes.client.lazybind.Dispatch.__getattr__orig(self, name)
-	except (NameError, AttributeError):
+	except NameError, AttributeError:
 		return getattr(comtypes.client.dynamic._Dispatch(self._comobj), name)
 
 

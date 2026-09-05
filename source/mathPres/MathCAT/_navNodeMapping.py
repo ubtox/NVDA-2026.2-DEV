@@ -115,8 +115,8 @@ def removeSyntheticIdsFromMathMl(mathml: str) -> str:
 
 def prepareMathMlForNavigation(
 	mathml: str,
-	sourceObj: "NVDAObject | None",
-) -> tuple[str, dict[MathMlNodeId, "RectLTRB"]]:
+	sourceObj: NVDAObject | None,
+) -> tuple[str, dict[MathMlNodeId, RectLTRB]]:
 	"""Add missing ids to MathML and map node ids to IA2 rectangles."""
 	if not sourceObj:
 		return mathml, {}

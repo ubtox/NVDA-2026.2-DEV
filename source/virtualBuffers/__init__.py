@@ -146,7 +146,7 @@ class VirtualBufferQuickNavItem(browseMode.TextInfoQuickNavItem):
 					)["level"],
 				):
 					return True
-			except (KeyError, ValueError, TypeError):
+			except KeyError, ValueError, TypeError:
 				return False
 		return super().isChild(parent)
 
@@ -296,7 +296,7 @@ class VirtualBufferTextInfo(browseMode.BrowseModeDocumentTextInfo, textInfos.off
 				int(attrs.get("controlIdentifier_docHandle")),
 				int(attrs.get("controlIdentifier_ID")),
 			)
-		except (LookupError, ValueError):
+		except LookupError, ValueError:
 			log.debugWarning("unable to get offsets used to fetch content")
 			return placeholder
 		else:
@@ -431,7 +431,7 @@ class VirtualBufferTextInfo(browseMode.BrowseModeDocumentTextInfo, textInfos.off
 					continue
 				try:
 					start, end = self._getOffsetsFromFieldIdentifier(int(docHandle), int(ID))
-				except (LookupError, ValueError):
+				except LookupError, ValueError:
 					continue
 				textList.append(self.obj.makeTextInfo(textInfos.offsets.Offsets(start, end)).text)
 			attrs["table-%sheadertext" % axis] = "\n".join(textList)  # noqa: UP031

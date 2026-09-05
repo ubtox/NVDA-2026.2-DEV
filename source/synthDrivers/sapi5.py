@@ -212,7 +212,7 @@ class _SapiEvent(SPEVENT):
 		return hr == hresult.S_OK
 
 	@staticmethod
-	def enumerateFrom(eventSource: _Pointer[ISpEventSource]) -> Generator["_SapiEvent"]:
+	def enumerateFrom(eventSource: _Pointer[ISpEventSource]) -> Generator[_SapiEvent]:
 		"""Enumerate all events in the event source."""
 		while True:
 			event = _SapiEvent()
@@ -240,7 +240,7 @@ class SynthDriverAudioStream(COMObject):
 
 	_com_interfaces_ = [ISpAudio, ISpEventSource, ISpEventSink]  # noqa: RUF012
 
-	def __init__(self, synthRef: weakref.ReferenceType["SynthDriver"]):
+	def __init__(self, synthRef: weakref.ReferenceType[SynthDriver]):
 		self.synthRef = synthRef
 		self._writtenBytes = 0
 		self.waveFormat = WAVEFORMATEX()
@@ -449,7 +449,7 @@ class SapiSink(COMObject):
 
 	_com_interfaces_ = [ISpNotifySink]  # noqa: RUF012
 
-	def __init__(self, synthRef: weakref.ReferenceType["SynthDriver"]):
+	def __init__(self, synthRef: weakref.ReferenceType[SynthDriver]):
 		self.synthRef = synthRef
 
 	def ISpNotifySink_Notify(self):

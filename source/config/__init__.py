@@ -157,7 +157,7 @@ def isInstalledCopy() -> bool:
 	k.Close()
 	try:
 		return os.stat(instDir) == os.stat(globalVars.appDir)
-	except (OSError, FileNotFoundError):
+	except OSError, FileNotFoundError:
 		log.error(  # noqa: G201
 			"Failed to access the installed NVDA directory,"
 			"or, a portable copy failed to access the current NVDA app directory",
@@ -1213,7 +1213,7 @@ class AggregatedSection:
 		for profile in reversed(self.profiles):
 			try:
 				val = profile[key]
-			except (KeyError, TypeError):
+			except KeyError, TypeError:
 				# Indicate that this key doesn't exist in this profile.
 				subProfiles.append(None)
 				continue
@@ -1560,7 +1560,7 @@ class AllowUiaInChromium(Enum):
 	NO = 3
 
 	@staticmethod
-	def getConfig() -> "AllowUiaInChromium":
+	def getConfig() -> AllowUiaInChromium:
 		allow = AllowUiaInChromium(conf["UIA"]["allowInChromium"])
 		if allow == AllowUiaInChromium._DEFAULT:
 			return AllowUiaInChromium.WHEN_NECESSARY
@@ -1574,7 +1574,7 @@ class AllowUiaInMSWord(Enum):
 	ALWAYS = 3
 
 	@staticmethod
-	def getConfig() -> "AllowUiaInMSWord":
+	def getConfig() -> AllowUiaInMSWord:
 		allow = AllowUiaInMSWord(conf["UIA"]["allowInMSWord"])
 		if allow == AllowUiaInMSWord._DEFAULT:
 			return AllowUiaInMSWord.WHERE_SUITABLE

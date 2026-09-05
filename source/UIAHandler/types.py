@@ -15,20 +15,20 @@ class _IUIAutomationTextRangeT(Protocol):
 	# https://docs.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomationtextrange
 	# Currently incomplete.
 
-	def clone(self) -> "IUIAutomationTextRangeT": ...
+	def clone(self) -> IUIAutomationTextRangeT: ...
 
-	def compare(self, other: "IUIAutomationTextRangeT") -> bool: ...
+	def compare(self, other: IUIAutomationTextRangeT) -> bool: ...
 
 	def CompareEndpoints(
 		self,
 		source: int,
-		rangeObject: "IUIAutomationTextRangeT",
+		rangeObject: IUIAutomationTextRangeT,
 		target: int,
 	) -> int: ...
 
 	def ExpandToEnclosingUnit(self, unit: int) -> None: ...
 
-	def findText(self) -> "IUIAutomationTextRangeT": ...
+	def findText(self) -> IUIAutomationTextRangeT: ...
 
 	def GetBoundingRectangles(self) -> list: ...
 
@@ -39,7 +39,7 @@ class _IUIAutomationTextRangeT(Protocol):
 	def MoveEndpointByRange(
 		self,
 		source: int,
-		rangeObject: "IUIAutomationTextRangeT",
+		rangeObject: IUIAutomationTextRangeT,
 		target: int,
 	) -> None: ...
 

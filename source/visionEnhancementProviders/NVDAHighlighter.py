@@ -97,7 +97,7 @@ class HighlightWindow(CustomWindow):
 
 	@override
 	@classmethod
-	def _get__wClass(cls) -> "WNDCLASSEXW":
+	def _get__wClass(cls) -> WNDCLASSEXW:
 		wClass = super()._wClass
 		wClass.style = winUser.CS_HREDRAW | winUser.CS_VREDRAW
 		wClass.hbrBackground = winBindings.gdi32.CreateSolidBrush(cls.transparentColor)
@@ -132,7 +132,7 @@ class HighlightWindow(CustomWindow):
 		self._prevContextRects = {}
 		user32.InvalidateRect(self.handle, None, True)
 
-	def __init__(self, highlighter: "NVDAHighlighter"):
+	def __init__(self, highlighter: NVDAHighlighter):
 		if vision._isDebug():
 			log.debug("initializing NVDAHighlighter window")
 		super().__init__(
@@ -177,7 +177,7 @@ class HighlightWindow(CustomWindow):
 			# wx might not be aware of the display change at this point
 			core.callLater(100, self.updateLocationForDisplays)
 
-	def _getDrawRects(self, highlighter: "NVDAHighlighter") -> dict[Context, RectLTRB]:
+	def _getDrawRects(self, highlighter: NVDAHighlighter) -> dict[Context, RectLTRB]:
 		"""
 		Calculates the logical rectangles that should be drawn based on the highlighter's state.
 		Handles logic like merging Focus and Navigator if they overlap.
@@ -571,7 +571,7 @@ class NVDAHighlighter(providerBase.VisionEnhancementProvider):
 		self,
 		context: Context,
 		rect: RectLTRB | None = None,
-		obj: "NVDAObject | None" = None,
+		obj: NVDAObject | None = None,
 	) -> None:
 		"""Updates the position rectangle of the highlight for the specified context.
 		If rect is specified, the method directly writes the rectangle to the contextToRectMap.
@@ -582,11 +582,11 @@ class NVDAHighlighter(providerBase.VisionEnhancementProvider):
 		if rect is None:
 			try:
 				rect = getContextRect(context, obj=obj)
-			except (LookupError, ValueError, RuntimeError, TypeError):
+			except LookupError, ValueError, RuntimeError, TypeError:
 				rect = None
 		self.contextToRectMap[context] = rect
 
-	def handleFocusChange(self, obj: "NVDAObject") -> None:
+	def handleFocusChange(self, obj: NVDAObject) -> None:
 		self.updateContextRect(context=Context.FOCUS, obj=obj)
 		if not api.isObjectInActiveTreeInterceptor(obj):
 			self.contextToRectMap.pop(Context.BROWSEMODE, None)
@@ -596,7 +596,7 @@ class NVDAHighlighter(providerBase.VisionEnhancementProvider):
 	def handleReviewMove(self, context: Context) -> None:
 		self.updateContextRect(context=Context.NAVIGATOR)
 
-	def handleBrowseModeMove(self, obj: "CursorManager | None" = None) -> None:
+	def handleBrowseModeMove(self, obj: CursorManager | None = None) -> None:
 		self.updateContextRect(context=Context.BROWSEMODE)
 
 	def handleMathNavigation(self, rect: RectLTRB | None) -> None:

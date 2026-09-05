@@ -43,7 +43,7 @@ def _getTextInfoAtCaret() -> textInfos.TextInfo:
 	if (focus.role == controlTypes.Role.EDITABLETEXT) or (focus.role == controlTypes.Role.DOCUMENT):
 		try:
 			ti = focus.makeTextInfo(textInfos.POSITION_CARET)
-		except (NotImplementedError, RuntimeError):
+		except NotImplementedError, RuntimeError:
 			pass
 	return ti
 

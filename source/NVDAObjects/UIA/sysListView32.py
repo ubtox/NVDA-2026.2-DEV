@@ -105,14 +105,14 @@ class SysListViewItem(ListItem):
 		itemIndex = 0
 		try:
 			itemIndex = self.indexInParent + 1
-		except (COMError, NotImplementedError):
+		except COMError, NotImplementedError:
 			pass
 		if itemIndex > 0:
 			info["indexInGroup"] = itemIndex
 			itemCount = 0
 			try:
 				itemCount = self.parent.rowCount
-			except (COMError, NotImplementedError):
+			except COMError, NotImplementedError:
 				pass
 			if itemCount > 0:
 				info["similarItemsInGroup"] = itemCount

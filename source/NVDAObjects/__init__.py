@@ -193,7 +193,7 @@ class DynamicNVDAObjectType(baseObject.ScriptableObject.__class__):
 		"""
 		cls._dynamicClassCache.clear()
 
-	def _insertLockScreenObject(self, clsList: list["NVDAObject"]) -> None:
+	def _insertLockScreenObject(self, clsList: list[NVDAObject]) -> None:
 		"""
 		Inserts LockScreenObject to the start of the clsList if Windows is locked.
 		"""
@@ -298,7 +298,7 @@ class NVDAObject(
 		"""
 		raise NotImplementedError
 
-	def findOverlayClasses(self, clsList: list[type["NVDAObject"]]) -> None:
+	def findOverlayClasses(self, clsList: list[type[NVDAObject]]) -> None:
 		"""
 		Chooses overlay classes which should be added to this object's class structure,
 		after the object has been initially instantiated.
@@ -322,7 +322,7 @@ class NVDAObject(
 
 	beTransparentToMouse = False  #:If true then NVDA will never consider the mouse to be on this object, rather it will be on an ancestor.
 
-	def objectFromPointRedirect(self, x: int, y: int) -> "NVDAObject | None":
+	def objectFromPointRedirect(self, x: int, y: int) -> NVDAObject | None:
 		"""Redirects NVDA to another object if this object is retrieved from on-screen coordinates.
 		:param x: the x coordinate.
 		:param y: the y coordinate.
@@ -331,7 +331,7 @@ class NVDAObject(
 		return
 
 	@staticmethod
-	def objectFromPoint(x: int, y: int) -> "NVDAObject":
+	def objectFromPoint(x: int, y: int) -> NVDAObject:
 		"""Retrieves an NVDAObject instance representing a control in the Operating System at the given x and y coordinates.
 		:param x: the x coordinate.
 		:param y: the y coordinate.
@@ -468,9 +468,9 @@ class NVDAObject(
 			self._treeInterceptor = None
 
 	#: Type definition for auto prop '_get_appModule'
-	appModule: "appModuleHandler.AppModule"
+	appModule: appModuleHandler.AppModule
 
-	def _get_appModule(self) -> "appModuleHandler.AppModule":
+	def _get_appModule(self) -> appModuleHandler.AppModule:
 		"""Retrieves the appModule representing the application this object is a part of by
 		asking L{appModuleHandler}.
 		@return: the appModule
@@ -672,10 +672,10 @@ class NVDAObject(
 		).format(left=percentFromLeft, top=percentFromTop, width=percentWidth, height=percentHeight)
 
 	#: Typing information for auto-property: _get_parent
-	parent: typing.Optional["NVDAObject"]
+	parent: NVDAObject | None
 	"This object's parent (the object that contains this object)."
 
-	def _get_parent(self) -> typing.Optional["NVDAObject"]:
+	def _get_parent(self) -> NVDAObject | None:
 		"""Retrieves this object's parent (the object that contains this object).
 		@return: the parent object if it exists else None.
 		"""
@@ -691,45 +691,45 @@ class NVDAObject(
 		return parent
 
 	#: Typing information for auto-property: _get_next
-	next: typing.Optional["NVDAObject"]
+	next: NVDAObject | None
 	"The object directly after this object with the same parent."
 
-	def _get_next(self) -> typing.Optional["NVDAObject"]:
+	def _get_next(self) -> NVDAObject | None:
 		"""Retrieves the object directly after this object with the same parent.
 		@return: the next object if it exists else None.
 		"""
 		return None
 
 	#: Typing information for auto-property: _get_previous
-	previous: typing.Optional["NVDAObject"]
+	previous: NVDAObject | None
 	"The object directly before this object with the same parent."
 
-	def _get_previous(self) -> typing.Optional["NVDAObject"]:
+	def _get_previous(self) -> NVDAObject | None:
 		"""Retrieves the object directly before this object with the same parent.
 		@return: the previous object if it exists else None.
 		"""
 		return None
 
 	#: Type definition for auto prop '_get_firstChild'
-	firstChild: typing.Optional["NVDAObject"]
+	firstChild: NVDAObject | None
 
-	def _get_firstChild(self) -> typing.Optional["NVDAObject"]:
+	def _get_firstChild(self) -> NVDAObject | None:
 		"""Retrieves the first object that this object contains.
 		@return: the first child object if it exists else None.
 		"""
 		return None
 
 	#: Type definition for auto prop '_get_lastChild'
-	lastChild: typing.Optional["NVDAObject"]
+	lastChild: NVDAObject | None
 
-	def _get_lastChild(self) -> typing.Optional["NVDAObject"]:
+	def _get_lastChild(self) -> NVDAObject | None:
 		"""Retrieves the last object that this object contains.
 		@return: the last child object if it exists else None.
 		"""
 		return None
 
 	#: Type definition for auto prop '_get_children'
-	children: list["NVDAObject"]
+	children: list[NVDAObject]
 
 	def _get_children(self):
 		"""Retrieves a list of all the objects directly contained by this object (who's parent is this object).
@@ -746,7 +746,7 @@ class NVDAObject(
 			child = child.next
 		return children
 
-	def getChild(self, index: int) -> "NVDAObject":
+	def getChild(self, index: int) -> NVDAObject:
 		"""Retrieve a child by index.
 		@note: Subclasses may override this if they have an efficient way to retrieve a single, arbitrary child.
 			The base implementation uses L{children}.
@@ -1178,9 +1178,9 @@ class NVDAObject(
 		return True
 
 	#: Type definition for auto prop '_get_statusBar'
-	statusBar: Optional["NVDAObject"]
+	statusBar: NVDAObject | None
 
-	def _get_statusBar(self) -> Optional["NVDAObject"]:
+	def _get_statusBar(self) -> NVDAObject | None:
 		"""Finds the closest status bar in relation to this object.
 		@return: the found status bar else None
 		"""
@@ -1205,7 +1205,7 @@ class NVDAObject(
 		"""Announces this object in a way suitable such that it gained focus."""
 		speech.speakObject(self, reason=controlTypes.OutputReason.FOCUS)
 
-	def isDescendantOf(self, obj: "NVDAObject") -> bool:
+	def isDescendantOf(self, obj: NVDAObject) -> bool:
 		"""is this object a descendant of obj?"""
 		raise NotImplementedError
 
@@ -1438,11 +1438,11 @@ class NVDAObject(
 			if issubclass(parent.TextInfo, DisplayModelTextInfo):
 				try:
 					return parent.makeTextInfo(api.getReviewPosition().pointAtStart)
-				except (NotImplementedError, LookupError):
+				except NotImplementedError, LookupError:
 					pass
 				try:
 					return parent.makeTextInfo(self)
-				except (NotImplementedError, RuntimeError):
+				except NotImplementedError, RuntimeError:
 					pass
 				return parent.makeTextInfo(textInfos.POSITION_FIRST)
 			parent = parent.simpleParent
@@ -1647,8 +1647,8 @@ class NVDAObject(
 			return None
 		return ti.getLinkTypeInDocument(self.value)
 
-	linkData: "_LinkData | None"
+	linkData: _LinkData | None
 
-	def _get_linkData(self) -> "_LinkData | None":
+	def _get_linkData(self) -> _LinkData | None:
 		"""If the object has an associated link, returns the link's data (target and text)."""
 		raise NotImplementedError

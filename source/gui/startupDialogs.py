@@ -40,7 +40,7 @@ class WelcomeDialog(
 		"Press NVDA+n at any time to activate the NVDA menu.\n"
 		"From this menu, you can configure NVDA, get help, and access other NVDA functions.",
 	)
-	_instances: set["WelcomeDialog"] = weakref.WeakSet()
+	_instances: set[WelcomeDialog] = weakref.WeakSet()
 
 	def __init__(self, parent):
 		# Translators: The title of the Welcome dialog when user starts NVDA for the first time.
@@ -72,7 +72,7 @@ class WelcomeDialog(
 		try:
 			index = self.kbdNames.index(config.conf["keyboard"]["keyboardLayout"])
 			self.kbdList.SetSelection(index)
-		except (ValueError, KeyError):
+		except ValueError, KeyError:
 			log.error("Could not set Keyboard layout list to current layout", exc_info=True)  # noqa: G201
 		# Translators: The label of a checkbox in the Welcome dialog.
 		capsAsNVDAModifierText = _("&Use CapsLock as an NVDA modifier key")

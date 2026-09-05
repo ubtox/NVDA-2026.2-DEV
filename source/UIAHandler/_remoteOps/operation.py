@@ -64,7 +64,7 @@ class OperationException(RuntimeError):
 			instructions = operation._rob.getAllInstructions()
 			try:
 				self.instructionRecord = instructions[self.errorLocation]
-			except (IndexError, RuntimeError):
+			except IndexError, RuntimeError:
 				self.instructionRecord = None
 		super().__init__(f"Operation failed with status {executionResult.status}")
 

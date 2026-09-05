@@ -68,7 +68,7 @@ class NvdaPythonConsoleUIOutputClear(ScriptableObject):
 		description=_("Clear the output pane"),
 		category=SCRCAT_PYTHON_CONSOLE,
 	)
-	def script_clearOutput(self, gesture: "inputCore.InputGesture"):
+	def script_clearOutput(self, gesture: inputCore.InputGesture):
 		from pythonConsole import consoleUI
 
 		consoleUI.clear()
@@ -86,7 +86,7 @@ class NvdaPythonConsoleUIOutputCtrl(ScriptableObject):
 		description=_("Move to the next result"),
 		category=SCRCAT_PYTHON_CONSOLE,
 	)
-	def script_moveToNextResult(self, gesture: "inputCore.InputGesture"):
+	def script_moveToNextResult(self, gesture: inputCore.InputGesture):
 		self._resultNavHelper(direction="next", select=False)
 
 	@script(
@@ -96,7 +96,7 @@ class NvdaPythonConsoleUIOutputCtrl(ScriptableObject):
 		description=_("Move to the previous result"),
 		category=SCRCAT_PYTHON_CONSOLE,
 	)
-	def script_moveToPrevResult(self, gesture: "inputCore.InputGesture"):
+	def script_moveToPrevResult(self, gesture: inputCore.InputGesture):
 		self._resultNavHelper(direction="previous", select=False)
 
 	@script(
@@ -106,7 +106,7 @@ class NvdaPythonConsoleUIOutputCtrl(ScriptableObject):
 		description=_("Select until the end of the current result"),
 		category=SCRCAT_PYTHON_CONSOLE,
 	)
-	def script_selectToResultEnd(self, gesture: "inputCore.InputGesture"):
+	def script_selectToResultEnd(self, gesture: inputCore.InputGesture):
 		self._resultNavHelper(direction="next", select=True)
 
 	@script(
@@ -116,7 +116,7 @@ class NvdaPythonConsoleUIOutputCtrl(ScriptableObject):
 		description=_("Select until the start of the current result"),
 		category=SCRCAT_PYTHON_CONSOLE,
 	)
-	def script_selectToResultStart(self, gesture: "inputCore.InputGesture"):
+	def script_selectToResultStart(self, gesture: inputCore.InputGesture):
 		self._resultNavHelper(direction="previous", select=True)
 
 	def _resultNavHelper(self, direction: str = "next", select: bool = False):

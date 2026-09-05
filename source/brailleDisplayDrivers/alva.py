@@ -535,7 +535,7 @@ class InputGesture(braille.display.gesture.BrailleDisplayGesture, braille.input.
 			else:
 				try:
 					keyName = ALVA_KEYS[group][number]
-				except (KeyError, IndexError):
+				except KeyError, IndexError:
 					log.debugWarning("Unknown key with group %d and number %d" % (group, number))  # noqa: UP031
 					return
 				names.append(keyName)

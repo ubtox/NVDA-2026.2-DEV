@@ -426,7 +426,7 @@ class NvdaLib:
 		return saveToPath
 
 
-def getSpyLib() -> "NVDASpyLib":
+def getSpyLib() -> NVDASpyLib:
 	"""Gets the spy library instance. This has been augmented with methods for all supported keywords.
 	Requires NvdaLib and nvdaSpy (remote library - see speechSpyGlobalPlugin) to be initialised.
 	On failure check order of keywords in Robot log and NVDA log for failures.

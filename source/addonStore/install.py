@@ -3,13 +3,12 @@
 # This file is covered by the GNU General Public License.
 # See the file COPYING for more details.
 
-from os import (  # noqa: I001
+from os import (
 	PathLike,
 )
 from typing import (
 	TYPE_CHECKING,
 	cast,
-	Optional,
 )
 
 import systemUtils
@@ -23,7 +22,7 @@ if TYPE_CHECKING:
 	from addonHandler import AddonBundle, Addon as AddonHandlerModel  # noqa: I001
 
 
-def _getAddonBundleToInstallIfValid(addonPath: str) -> "AddonBundle":
+def _getAddonBundleToInstallIfValid(addonPath: str) -> AddonBundle:
 	"""
 	@param addonPath: path to the 'nvda-addon' file.
 	@return: the addonBundle, if valid
@@ -60,7 +59,7 @@ def _getAddonBundleToInstallIfValid(addonPath: str) -> "AddonBundle":
 	return bundle
 
 
-def _getPreviouslyInstalledAddonById(addon: "AddonBundle") -> Optional["AddonHandlerModel"]:
+def _getPreviouslyInstalledAddonById(addon: AddonBundle) -> AddonHandlerModel | None:
 	assert addonDataManager
 	installedAddon = addonDataManager._installedAddonsCache.installedAddons.get(addon.name)
 	if installedAddon is None or installedAddon.isPendingRemove:

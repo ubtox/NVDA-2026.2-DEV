@@ -102,7 +102,7 @@ ICON_PATH = os.path.join(NVDA_PATH, "images", "nvda.ico")
 DONATE_URL = f"{buildVersion.url}/donate/"
 
 ### Globals
-mainFrame: "MainFrame | None" = None
+mainFrame: MainFrame | None = None
 """Set by initialize. Should be used as the parent for "top level" dialogs.
 """
 

@@ -101,7 +101,7 @@ class InputGestureKeys(braille.display.gesture.BrailleDisplayGesture):
 			else:
 				try:
 					names.append(Keys(key).name)
-				except (KeyError, ValueError):
+				except KeyError, ValueError:
 					log.debug(f"Unknown key with id {key}")
 		if cellIndexesByRange:
 			allIndexes: list[int] = []

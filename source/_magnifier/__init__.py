@@ -19,10 +19,10 @@ from .utils.errorHandling import MagnifierStartError
 if TYPE_CHECKING:
 	from .magnifier import Magnifier
 
-_magnifier: "Magnifier | None" = None
+_magnifier: Magnifier | None = None
 
 
-def createMagnifier(magnifiedView: MagnifiedView) -> "Magnifier":
+def createMagnifier(magnifiedView: MagnifiedView) -> Magnifier:
 	"""
 	Create a magnifier instance based on the specified view.
 
@@ -158,7 +158,7 @@ def changeMagnifiedView(magnifiedView: MagnifiedView) -> None:
 	_magnifier._startMagnifier()
 
 
-def getMagnifier() -> "Magnifier | None":
+def getMagnifier() -> Magnifier | None:
 	"""
 	Get the current magnifier instance.
 

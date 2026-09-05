@@ -26,4 +26,4 @@ class MathMlNodeInfo:
 class MathMlNodeRectInfo:
 	path: MathMlNodePath
 	tag: str
-	rect: "RectLTRB"
+	rect: RectLTRB

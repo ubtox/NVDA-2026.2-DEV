@@ -60,7 +60,7 @@ class MozAnnotation(AnnotationOrigin):
 	Unlike base Ia2Web implementation, the details-roles IA2 attribute is not exposed in Firefox.
 	"""
 
-	_originObj: "Mozilla"
+	_originObj: Mozilla
 
 	def __bool__(self) -> bool:
 		# Unlike base Ia2Web implementation, the details-roles

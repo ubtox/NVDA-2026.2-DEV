@@ -32,7 +32,7 @@ class _SetURLDialog(SettingsDialog):
 		PASSED = auto()
 		FAILED = auto()
 
-	_progressDialog: "gui.IndeterminateProgressDialog | None" = None
+	_progressDialog: gui.IndeterminateProgressDialog | None = None
 	_testStatus: _URLTestStatus = _URLTestStatus.UNTESTED
 
 	def __init__(

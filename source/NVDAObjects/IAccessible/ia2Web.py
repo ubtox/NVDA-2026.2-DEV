@@ -57,7 +57,7 @@ class IA2WebAnnotationTarget(AnnotationTarget):
 
 
 class IA2WebAnnotation(AnnotationOrigin):
-	_originObj: "Ia2Web"
+	_originObj: Ia2Web
 
 	def __bool__(self) -> bool:
 		return bool(
@@ -108,7 +108,7 @@ class IA2WebAnnotation(AnnotationOrigin):
 class Ia2Web(IAccessible):
 	IAccessibleTableUsesTableCellIndexAttrib = True
 
-	def isDescendantOf(self, obj: "NVDAObjects.NVDAObject") -> bool:
+	def isDescendantOf(self, obj: NVDAObjects.NVDAObject) -> bool:
 		if obj.windowHandle != self.windowHandle:
 			# Only supported on the same window.
 			raise NotImplementedError
@@ -140,11 +140,11 @@ class Ia2Web(IAccessible):
 				log.debugWarning(f"Unknown 'description-from' IA2Attribute value: {ia2attrDescriptionFrom}")
 			return controlTypes.DescriptionFrom.UNKNOWN
 
-	annotations: "IA2WebAnnotation"
+	annotations: IA2WebAnnotation
 	"""Typing information for auto property _get_annotations
 	"""
 
-	def _get_annotations(self) -> "AnnotationOrigin":
+	def _get_annotations(self) -> AnnotationOrigin:
 		annotationOrigin = IA2WebAnnotation(self)
 		return annotationOrigin
 
@@ -316,7 +316,7 @@ class Editor(Ia2Web, DocumentWithTableNavigation):
 				raise LookupError("Found hidden cell")
 			# Return the position of the found cell
 			return self.makeTextInfo(cell)
-		except (COMError, RuntimeError):
+		except COMError, RuntimeError:
 			# Any of the above calls could throw a COMError, and sometimes a RuntimeError.
 			# Treet this as the cell not existing.
 			raise LookupError
@@ -349,7 +349,7 @@ class Math(Ia2Web):
 		)
 		return mathChildren[0] if len(mathChildren) == 1 else self
 
-	def _getMathNodeRectFromObj(self, obj: IAccessible) -> "RectLTRB | None":
+	def _getMathNodeRectFromObj(self, obj: IAccessible) -> RectLTRB | None:
 		if obj.hasIrrelevantLocation:
 			return None
 		location = obj.location
@@ -357,7 +357,7 @@ class Math(Ia2Web):
 			return None
 		return location.toLTRB()
 
-	def _getMathNodeInfoByPath(self) -> dict["MathMlNodePath", "MathMlNodeRectInfo"]:
+	def _getMathNodeInfoByPath(self) -> dict[MathMlNodePath, MathMlNodeRectInfo]:
 		"""Map MathML element paths to tag names and screen rectangles for this IA2 math subtree.
 
 		Paths are tuples where each entry indicates an index of a child node to be traversed from the root.

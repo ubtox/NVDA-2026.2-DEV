@@ -136,7 +136,7 @@ class BrailleDisplayDriver(driverHandler.Driver):
 				return True
 		try:
 			next(cls.getManualPorts())
-		except (StopIteration, NotImplementedError):
+		except StopIteration, NotImplementedError:
 			pass
 		else:
 			return True
@@ -229,12 +229,12 @@ class BrailleDisplayDriver(driverHandler.Driver):
 		try:
 			next(bdDetect.getConnectedUsbDevicesForDriver(cls.name))
 			usb = True
-		except (LookupError, StopIteration):
+		except LookupError, StopIteration:
 			usb = False
 		try:
 			next(bdDetect.getPossibleBluetoothDevicesForDriver(cls.name))
 			bluetooth = True
-		except (LookupError, StopIteration):
+		except LookupError, StopIteration:
 			bluetooth = False
 		ports = collections.OrderedDict()
 		if usb or bluetooth:

@@ -65,7 +65,7 @@ class ContentRecognizer(AutoPropertyObject):
 	def recognize(
 		self,
 		pixels: ctypes.Array,
-		imageInfo: "RecogImageInfo",
+		imageInfo: RecogImageInfo,
 		onResult: onRecognizeResultCallbackT,
 	):
 		"""Asynchronously recognize content from an image.

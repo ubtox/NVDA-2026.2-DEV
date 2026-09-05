@@ -292,7 +292,7 @@ class AddonsState(collections.UserDict[AddonStateCategory, CaseInsensitiveSet[st
 			try:
 				with open(statePath, "wt", encoding="utf-8") as file:
 					json.dump(self.toDict(), file)
-			except (OSError, TypeError):
+			except OSError, TypeError:
 				log.debugWarning("Error saving state", exc_info=True)
 			return True
 		return False

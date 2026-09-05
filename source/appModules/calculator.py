@@ -116,7 +116,7 @@ class AppModule(appModuleHandler.AppModule):
 			try:
 				element = walker.getFirstChildElement(uiItemWindow)
 				element = element.buildUpdatedCache(UIAHandler.handler.baseCacheRequest)
-			except (ValueError, COMError):
+			except ValueError, COMError:
 				return
 			resultElement = UIA(UIAElement=element)
 			# Display string announcement is redundant if speak typed characters is on.

@@ -83,7 +83,7 @@ class WinwordWordDocument(WordDocument):
 			return super()._get_description()
 
 	@script(gestures=["kb:control+alt+o", "kb:control+alt+p"])
-	def script_changeViewType(self, gesture: "inputCore.InputGesture") -> None:
+	def script_changeViewType(self, gesture: inputCore.InputGesture) -> None:
 		if not self.WinwordWindowObject:
 			# We cannot fetch the Word object model, so we therefore cannot report the status change.
 			# The object model may be unavailable because it's within Windows Defender Application Guard.
@@ -123,7 +123,7 @@ class WinwordWordDocument(WordDocument):
 			"kb:numLock+shift+alt+numpadMinus",
 		],
 	)
-	def script_collapseOrExpandHeading(self, gesture: "inputCore.InputGesture") -> None:
+	def script_collapseOrExpandHeading(self, gesture: inputCore.InputGesture) -> None:
 		if not self.WinwordSelectionObject:
 			# We cannot fetch the Word object model, so we therefore cannot report the collapsed state change.
 			# The object model may be unavailable because this is a pure UIA implementation such as Windows 10 Mail,

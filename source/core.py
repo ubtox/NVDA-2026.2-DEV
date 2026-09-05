@@ -12,7 +12,6 @@ from typing import (
 	TYPE_CHECKING,
 	Any,
 	Literal,
-	Optional,
 )
 import comtypes
 import sys
@@ -432,7 +431,7 @@ def _setInitialFocus():
 		log.exception("Error retrieving initial focus")
 
 
-def getWxLangOrNone() -> Optional["wx.LanguageInfo"]:
+def getWxLangOrNone() -> wx.LanguageInfo | None:
 	import wx
 
 	lang = languageHandler.getLanguage()
@@ -622,7 +621,7 @@ def _doLoseFocus():
 			log.exception("Lose focus error")
 
 
-def _setUpWxApp() -> "wx.App":
+def _setUpWxApp() -> wx.App:
 	import wx  # noqa: I001
 
 	import config

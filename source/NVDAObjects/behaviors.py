@@ -56,7 +56,7 @@ class ProgressBar(NVDAObject):
 		val = self.value
 		try:
 			percentage = min(max(0.0, float(val.strip("%\0"))), 100.0)
-		except (AttributeError, ValueError):
+		except AttributeError, ValueError:
 			log.debugWarning("Invalid value: %r" % val)  # noqa: UP031
 			return super().event_valueChange()
 		braille.handler.handleUpdate(self)
@@ -1010,7 +1010,7 @@ class _FakeTableCell(NVDAObject):
 		states.discard(controlTypes.State.CHECKED)
 		return states
 
-	def _isEqual(self, other: "_FakeTableCell") -> bool:
+	def _isEqual(self, other: _FakeTableCell) -> bool:
 		return (
 			self.parent == other.parent
 			and self.columnNumber == other.columnNumber

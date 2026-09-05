@@ -55,7 +55,6 @@ from .types import (
 )
 from typing import (
 	Final,
-	Optional,
 	Any,
 	Self,
 )
@@ -81,7 +80,7 @@ if typing.TYPE_CHECKING:
 	import NVDAObjects
 	from speechXml import MarkCallbackT
 
-_speechState: Optional["SpeechState"] = None
+_speechState: SpeechState | None = None
 _curWordChars: list[str] = []
 IDEOGRAPHIC_COMMA: Final[str] = "\u3001"
 _lastSpeech: tuple[SpeechSequence, characterProcessing.SymbolLevel | None] | None = None
@@ -271,7 +270,7 @@ def speakMessage(
 
 def _getSpeakSsmlSpeech(
 	ssml: str,
-	markCallback: "MarkCallbackT | None" = None,
+	markCallback: MarkCallbackT | None = None,
 	_prefixSpeechCommand: SpeechCommand | None = None,
 ) -> SpeechSequence:
 	"""Gets the speech sequence for given SSML.
@@ -293,7 +292,7 @@ def _getSpeakSsmlSpeech(
 
 def speakSsml(
 	ssml: str,
-	markCallback: "MarkCallbackT | None" = None,
+	markCallback: MarkCallbackT | None = None,
 	symbolLevel: characterProcessing.SymbolLevel | None = None,
 	_prefixSpeechCommand: SpeechCommand | None = None,
 	priority: Spri | None = None,
@@ -668,7 +667,7 @@ def getCharDescListFromText(text, locale):
 
 
 def speakObjectProperties(
-	obj: "NVDAObjects.NVDAObject",
+	obj: NVDAObjects.NVDAObject,
 	reason: OutputReason = OutputReason.QUERY,
 	_prefixSpeechCommand: SpeechCommand | None = None,
 	priority: Spri | None = None,
@@ -688,7 +687,7 @@ def speakObjectProperties(
 # Note: when working on getObjectPropertiesSpeech, look for opportunities to simplify
 # and move logic out into smaller helper functions.
 def getObjectPropertiesSpeech(
-	obj: "NVDAObjects.NVDAObject",
+	obj: NVDAObjects.NVDAObject,
 	reason: OutputReason = OutputReason.QUERY,
 	_prefixSpeechCommand: SpeechCommand | None = None,
 	**allowedProperties,
@@ -857,7 +856,7 @@ def speakObject(
 
 
 def getObjectSpeech(
-	obj: "NVDAObjects.NVDAObject",
+	obj: NVDAObjects.NVDAObject,
 	reason: OutputReason = OutputReason.QUERY,
 	_prefixSpeechCommand: SpeechCommand | None = None,
 ) -> SpeechSequence:
@@ -898,7 +897,7 @@ def getObjectSpeech(
 	if shouldReportTextContent:
 		try:
 			info = obj.makeTextInfo(textInfos.POSITION_SELECTION)
-		except (NotImplementedError, RuntimeError):
+		except NotImplementedError, RuntimeError:
 			info = None
 		if info and not info.isCollapsed:
 			# if there is selected text, then there is a value and we do not report placeholder
@@ -923,7 +922,7 @@ def getObjectSpeech(
 				sequence.extend(
 					mathPres.speechProvider.getSpeechForMathMl(obj.mathMl),
 				)
-			except (NotImplementedError, LookupError):
+			except NotImplementedError, LookupError:
 				pass
 	return sequence
 
@@ -1520,7 +1519,7 @@ def _extendSpeechSequence_addMathForTextInfo(
 		return
 	try:
 		speechSequence.extend(mathPres.speechProvider.getSpeechForMathMl(info.getMathMl(field)))
-	except (NotImplementedError, LookupError):
+	except NotImplementedError, LookupError:
 		return
 
 

@@ -97,7 +97,7 @@ def _onGuiDestroyed():
 	postBrailleViewerToolToggledAction.notify(created=False)
 
 
-def _getDisplayDimensions(dimensions: "DisplayDimensions") -> "DisplayDimensions":
+def _getDisplayDimensions(dimensions: DisplayDimensions) -> DisplayDimensions:
 	"""Called by the :attr:`braille.filter_displayDimensions` extension point to get the display dimensions."""
 	from braille.display import DisplayDimensions  # imported late to avoid a circular import.
 

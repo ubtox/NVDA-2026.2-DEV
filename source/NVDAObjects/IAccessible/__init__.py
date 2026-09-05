@@ -463,7 +463,7 @@ class IA2TextTextInfo(textInfos.offsets.OffsetsTextInfo):
 			if start >= end:
 				raise RuntimeError("did not expand to paragraph correctly")
 			return start, end
-		except (RuntimeError, COMError):
+		except RuntimeError, COMError:
 			return super()._getParagraphOffsets(offset)
 
 	def _lineNumFromOffset(self, offset):
@@ -1206,7 +1206,7 @@ class IAccessible(Window):
 			return False
 		return True
 
-	def _get_labeledBy(self) -> "IAccessible | None":
+	def _get_labeledBy(self) -> IAccessible | None:
 		if isinstance(self.IAccessibleObject, IA2.IAccessible2):
 			label = self._getIA2RelationFirstTarget(IAccessibleHandler.RelationType.LABELLED_BY)
 			if label:
@@ -1488,7 +1488,7 @@ class IAccessible(Window):
 			raise NotImplementedError
 		try:
 			index = int(index)
-		except (ValueError, TypeError):
+		except ValueError, TypeError:
 			log.debugWarning("value %s is not an int" % index, exc_info=True)  # noqa: UP031
 			raise NotImplementedError
 		return index
@@ -1537,7 +1537,7 @@ class IAccessible(Window):
 			raise NotImplementedError
 		try:
 			index = int(index)
-		except (ValueError, TypeError):
+		except ValueError, TypeError:
 			log.debugWarning("value %s is not an int" % index, exc_info=True)  # noqa: UP031
 			raise NotImplementedError
 		return index
@@ -1566,7 +1566,7 @@ class IAccessible(Window):
 			raise NotImplementedError
 		try:
 			count = int(count)
-		except (ValueError, TypeError):
+		except ValueError, TypeError:
 			log.debugWarning("value %s is not an int" % count, exc_info=True)  # noqa: UP031
 			raise NotImplementedError
 		return count
@@ -1590,7 +1590,7 @@ class IAccessible(Window):
 			raise NotImplementedError
 		try:
 			count = int(count)
-		except (ValueError, TypeError):
+		except ValueError, TypeError:
 			log.debugWarning("value %s is not an int" % count, exc_info=True)  # noqa: UP031
 			raise NotImplementedError
 		return count
@@ -1851,7 +1851,7 @@ class IAccessible(Window):
 
 	def _getIA2TargetsForRelationsOfType(
 		self,
-		relationType: "IAccessibleHandler.RelationType",
+		relationType: IAccessibleHandler.RelationType,
 		maxRelations: int = 1,
 	) -> Generator[IUnknown]:
 		"""Gets the target IAccessible (actually IUnknown; use QueryInterface or
@@ -1887,8 +1887,8 @@ class IAccessible(Window):
 
 	def _getIA2RelationFirstTarget(
 		self,
-		relationType: typing.Union[str, "IAccessibleHandler.RelationType"],
-	) -> typing.Optional["IAccessible"]:
+		relationType: str | IAccessibleHandler.RelationType,
+	) -> IAccessible | None:
 		"""Get the first target for the relation of type.
 		@param relationType: The type of relation to fetch.
 		"""
@@ -1908,7 +1908,7 @@ class IAccessible(Window):
 					IAccessibleObject=ia2Object,
 					IAccessibleChildID=0,
 				)
-		except (NotImplementedError, COMError):
+		except NotImplementedError, COMError:
 			log.debugWarning("Unable to use _getIA2TargetsForRelationsOfType, fallback to _IA2Relations.")
 
 		# IA2_2 is not available, fall back to old approach
@@ -1922,14 +1922,14 @@ class IAccessible(Window):
 						IAccessibleObject=ia2Object,
 						IAccessibleChildID=0,
 					)
-		except (NotImplementedError, COMError):
+		except NotImplementedError, COMError:
 			log.debug("Unable to fetch _IA2Relations", exc_info=True)
 		return None
 
 	def _getIA2RelationTargetsOfType(
 		self,
 		relationType: str | IAccessibleHandler.RelationType,
-	) -> typing.Iterable["IAccessible"]:
+	) -> typing.Iterable[IAccessible]:
 		"""Get the targets for the relation of type.
 		Higher level function than _getIA2TargetsForRelationsOfType
 		@param relationType: The type of relation to fetch.
@@ -1957,7 +1957,7 @@ class IAccessible(Window):
 				yield ia
 			# NotImplementedError is expected to occur for all targets or none.
 			return  # Iterated all targets without error.
-		except (NotImplementedError, COMError):
+		except NotImplementedError, COMError:
 			log.debugWarning("Unable to use _getIA2TargetsForRelationsOfType, fallback to _IA2Relations.")
 
 		# IA2_2 is not available, fall back to old approach
@@ -1974,14 +1974,14 @@ class IAccessible(Window):
 							IAccessibleChildID=0,
 						)
 			return
-		except (NotImplementedError, COMError):
+		except NotImplementedError, COMError:
 			log.debug("Unable to fetch _IA2Relations", exc_info=True)
 		return None
 
 	#: Type definition for auto prop '_get_detailsRelations'
-	detailsRelations: tuple["IAccessible"]
+	detailsRelations: tuple[IAccessible]
 
-	def _get_detailsRelations(self) -> tuple["IAccessible"]:
+	def _get_detailsRelations(self) -> tuple[IAccessible]:
 		detailsRelsGen = self._getIA2RelationTargetsOfType(IAccessibleHandler.RelationType.DETAILS)
 		# due to caching of baseObject.AutoPropertyObject, do not attempt to return a generator.
 		return tuple(detailsRelsGen)
@@ -1994,17 +1994,17 @@ class IAccessible(Window):
 		return super().controllerFor
 
 	#: Type definition for auto prop '_get_flowsTo'
-	flowsTo: "IAccessible | None"
+	flowsTo: IAccessible | None
 
-	def _get_flowsTo(self) -> "IAccessible | None":
+	def _get_flowsTo(self) -> IAccessible | None:
 		if isinstance(self.IAccessibleObject, IA2.IAccessible2):
 			return self._getIA2RelationFirstTarget(IAccessibleHandler.RelationType.FLOWS_TO)
 		return super().flowsTo
 
 	#: Type definition for auto prop '_get_flowsFrom'
-	flowsFrom: "IAccessible | None"
+	flowsFrom: IAccessible | None
 
-	def _get_flowsFrom(self) -> "IAccessible | None":
+	def _get_flowsFrom(self) -> IAccessible | None:
 		if isinstance(self.IAccessibleObject, IA2.IAccessible2):
 			return self._getIA2RelationFirstTarget(IAccessibleHandler.RelationType.FLOWS_FROM)
 		return super().flowsFrom
@@ -2209,7 +2209,7 @@ class IAccessible(Window):
 	def _get_language(self):
 		try:
 			ia2Locale = self.IAccessibleObject.locale
-		except (AttributeError, COMError):
+		except AttributeError, COMError:
 			return None
 		if ia2Locale.language and ia2Locale.country:
 			return "%s_%s" % (ia2Locale.language, ia2Locale.country)  # noqa: UP031
@@ -2439,7 +2439,7 @@ class OutlineItem(IAccessible):
 		val = super()._get_value()
 		try:
 			int(val)
-		except (ValueError, TypeError):
+		except ValueError, TypeError:
 			return val
 
 

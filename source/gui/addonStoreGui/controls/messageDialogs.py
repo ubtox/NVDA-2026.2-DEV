@@ -152,7 +152,7 @@ def _shouldProceedWhenInstalledAddonVersionUnknown(
 
 def _shouldProceedToRemoveAddonDialog(
 	parent,
-	addon: "SupportsVersionCheck",
+	addon: SupportsVersionCheck,
 	useRememberChoiceCheckbox: bool = False,
 ) -> tuple[bool, bool]:
 	removeMessage = pgettext(

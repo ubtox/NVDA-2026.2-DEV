@@ -26,11 +26,11 @@ def getObjectPosition(obj):
 	"""
 	try:
 		pos = obj.makeTextInfo(textInfos.POSITION_CARET)
-	except (NotImplementedError, RuntimeError):
+	except NotImplementedError, RuntimeError:
 		# No caret supported, try first position instead
 		try:
 			pos = obj.makeTextInfo(textInfos.POSITION_FIRST)
-		except (NotImplementedError, RuntimeError):
+		except NotImplementedError, RuntimeError:
 			log.debugWarning(
 				"%s does not support POSITION_FIRST, falling back to NVDAObjectTextInfo" % obj.TextInfo,  # noqa: UP031
 			)
@@ -185,6 +185,6 @@ def handleCaretMove(pos):
 	if not info:
 		try:
 			info = obj.makeTextInfo(textInfos.POSITION_CARET)
-		except (NotImplementedError, RuntimeError):
+		except NotImplementedError, RuntimeError:
 			return
 	api.setReviewPosition(info, isCaret=True)

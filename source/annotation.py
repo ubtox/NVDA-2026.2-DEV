@@ -38,11 +38,11 @@ class AnnotationTarget:
 	"""
 
 	@property
-	def role(self) -> Optional["controlTypes.Role"]:
+	def role(self) -> controlTypes.Role | None:
 		raise NotImplementedError
 
 	@property
-	def targetObject(self) -> "NVDAObject":
+	def targetObject(self) -> NVDAObject:
 		raise NotImplementedError
 
 	@property
@@ -59,7 +59,7 @@ class AnnotationOrigin:
 	This class encapsulates the relation.
 	"""
 
-	def __init__(self, originObj: "NVDAObject"):
+	def __init__(self, originObj: NVDAObject):
 		self._originObj: NVDAObject = originObj
 
 	def __bool__(self):
@@ -80,7 +80,7 @@ class _AnnotationNavigationNode:
 	"""Node used in _AnnotationNavigation, for navigating between annotations."""
 
 	_TargetIndex = int  # Type for target index
-	origin: "NVDAObject"  # this is the last known location
+	origin: NVDAObject  # this is the last known location
 	indexOfLastReportedSummary: _TargetIndex | None = None  # this would be the next destination
 
 
@@ -91,4 +91,4 @@ class _AnnotationNavigation:
 	"""
 
 	lastReported: _AnnotationNavigationNode | None = None
-	priorOrigins: list["NVDAObject"] = []  # noqa: RUF012
+	priorOrigins: list[NVDAObject] = []  # noqa: RUF012

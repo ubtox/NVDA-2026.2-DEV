@@ -399,7 +399,7 @@ class MessageDialog(DpiScalingHelperMixinWithoutInit, ContextHelpMixin, wx.Dialo
 	.. warning:: Unless noted otherwise, the message dialog API is **not** thread safe.
 	"""
 
-	_instances: deque["MessageDialog"] = deque()  # noqa: RUF012
+	_instances: deque[MessageDialog] = deque()  # noqa: RUF012
 	"""Double-ended queue of open instances.
 	When programatically closing non-blocking instances or focusing blocking instances, this should operate like a stack (I.E. LIFO behaviour).
 	Random access still needs to be supported for the case of non-modal dialogs being closed out of order.

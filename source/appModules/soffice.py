@@ -444,7 +444,7 @@ class SymphonyDocumentTextInfo(TreeCompoundTextInfo):
 				# Translators: LibreOffice, report cursor position in the current page
 				"cursor positioned {horizontalDistance} from left edge of page, {verticalDistance} from top edge of page",
 			).format(horizontalDistance=horizontalDistanceText, verticalDistance=verticalDistanceText)
-		except (AttributeError, KeyError):
+		except AttributeError, KeyError:
 			return super()._get_locationText()
 
 

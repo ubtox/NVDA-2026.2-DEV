@@ -139,7 +139,7 @@ class BrailleMode(DisplayStringStrEnum):
 	SPEECH_OUTPUT = "speechOutput"
 
 	@property
-	def _displayStringLabels(self) -> dict["BrailleMode", str]:
+	def _displayStringLabels(self) -> dict[BrailleMode, str]:
 		return {
 			# Translators: The label for a braille mode
 			BrailleMode.FOLLOW_CURSORS: _("follow cursors"),
@@ -197,7 +197,7 @@ class ReportSpellingErrors(DisplayStringIntFlag):
 	BRAILLE = 0b100
 
 	@property
-	def _displayStringLabels(self) -> dict["ReportSpellingErrors", str]:
+	def _displayStringLabels(self) -> dict[ReportSpellingErrors, str]:
 		return {
 			# Translators: A value reported by the cycle script defining how spelling errors are reported.
 			ReportSpellingErrors.OFF: pgettext("reportSpellingErrorsSetting", "Off"),
@@ -344,7 +344,7 @@ class ReportNotSupportedLanguage(DisplayStringStrEnum):
 	OFF = "off"
 
 	@property
-	def _displayStringLabels(self) -> dict["ReportNotSupportedLanguage", str]:
+	def _displayStringLabels(self) -> dict[ReportNotSupportedLanguage, str]:
 		return {
 			# Translators: A label for an option to report when the language of the text being read is not supported by the current synthesizer.
 			self.SPEECH: pgettext("reportLanguage", "Speech"),
@@ -378,7 +378,7 @@ class RemoteConnectionMode(DisplayStringIntEnum):
 			RemoteConnectionMode.LEADER: pgettext("remote", "Control another computer"),
 		}
 
-	def toConnectionMode(self) -> "_remoteClient.connectionInfo.ConnectionMode":
+	def toConnectionMode(self) -> _remoteClient.connectionInfo.ConnectionMode:
 		from _remoteClient.connectionInfo import ConnectionMode
 
 		match self:

@@ -169,7 +169,7 @@ class _EventExecuter(garbageHandler.TrackedObject):
 WAS_GAIN_FOCUS_OBJ_ATTR_NAME = "wasGainFocusObj"
 
 
-def _trackFocusObject(eventName: str, obj: "NVDAObjects.NVDAObject") -> None:
+def _trackFocusObject(eventName: str, obj: NVDAObjects.NVDAObject) -> None:
 	"""Keeps track of lastQueuedFocusObject and sets wasGainFocusObj attr on objects.
 	:param eventName: the event type, eg "gainFocus"
 	:param obj: the object to track if focused
@@ -311,7 +311,7 @@ def _getFocusLossCancellableSpeechCommand(
 
 def executeEvent(
 	eventName: str,
-	obj: "NVDAObjects.NVDAObject",
+	obj: NVDAObjects.NVDAObject,
 	**kwargs,
 ) -> None:
 	"""Executes an NVDA event.
@@ -375,7 +375,7 @@ def handlePossibleDesktopNameChange() -> None:
 		_virtualDesktopName = None
 
 
-def doPreGainFocus(obj: "NVDAObjects.NVDAObject", sleepMode: bool = False) -> bool:
+def doPreGainFocus(obj: NVDAObjects.NVDAObject, sleepMode: bool = False) -> bool:
 	if objectBelowLockScreenAndWindowsIsLocked(
 		obj,
 		shouldLog=config.conf["debugLog"]["events"],

@@ -1251,7 +1251,7 @@ class WordDocumentTextInfo(textInfos.TextInfo):
 			try:
 				val = _colorIndexToColor[int(hlColorIndex)]
 				hlColor = self.obj.winwordColorToNVDAColor(val)
-			except (KeyError, ValueError):
+			except KeyError, ValueError:
 				log.debugWarning("highlight color error", exc_info=True)
 			if hlColor is not None:
 				field["highlight-color"] = hlColor
@@ -1712,7 +1712,7 @@ class WordDocument(Window, EditableTextBase):
 					winUser.OBJID_NATIVEOM,
 					interface=comtypes.automation.IDispatch,
 				)
-			except (OSError, COMError):
+			except OSError, COMError:
 				log.debugWarning(
 					"Could not get MS Word object model from window %s with class %s"  # noqa: UP031
 					% (self.documentWindowHandle, winUser.getClassName(self.documentWindowHandle)),
@@ -1791,7 +1791,7 @@ class WordDocument(Window, EditableTextBase):
 			ui.message(_("Italic off"))
 
 	@script(gestures=["kb:control+u", "kb:control+shift+u", "kb:control+shift+d"])
-	def script_toggleUnderline(self, gesture: "inputCore.InputGesture"):
+	def script_toggleUnderline(self, gesture: inputCore.InputGesture):
 		if not self.WinwordSelectionObject:
 			# The object model may be unavailable because this is a pure UIA implementation such as Windows 10 Mail,
 			# or its within Windows Defender Application Guard.
@@ -1820,7 +1820,7 @@ class WordDocument(Window, EditableTextBase):
 			ui.message(_("Underline off"))
 
 	@script(gesture="kb:control+shift+k")
-	def script_toggleCaps(self, gesture: "inputCore.InputGesture"):
+	def script_toggleCaps(self, gesture: inputCore.InputGesture):
 		if not self.WinwordSelectionObject:
 			# We cannot fetch the Word object model, so we therefore cannot report the format change.
 			# The object model may be unavailable because this is a pure UIA implementation such as Windows 10 Mail,
@@ -1843,7 +1843,7 @@ class WordDocument(Window, EditableTextBase):
 			ui.message(_("Caps off"))
 
 	@script(gesture="kb:shift+f3")
-	def script_changeCase(self, gesture: "inputCore.InputGesture"):
+	def script_changeCase(self, gesture: inputCore.InputGesture):
 		if (
 			# We cannot fetch the Word object model, so we therefore cannot report the format change.
 			# The object model may be unavailable because this is a pure UIA implementation such as Windows 10 Mail,
@@ -2128,7 +2128,7 @@ class WordDocument(Window, EditableTextBase):
 			ui.message(_("1.5 line spacing"))
 
 	@script(gesture="kb:control+0")
-	def script_changeParagraphSpacing(self, gesture: "inputCore.InputGesture"):
+	def script_changeParagraphSpacing(self, gesture: inputCore.InputGesture):
 		if not self.WinwordSelectionObject:
 			# We cannot fetch the Word object model, so we therefore cannot report the format change.
 			# The object model may be unavailable because this is a pure UIA implementation such as Windows 10 Mail,
@@ -2150,7 +2150,7 @@ class WordDocument(Window, EditableTextBase):
 			"kb:alt+pageDown",
 		),
 	)
-	def script_caret_moveByCell(self, gesture: "inputCore.InputGesture") -> None:
+	def script_caret_moveByCell(self, gesture: inputCore.InputGesture) -> None:
 		info = self.makeTextInfo(textInfos.POSITION_SELECTION)
 		inTable = self._inTable(info)
 		if not inTable:

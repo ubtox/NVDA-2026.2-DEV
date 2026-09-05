@@ -17,7 +17,7 @@ class Channel(DisplayStringStrEnum):
 	EXTERNAL = "external"  # for add-ons installed externally
 
 	@property
-	def _displayStringLabels(self) -> dict["Channel", str]:
+	def _displayStringLabels(self) -> dict[Channel, str]:
 		return {
 			# Translators: Label for add-on channel in the add-on sotre
 			self.ALL: pgettext("addonStore", "All"),
@@ -95,7 +95,7 @@ class UpdateChannel(DisplayStringIntEnum):
 		return super().displayString
 
 	@property
-	def _displayStringLabels(self) -> dict["UpdateChannel", str]:
+	def _displayStringLabels(self) -> dict[UpdateChannel, str]:
 		return {
 			# Translators: Update channel for an addon.
 			# Same means an add-on only updates to a newer version in the same channel.

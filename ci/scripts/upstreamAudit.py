@@ -68,7 +68,7 @@ def _run_git(root: Path, *args: str) -> str:
 def _is_git_repo(root: Path) -> bool:
 	try:
 		return _run_git(root, "rev-parse", "--is-inside-work-tree") == "true"
-	except (subprocess.CalledProcessError, FileNotFoundError):
+	except subprocess.CalledProcessError, FileNotFoundError:
 		return False
 
 

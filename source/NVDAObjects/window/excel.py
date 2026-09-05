@@ -599,7 +599,7 @@ class ExcelBrowseModeTreeInterceptor(browseMode.BrowseModeTreeInterceptor):
 				self.rootNVDAObject.excelWorksheetObject.name
 				== self.rootNVDAObject.excelApplicationObject.activeSheet.name
 			)
-		except (COMError, AttributeError, NameError):
+		except COMError, AttributeError, NameError:
 			log.debugWarning("could not compare sheet names", exc_info=True)
 			return False
 
@@ -634,7 +634,7 @@ class ExcelBrowseModeTreeInterceptor(browseMode.BrowseModeTreeInterceptor):
 
 		try:
 			isMerged = cellPosition.mergeCells
-		except (COMError, NameError):
+		except COMError, NameError:
 			isMerged = False
 		if isMerged:
 			cellPosition = cellPosition.MergeArea(1)
@@ -790,7 +790,7 @@ class ExcelBase(Window):
 				winUser.OBJID_NATIVEOM,
 				interface=comtypes.automation.IDispatch,
 			)
-		except (OSError, COMError):
+		except OSError, COMError:
 			return None
 		return comtypes.client.dynamic.Dispatch(pDispatch)
 
@@ -839,11 +839,11 @@ class ExcelBase(Window):
 		selection = self.excelWindowObject.Selection
 		try:
 			isMerged = selection.mergeCells
-		except (COMError, NameError):
+		except COMError, NameError:
 			isMerged = False
 		try:
 			numCells = selection.count
-		except (COMError, NameError):
+		except COMError, NameError:
 			numCells = 0
 
 		isChartActive = True if self.excelWindowObject.ActiveChart else False  # noqa: SIM210
@@ -1082,7 +1082,7 @@ class ExcelWorksheet(ExcelBase):
 					# if so, fetch text from the first in the merge as that always contains the content
 					try:
 						headerCell = headerCell.mergeArea.item(1)
-					except (COMError, NameError, AttributeError):
+					except COMError, NameError, AttributeError:
 						pass
 					textList.append(headerCell.text)
 			else:
@@ -1092,7 +1092,7 @@ class ExcelWorksheet(ExcelBase):
 					# if so, fetch text from the first in the merge as that always contains the content
 					try:
 						headerCell = headerCell.mergeArea.item(1)
-					except (COMError, NameError, AttributeError):
+					except COMError, NameError, AttributeError:
 						pass
 					textList.append(headerCell.text)
 			text = " ".join(textList)

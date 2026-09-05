@@ -177,7 +177,7 @@ def getEnclosingElementWithCacheFromUIATextRange(textRange, cacheRequest):
 		raise ValueError("%s is not a text range" % textRange)  # noqa: TRY004, UP031
 	try:
 		textRange = textRange.QueryInterface(UIAHandler.IUIAutomationTextRange3)
-	except (COMError, AttributeError):
+	except COMError, AttributeError:
 		e = textRange.getEnclosingElement()
 		if e:
 			e = e.buildUpdatedCache(cacheRequest)
@@ -207,7 +207,7 @@ def getChildrenWithCacheFromUIATextRange(textRange, cacheRequest):
 		raise ValueError("%s is not a text range" % textRange)  # noqa: TRY004, UP031
 	try:
 		textRange = textRange.QueryInterface(UIAHandler.IUIAutomationTextRange3)
-	except (COMError, AttributeError):
+	except COMError, AttributeError:
 		c = textRange.getChildren()
 		c = CacheableUIAElementArray(c, cacheRequest)
 		return c
@@ -391,7 +391,7 @@ def _getConhostAPILevel(hwnd: int) -> WinConsoleAPILevel:
 				return WinConsoleAPILevel.IMPROVED
 		else:
 			return WinConsoleAPILevel.END_INCLUSIVE
-	except (COMError, ValueError):
+	except COMError, ValueError:
 		log.exception()
 		return WinConsoleAPILevel.END_INCLUSIVE
 
@@ -412,7 +412,7 @@ def _shouldUseWindowsTerminalNotifications() -> bool:
 	return config.conf["terminals"]["wtStrategy"] == WindowsTerminalStrategyFlag.NOTIFICATIONS
 
 
-def _getCachedWindowHandleFromEvent(sender: "UIAHandler.UIA.IUIAutomationElement") -> int | None:
+def _getCachedWindowHandleFromEvent(sender: UIAHandler.UIA.IUIAutomationElement) -> int | None:
 	"""Get the native window handle for a UIA event's sender element.
 
 	This only ever reads the I{cached} native window handle. NVDA registers all event
@@ -435,7 +435,7 @@ def _getCachedWindowHandleFromEvent(sender: "UIAHandler.UIA.IUIAutomationElement
 		return None
 
 
-def _shouldSkipEventForHungWindow(sender: "UIAHandler.UIA.IUIAutomationElement") -> bool:
+def _shouldSkipEventForHungWindow(sender: UIAHandler.UIA.IUIAutomationElement) -> bool:
 	"""Whether a UIA event should be dropped because its window's app is not responding.
 
 	When an application stops responding, any live cross-process COM call against its

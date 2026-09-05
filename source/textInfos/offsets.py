@@ -296,7 +296,7 @@ class OffsetsTextInfo(textInfos.TextInfo, metaclass=_OffsetsTextInfoMeta):
 		textList.append(_("{curPercent:.0f}%").format(curPercent=curPercent))
 		try:
 			curPoint = self.pointAtStart
-		except (NotImplementedError, LookupError):
+		except NotImplementedError, LookupError:
 			curPoint = None
 		if curPoint is not None:
 			# Translators: the current position's screen coordinates in pixels
@@ -314,7 +314,7 @@ class OffsetsTextInfo(textInfos.TextInfo, metaclass=_OffsetsTextInfoMeta):
 			firstVisibleOffset = self._getFirstVisibleOffset()
 			if firstVisibleOffset >= 0:
 				startOffset = max(startOffset, firstVisibleOffset)
-		except (LookupError, NotImplementedError):
+		except LookupError, NotImplementedError:
 			pass
 		getLocationFromOffset = self._getBoundingRectFromOffset
 		try:
@@ -330,7 +330,7 @@ class OffsetsTextInfo(textInfos.TextInfo, metaclass=_OffsetsTextInfoMeta):
 			lastVisibleOffset = self._getLastVisibleOffset()
 			if lastVisibleOffset >= startOffset:
 				inclusiveEndOffset = min(inclusiveEndOffset, lastVisibleOffset)
-		except (LookupError, NotImplementedError):
+		except LookupError, NotImplementedError:
 			pass
 		# If the inclusive end offset is greater than the start offset, we are working with a range.
 		# If not, i.e. the range only contains one character, we have only one location to deal with.
@@ -715,7 +715,7 @@ class OffsetsTextInfo(textInfos.TextInfo, metaclass=_OffsetsTextInfoMeta):
 		if unit == textInfos.UNIT_WORD and self.isCollapsed and self._startOffset == self._getStoryLength():
 			try:
 				flowsTo = self.obj.flowsTo
-			except (AttributeError, NotImplementedError):
+			except AttributeError, NotImplementedError:
 				flowsTo = None
 			if not flowsTo:
 				return

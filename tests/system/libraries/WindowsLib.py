@@ -9,9 +9,6 @@ features.
 
 # imported methods start with underscore (_) so they don't get imported into robot files as keywords
 import typing as _typing  # noqa: I001
-from typing import (
-	Optional as _Optional,
-)
 from SystemTestSpy import (
 	_getLib,
 )
@@ -154,7 +151,7 @@ def taskSwitchToItemMatching(targetWindowNamePattern: _re.Pattern, maxWindowsToT
 			)
 
 
-def _tryOpenTaskSwitcher() -> _Optional["_SpeechIndexT"]:
+def _tryOpenTaskSwitcher() -> _SpeechIndexT | None:
 	"""
 	@return: If the task switcher 'row 1' was spoken, the speech index for the start of the task switcher
 	speech.

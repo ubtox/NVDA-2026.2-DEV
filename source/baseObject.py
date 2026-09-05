@@ -7,7 +7,6 @@
 
 from typing import (  # noqa: I001
 	Any,
-	Union,
 )
 from collections.abc import Callable
 import weakref
@@ -27,9 +26,9 @@ class Getter:
 
 	def __get__(
 		self,
-		instance: Union[Any, None, "AutoPropertyObject"],
+		instance: Any | None | AutoPropertyObject,
 		owner,
-	) -> Union[GetterReturnT, "Getter"]:
+	) -> GetterReturnT | Getter:
 		if isinstance(self.fget, classmethod):
 			return self.fget.__get__(instance, owner)()
 		elif instance is None:
@@ -46,9 +45,9 @@ class Getter:
 class CachingGetter(Getter):
 	def __get__(
 		self,
-		instance: Union[Any, None, "AutoPropertyObject"],
+		instance: Any | None | AutoPropertyObject,
 		owner,
-	) -> Union[GetterReturnT, "CachingGetter"]:
+	) -> GetterReturnT | CachingGetter:
 		if isinstance(self.fget, classmethod):
 			log.warning("Class properties do not support caching")
 			return self.fget.__get__(instance, owner)()

@@ -22,7 +22,7 @@ class VirusTotalScanResults:
 	typeUnsupported: int
 
 	@classmethod
-	def fromDict(cls, addon: dict[str, Any]) -> "VirusTotalScanResults | None":
+	def fromDict(cls, addon: dict[str, Any]) -> VirusTotalScanResults | None:
 		try:
 			scanResults = addon["scanResults"]
 		except KeyError:
@@ -40,7 +40,7 @@ class VirusTotalScanResults:
 				confirmedTimeout=analysisStats["confirmed-timeout"],
 				typeUnsupported=analysisStats["type-unsupported"],
 			)
-		except (KeyError, IndexError, TypeError):
+		except KeyError, IndexError, TypeError:
 			log.error(f"Malformed add-on scan results.: {addon!r}", exc_info=True)  # noqa: G201
 			return None
 

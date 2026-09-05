@@ -138,7 +138,7 @@ POINTER_MESSAGE_FLAG_CANCELED = 0x400
 
 def _browseModeStateChange(
 	browseMode: bool = False,
-	interceptor: "browseMode.BrowseModeTreeInterceptor | None" = None,
+	interceptor: browseMode.BrowseModeTreeInterceptor | None = None,
 	**kwargs,
 ) -> None:
 	if not handler:
@@ -514,7 +514,7 @@ class TouchHandler(threading.Thread):
 			raise ValueError("Unknown mode %s" % mode)  # noqa: UP031
 		self._curTouchMode = mode
 
-	def _executeGesture(self, gesture: "TouchInputGesture") -> None:
+	def _executeGesture(self, gesture: TouchInputGesture) -> None:
 		"""Execute a touch gesture, silently ignoring unbound gestures.
 
 		:param gesture: The gesture to execute.
@@ -526,9 +526,9 @@ class TouchHandler(threading.Thread):
 
 	def _tryBuildSequentialGesture(
 		self,
-		first: "TouchInputGesture",
-		second: "TouchInputGesture",
-	) -> "TouchInputGesture | None":
+		first: TouchInputGesture,
+		second: TouchInputGesture,
+	) -> TouchInputGesture | None:
 		"""Attempt to combine two consecutive flick gestures into a single sequential flick gesture.
 
 		:param first: The first flick gesture.

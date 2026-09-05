@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 	from VSCodeLib import VSCodeLib
 
 _builtIn: BuiltIn = BuiltIn()
-_vscode: "VSCodeLib" = _getLib("VSCodeLib")
+_vscode: VSCodeLib = _getLib("VSCodeLib")
 
 _UNTITLED_FILE_FORMAT = "Untitled-{number}"
 

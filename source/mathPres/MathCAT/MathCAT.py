@@ -93,7 +93,7 @@ class MathCATInteraction(mathPres.MathInteractionNVDAObject):
 		self,
 		provider: mathPres.MathPresentationProvider | None = None,
 		mathMl: str | None = None,
-		sourceObj: "NVDAObject | None" = None,
+		sourceObj: NVDAObject | None = None,
 	) -> None:
 		"""Initialize the MathCATInteraction object.
 
@@ -133,7 +133,7 @@ class MathCATInteraction(mathPres.MathInteractionNVDAObject):
 			self._shouldUpdateMathHighlight = False
 			self._updateMathHighlight()
 
-	def _getHighlightRect(self) -> "RectLTRB | None":
+	def _getHighlightRect(self) -> RectLTRB | None:
 		"""Get the navigation rectangle for a supported web math source object."""
 		sourceObj = self.sourceObj
 		if not sourceObj:
@@ -480,7 +480,7 @@ class MathCAT(mathPres.MathPresentationProvider):
 	def _startMathInteraction(
 		self,
 		mathml: str,
-		sourceObj: "NVDAObject | None" = None,
+		sourceObj: NVDAObject | None = None,
 	) -> None:
 		"""Start interacting with a MathML string.
 
@@ -511,7 +511,7 @@ class MathCAT(mathPres.MathPresentationProvider):
 	def interactWithMathMlFromSource(
 		self,
 		mathml: str,
-		sourceObj: "NVDAObject",
+		sourceObj: NVDAObject,
 	) -> None:
 		"""Interact with MathML from the given source object.
 

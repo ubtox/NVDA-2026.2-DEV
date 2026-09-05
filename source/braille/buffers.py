@@ -272,7 +272,7 @@ class BrailleBuffer(baseObject.AutoPropertyObject):
 										end = newEnd
 										showContinuationMark = True
 										break
-				except (ValueError, IndexError):
+				except ValueError, IndexError:
 					# No space on line - fall back to display-edge cut.
 					if self._isMidWordCut(end, bufferEnd):
 						end -= 1

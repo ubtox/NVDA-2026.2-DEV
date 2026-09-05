@@ -50,7 +50,7 @@ class ConsoleUIATextInfo(UIATextInfo):
 		):
 			try:
 				_rangeObj, collapseToEnd = self._getBoundingRange(obj, position)
-			except (COMError, RuntimeError):
+			except COMError, RuntimeError:
 				# We couldn't bound the console.
 				log.warning("Couldn't get bounding range for console", exc_info=True)
 				# Fall back to presenting the entire buffer.
@@ -103,7 +103,7 @@ class ConsoleUIATextInfo(UIATextInfo):
 				):
 					self._rangeObj = oldInfo._rangeObj
 					return 0
-			except (COMError, RuntimeError):
+			except COMError, RuntimeError:
 				pass
 		return res
 

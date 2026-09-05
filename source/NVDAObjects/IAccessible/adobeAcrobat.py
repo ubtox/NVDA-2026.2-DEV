@@ -99,7 +99,7 @@ class AcrobatNode(IAccessible):
 	def _get_role(self):
 		try:
 			return normalizeStdName(self.pdDomNode.GetStdName())[0]
-		except (AttributeError, LookupError, COMError):
+		except AttributeError, LookupError, COMError:
 			pass
 
 		role = super().role
@@ -111,7 +111,7 @@ class AcrobatNode(IAccessible):
 	def scrollIntoView(self):
 		try:
 			self.pdDomNode.ScrollTo()
-		except (AttributeError, COMError):
+		except AttributeError, COMError:
 			log.debugWarning("IPDDomNode::ScrollTo failed", exc_info=True)
 
 	def _isEqual(self, other):
@@ -288,7 +288,7 @@ class AcrobatTextInfo(NVDAObjectTextInfo):
 			raise RuntimeError("No caret")
 		try:
 			return int(caret.description)
-		except (ValueError, TypeError):
+		except ValueError, TypeError:
 			raise RuntimeError("Bad caret index")
 
 

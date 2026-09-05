@@ -8,7 +8,6 @@ from datetime import datetime  # noqa: I001
 import re
 from typing import (
 	NamedTuple,
-	Optional,
 	TYPE_CHECKING,
 )
 
@@ -117,7 +116,7 @@ class _StatusBarTimes(NamedTuple):
 
 
 class AppModule(appModuleHandler.AppModule):
-	_statusBar: Optional["NVDAObject"] = None
+	_statusBar: NVDAObject | None = None
 
 	def event_gainFocus(self, obj, nextHandler):
 		if not self._statusBar:
@@ -154,7 +153,7 @@ class AppModule(appModuleHandler.AppModule):
 		gesture="kb:control+shift+r",
 		speakOnDemand=True,
 	)
-	def script_reportRemainingTime(self, gesture: "InputGesture"):
+	def script_reportRemainingTime(self, gesture: InputGesture):
 		elapsedTime, totalTime = self.getElapsedAndTotalIfPlaying()
 		parsedElapsedTime = None
 		parsedTotalTime = None
@@ -180,7 +179,7 @@ class AppModule(appModuleHandler.AppModule):
 		gesture="kb:control+shift+e",
 		speakOnDemand=True,
 	)
-	def script_reportElapsedTime(self, gesture: "InputGesture"):
+	def script_reportElapsedTime(self, gesture: InputGesture):
 		elapsedTime = self.getElapsedAndTotalIfPlaying().elapsed
 		if elapsedTime:
 			elapsedTime = _parseTimeStrToOutputFormatted(elapsedTime)
@@ -198,7 +197,7 @@ class AppModule(appModuleHandler.AppModule):
 		gesture="kb:control+shift+t",
 		speakOnDemand=True,
 	)
-	def script_reportTotalTime(self, gesture: "InputGesture"):
+	def script_reportTotalTime(self, gesture: InputGesture):
 		totalTime = self.getElapsedAndTotalIfPlaying().total
 		if totalTime:
 			totalTime = _parseTimeStrToOutputFormatted(totalTime)

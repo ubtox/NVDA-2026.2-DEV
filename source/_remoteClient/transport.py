@@ -35,7 +35,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from logHandler import log
 from queue import Queue
-from typing import Any, Literal, Optional, Self, cast
+from typing import Any, Literal, Self, cast
 
 import wx
 from extensionPoints import Action, HandlerRegistrar
@@ -66,7 +66,7 @@ class RemoteExtensionPoint:
 	filter: Callable[..., dict[str, Any]] | None = None
 	"""Optional function to transform arguments before sending"""
 
-	transport: Optional["Transport"] = None
+	transport: Transport | None = None
 	"""The transport instance (set on registration)"""
 
 	def remoteBridge(self, *args: Any, **kwargs: Any) -> Literal[True]:
@@ -85,7 +85,7 @@ class RemoteExtensionPoint:
 			self.transport.send(self.messageType, **kwargs)
 		return True
 
-	def register(self, transport: "Transport") -> None:
+	def register(self, transport: Transport) -> None:
 		"""Register this bridge with a transport and the extension point."""
 		self.transport = transport
 		self.extensionPoint.register(self.remoteBridge)

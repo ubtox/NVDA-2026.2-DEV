@@ -479,7 +479,7 @@ class BrailleDisplayDriver(braille.display.driver.BrailleDisplayDriver, Scriptab
 			log.debugWarning("Unknown packet of type: %r", packetType)
 
 	@staticmethod
-	def _executeGesture(gesture: "InputGesture") -> None:
+	def _executeGesture(gesture: InputGesture) -> None:
 		"""Execute a gesture, ignoring it if no action is mapped."""
 		try:
 			inputCore.manager.executeGesture(gesture)

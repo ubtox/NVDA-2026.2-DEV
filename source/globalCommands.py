@@ -170,7 +170,7 @@ def toggleBooleanValue(
 def toggleIntegerValue(
 	configSection: str,
 	configKey: str,
-	enumClass: "DisplayStringEnum",
+	enumClass: DisplayStringEnum,
 	messageTemplate: str,
 ) -> None:
 	"""
@@ -314,7 +314,7 @@ class GlobalCommands(ScriptableObject):
 			obj = treeInterceptor
 		try:
 			info = obj.makeTextInfo(textInfos.POSITION_CARET)
-		except (NotImplementedError, RuntimeError):
+		except NotImplementedError, RuntimeError:
 			info = obj.makeTextInfo(textInfos.POSITION_FIRST)
 		info.expand(textInfos.UNIT_LINE)
 		scriptCount = getLastScriptRepeatCount()
@@ -378,7 +378,7 @@ class GlobalCommands(ScriptableObject):
 		),
 		category=SCRCAT_MOUSE,
 	)
-	def script_mouseScrollUp(self, gesture: "inputCore.InputGesture") -> None:
+	def script_mouseScrollUp(self, gesture: inputCore.InputGesture) -> None:
 		mouseHandler.scrollMouseWheel(winUser.WHEEL_DELTA, isVertical=True)
 
 	@script(
@@ -388,7 +388,7 @@ class GlobalCommands(ScriptableObject):
 		),
 		category=SCRCAT_MOUSE,
 	)
-	def script_mouseScrollDown(self, gesture: "inputCore.InputGesture") -> None:
+	def script_mouseScrollDown(self, gesture: inputCore.InputGesture) -> None:
 		mouseHandler.scrollMouseWheel(-winUser.WHEEL_DELTA, isVertical=True)
 
 	@script(
@@ -398,7 +398,7 @@ class GlobalCommands(ScriptableObject):
 		),
 		category=SCRCAT_MOUSE,
 	)
-	def script_mouseScrollLeft(self, gesture: "inputCore.InputGesture") -> None:
+	def script_mouseScrollLeft(self, gesture: inputCore.InputGesture) -> None:
 		mouseHandler.scrollMouseWheel(-winUser.WHEEL_DELTA, isVertical=False)
 
 	@script(
@@ -408,7 +408,7 @@ class GlobalCommands(ScriptableObject):
 		),
 		category=SCRCAT_MOUSE,
 	)
-	def script_mouseScrollRight(self, gesture: "inputCore.InputGesture") -> None:
+	def script_mouseScrollRight(self, gesture: inputCore.InputGesture) -> None:
 		mouseHandler.scrollMouseWheel(winUser.WHEEL_DELTA, isVertical=False)
 
 	@script(
@@ -433,7 +433,7 @@ class GlobalCommands(ScriptableObject):
 			obj = treeInterceptor
 		try:
 			info = obj.makeTextInfo(textInfos.POSITION_SELECTION)
-		except (RuntimeError, NotImplementedError):
+		except RuntimeError, NotImplementedError:
 			info = None
 		if not info or info.isCollapsed:
 			# Translators: The message reported when there is no selection
@@ -470,7 +470,7 @@ class GlobalCommands(ScriptableObject):
 		try:
 			info = obj.makeTextInfo(textInfos.POSITION_SELECTION)
 			return info.copy()
-		except (RuntimeError, NotImplementedError):
+		except RuntimeError, NotImplementedError:
 			return None
 
 	@script(
@@ -617,7 +617,7 @@ class GlobalCommands(ScriptableObject):
 		description=_("Toggles between desktop and laptop keyboard layout"),
 		category=SCRCAT_INPUT,
 	)
-	def script_toggleKeyboardLayout(self, gesture: "inputCore.InputGesture") -> None:
+	def script_toggleKeyboardLayout(self, gesture: inputCore.InputGesture) -> None:
 		val = config.conf["keyboard"]["keyboardLayout"]
 		if val == "desktop":
 			newVal = "laptop"
@@ -636,7 +636,7 @@ class GlobalCommands(ScriptableObject):
 		category=SCRCAT_SPEECH,
 		gesture="kb:NVDA+2",
 	)
-	def script_toggleSpeakTypedCharacters(self, gesture: "inputCore.InputGesture") -> None:
+	def script_toggleSpeakTypedCharacters(self, gesture: inputCore.InputGesture) -> None:
 		toggleIntegerValue(
 			configSection="keyboard",
 			configKey="speakTypedCharacters",
@@ -652,7 +652,7 @@ class GlobalCommands(ScriptableObject):
 		category=SCRCAT_SPEECH,
 		gesture="kb:NVDA+3",
 	)
-	def script_toggleSpeakTypedWords(self, gesture: "inputCore.InputGesture") -> None:
+	def script_toggleSpeakTypedWords(self, gesture: inputCore.InputGesture) -> None:
 		toggleIntegerValue(
 			configSection="keyboard",
 			configKey="speakTypedWords",
@@ -718,7 +718,7 @@ class GlobalCommands(ScriptableObject):
 		),
 		category=SCRCAT_DOCUMENTFORMATTING,
 	)
-	def script_toggleReportFontAttributes(self, gesture: "inputCore.InputGesture"):
+	def script_toggleReportFontAttributes(self, gesture: inputCore.InputGesture):
 		currentValue = config.conf["documentFormatting"]["fontAttributeReporting"]
 		nextValue = OutputMode((currentValue + 1) % len(OutputMode.__members__))
 		match nextValue:
@@ -1378,7 +1378,7 @@ class GlobalCommands(ScriptableObject):
 		reviewPosition = api.getReviewPosition()
 		try:
 			reviewPositionStartPoint = reviewPosition.pointAtStart
-		except (NotImplementedError, LookupError):
+		except NotImplementedError, LookupError:
 			reviewPositionStartPoint = None
 
 		if (
@@ -1533,7 +1533,7 @@ class GlobalCommands(ScriptableObject):
 						info.expand(textInfos.UNIT_LINE)
 						if not info.isCollapsed:
 							textList.append(info.text)
-				except (RuntimeError, NotImplementedError):
+				except RuntimeError, NotImplementedError:
 					# No caret or selection on this object.
 					pass
 			else:
@@ -2035,7 +2035,7 @@ class GlobalCommands(ScriptableObject):
 			info.expand(textInfos.UNIT_PAGE)
 			info.collapse()
 			res = info.move(textInfos.UNIT_PAGE, -1)
-		except (ValueError, NotImplementedError):
+		except ValueError, NotImplementedError:
 			# Translators: a message reported when movement by page is unsupported
 			ui.reviewMessage(_("Movement by page not supported"))
 			return
@@ -2071,7 +2071,7 @@ class GlobalCommands(ScriptableObject):
 			res = info.move(textInfos.UNIT_PAGE, 1)
 			newPage = info.copy()
 			newPage.expand(textInfos.UNIT_PAGE)
-		except (ValueError, NotImplementedError):
+		except ValueError, NotImplementedError:
 			# Translators: a message reported when movement by page is unsupported
 			ui.reviewMessage(_("Movement by page not supported"))
 			return
@@ -2748,7 +2748,7 @@ class GlobalCommands(ScriptableObject):
 			obj = treeInterceptor
 		try:
 			return obj.makeTextInfo(textInfos.POSITION_CARET)
-		except (NotImplementedError, RuntimeError):
+		except NotImplementedError, RuntimeError:
 			if fallbackToPOSITION_FIRST:
 				return obj.makeTextInfo(textInfos.POSITION_FIRST)
 			else:
@@ -3531,7 +3531,7 @@ class GlobalCommands(ScriptableObject):
 		category=SCRCAT_CONFIG,
 	)
 	@gui.blockAction.when(gui.blockAction.Context.MODAL_DIALOG_OPEN)
-	def script_activateVisionSettingsDialog(self, gesture: "inputCore.InputGesture"):
+	def script_activateVisionSettingsDialog(self, gesture: inputCore.InputGesture):
 		wx.CallAfter(gui.mainFrame.onVisionSettingsCommand, None)
 
 	@script(
@@ -3608,7 +3608,7 @@ class GlobalCommands(ScriptableObject):
 		category=SCRCAT_CONFIG,
 	)
 	@gui.blockAction.when(gui.blockAction.Context.MODAL_DIALOG_OPEN)
-	def script_activateRemoteAccessSettings(self, gesture: "inputCore.InputGesture"):
+	def script_activateRemoteAccessSettings(self, gesture: inputCore.InputGesture):
 		wx.CallAfter(gui.mainFrame.onRemoteAccessSettingsCommand, None)
 
 	@script(
@@ -3617,7 +3617,7 @@ class GlobalCommands(ScriptableObject):
 		category=SCRCAT_CONFIG,
 	)
 	@gui.blockAction.when(gui.blockAction.Context.MODAL_DIALOG_OPEN)
-	def script_activateAddonStoreSettings(self, gesture: "inputCore.InputGesture"):
+	def script_activateAddonStoreSettings(self, gesture: inputCore.InputGesture):
 		wx.CallAfter(gui.mainFrame.onAddonStoreSettingsCommand, None)
 
 	@script(
@@ -3626,7 +3626,7 @@ class GlobalCommands(ScriptableObject):
 		category=SCRCAT_CONFIG,
 	)
 	@gui.blockAction.when(gui.blockAction.Context.MODAL_DIALOG_OPEN)
-	def script_activateWindowsOCRSettings(self, gesture: "inputCore.InputGesture"):
+	def script_activateWindowsOCRSettings(self, gesture: inputCore.InputGesture):
 		wx.CallAfter(gui.mainFrame.onUwpOcrCommand, None)
 
 	@script(
@@ -3635,7 +3635,7 @@ class GlobalCommands(ScriptableObject):
 		category=SCRCAT_CONFIG,
 	)
 	@gui.blockAction.when(gui.blockAction.Context.MODAL_DIALOG_OPEN)
-	def script_activateAdvancedSettings(self, gesture: "inputCore.InputGesture"):
+	def script_activateAdvancedSettings(self, gesture: inputCore.InputGesture):
 		wx.CallAfter(gui.mainFrame.onAdvancedSettingsCommand, None)
 
 	@script(
@@ -4756,7 +4756,7 @@ class GlobalCommands(ScriptableObject):
 			return
 		try:
 			p = api.getReviewPosition().pointAtStart
-		except (NotImplementedError, LookupError):
+		except NotImplementedError, LookupError:
 			p = None
 		if p:
 			x = p.x
@@ -4827,12 +4827,12 @@ class GlobalCommands(ScriptableObject):
 				try:
 					mathMl = obj.mathMl
 					sourceObj = obj
-				except (NotImplementedError, LookupError):
+				except NotImplementedError, LookupError:
 					mathMl = None
 		else:
 			try:
 				sourceObj = reviewPosition.NVDAObjectAtStart
-			except (NotImplementedError, LookupError):
+			except NotImplementedError, LookupError:
 				pass
 		if not mathMl:
 			# Translators: Reported when the user attempts math interaction
@@ -5392,7 +5392,7 @@ class GlobalCommands(ScriptableObject):
 		),
 		category=SCRCAT_SYSTEMCARET,
 	)
-	def script_cycleParagraphStyle(self, gesture: "inputCore.InputGesture") -> None:
+	def script_cycleParagraphStyle(self, gesture: inputCore.InputGesture) -> None:
 		from documentNavigation.paragraphHelper import nextParagraphStyle
 
 		newFlag: config.featureFlag.FeatureFlag = nextParagraphStyle()
@@ -5407,7 +5407,7 @@ class GlobalCommands(ScriptableObject):
 		category=SCRCAT_AUDIO,
 		gesture="kb:NVDA+alt+s",
 	)
-	def script_cycleSoundSplit(self, gesture: "inputCore.InputGesture") -> None:
+	def script_cycleSoundSplit(self, gesture: inputCore.InputGesture) -> None:
 		audio._toggleSoundSplitState()
 
 	@script(
@@ -5420,7 +5420,7 @@ class GlobalCommands(ScriptableObject):
 		category=SCRCAT_SYSTEMCARET,
 		speakOnDemand=True,
 	)
-	def script_reportCaretLanguage(self, gesture: "inputCore.InputGesture"):
+	def script_reportCaretLanguage(self, gesture: inputCore.InputGesture):
 		info = self._getTIAtCaret()
 		if info is None:
 			log.debugWarning("No caret")
@@ -5458,7 +5458,7 @@ class GlobalCommands(ScriptableObject):
 		category=SCRCAT_REMOTE,
 	)
 	@gui.blockAction.when(gui.blockAction.Context.REMOTE_ACCESS_DISABLED)
-	def script_toggleRemoteMute(self, gesture: "inputCore.InputGesture"):
+	def script_toggleRemoteMute(self, gesture: inputCore.InputGesture):
 		_remoteClient._remoteClient.toggleMute()
 
 	@script(
@@ -5467,7 +5467,7 @@ class GlobalCommands(ScriptableObject):
 		description=pgettext("remote", "Sends the contents of the clipboard to the remote computer"),
 	)
 	@gui.blockAction.when(gui.blockAction.Context.REMOTE_ACCESS_DISABLED)
-	def script_pushClipboard(self, gesture: "inputCore.InputGesture"):
+	def script_pushClipboard(self, gesture: inputCore.InputGesture):
 		_remoteClient._remoteClient.pushClipboard()
 
 	@script(
@@ -5476,7 +5476,7 @@ class GlobalCommands(ScriptableObject):
 		category=SCRCAT_REMOTE,
 	)
 	@gui.blockAction.when(gui.blockAction.Context.REMOTE_ACCESS_DISABLED)
-	def script_copyRemoteLink(self, gesture: "inputCore.InputGesture"):
+	def script_copyRemoteLink(self, gesture: inputCore.InputGesture):
 		_remoteClient._remoteClient.copyLink()
 
 	@script(
@@ -5485,7 +5485,7 @@ class GlobalCommands(ScriptableObject):
 		description=pgettext("remote", "Disconnects from the current Remote Access session"),
 	)
 	@gui.blockAction.when(gui.blockAction.Context.REMOTE_ACCESS_DISABLED)
-	def script_disconnectFromRemote(self, gesture: "inputCore.InputGesture"):
+	def script_disconnectFromRemote(self, gesture: inputCore.InputGesture):
 		if not _remoteClient._remoteClient.isConnected:
 			# Translators: A message indicating that the remote client is not connected.
 			ui.message(pgettext("remote", "Not connected"))
@@ -5502,7 +5502,7 @@ class GlobalCommands(ScriptableObject):
 		gui.blockAction.Context.SECURE_MODE,
 		gui.blockAction.Context.MODAL_DIALOG_OPEN,
 	)
-	def script_connectToRemote(self, gesture: "inputCore.InputGesture"):
+	def script_connectToRemote(self, gesture: inputCore.InputGesture):
 		if _remoteClient._remoteClient.isConnected() or _remoteClient._remoteClient.isConnecting:
 			# Translators: A message indicating that the remote client is already connected.
 			ui.message(_("Already connected"))
@@ -5516,7 +5516,7 @@ class GlobalCommands(ScriptableObject):
 		gesture="kb:NVDA+alt+r",
 	)
 	@gui.blockAction.when(gui.blockAction.Context.REMOTE_ACCESS_DISABLED)
-	def script_toggleRemoteConnection(self, gesture: "inputCore.InputGesture") -> None:
+	def script_toggleRemoteConnection(self, gesture: inputCore.InputGesture) -> None:
 		if _remoteClient._remoteClient.isConnected() or _remoteClient._remoteClient.isConnecting:
 			self.script_disconnectFromRemote(gesture)
 		else:
@@ -5532,7 +5532,7 @@ class GlobalCommands(ScriptableObject):
 		gesture="kb:NVDA+alt+tab",
 	)
 	@gui.blockAction.when(gui.blockAction.Context.REMOTE_ACCESS_DISABLED)
-	def script_sendKeys(self, gesture: "inputCore.InputGesture"):
+	def script_sendKeys(self, gesture: inputCore.InputGesture):
 		_remoteClient._remoteClient.toggleRemoteKeyControl(gesture)
 
 	@script(
@@ -5544,7 +5544,7 @@ class GlobalCommands(ScriptableObject):
 		category=SCRCAT_REMOTE,
 	)
 	@gui.blockAction.when(gui.blockAction.Context.REMOTE_ACCESS_DISABLED)
-	def script_sendSAS(self, gesture: "inputCore.InputGesture"):
+	def script_sendSAS(self, gesture: inputCore.InputGesture):
 		_remoteClient._remoteClient.sendSAS()
 
 	@script(
@@ -5556,7 +5556,7 @@ class GlobalCommands(ScriptableObject):
 		category=SCRCAT_SPEECH,
 		speakOnDemand=True,
 	)
-	def script_repeatLastSpokenInformation(self, gesture: "inputCore.InputGesture") -> None:
+	def script_repeatLastSpokenInformation(self, gesture: inputCore.InputGesture) -> None:
 		lastSpeech = speech.speech._lastSpeech
 		if lastSpeech is None:
 			return
@@ -5579,7 +5579,7 @@ class GlobalCommands(ScriptableObject):
 		gesture="kb:NVDA+control+x",
 		category=SCRCAT_SPEECH,
 	)
-	def script_copyLastSpokenInformation(self, gesture: "inputCore.InputGesture") -> None:
+	def script_copyLastSpokenInformation(self, gesture: inputCore.InputGesture) -> None:
 		lastSpeech = speech.speech._lastSpeech
 		if lastSpeech is None:
 			# Translators: Reported when there is no last spoken information to copy.

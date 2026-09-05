@@ -309,7 +309,7 @@ class BrailleDisplayDriver(braille.display.driver.BrailleDisplayDriver):
 		# Considering situation where "albatross_read" thread is about to read
 		# but writing to display fails during it - or vice versa - AttributeError
 		# might raise.
-		except (OSError, AttributeError):
+		except OSError, AttributeError:
 			self._disableConnection()
 			log.debug("Trying to reconnect", exc_info=True)
 			return False
@@ -324,7 +324,7 @@ class BrailleDisplayDriver(braille.display.driver.BrailleDisplayDriver):
 			else:
 				log.debug(f"Read: INIT_START_BYTE {INIT_START_BYTE} not in {data}")
 				return False
-		except (OSError, AttributeError):
+		except OSError, AttributeError:
 			self._disableConnection()
 			log.debug(
 				f"INIT_START_BYTE {INIT_START_BYTE} read failed, trying to reconnect",
@@ -355,7 +355,7 @@ class BrailleDisplayDriver(braille.display.driver.BrailleDisplayDriver):
 		# Considering situation where "albatross_read" thread is about to read
 		# but writing to display fails during it - or vice versa - AttributeError
 		# might raise.
-		except (OSError, AttributeError):
+		except OSError, AttributeError:
 			self._disableConnection()
 			log.debug("Settings byte read failed, trying to reconnect", exc_info=True)
 			return False
@@ -377,7 +377,7 @@ class BrailleDisplayDriver(braille.display.driver.BrailleDisplayDriver):
 		# Considering situation where "albatross_read" thread is about to read
 		# but writing to display fails during it - or vice versa - AttributeError
 		# might raise.
-		except (OSError, AttributeError):
+		except OSError, AttributeError:
 			log.debug(
 				f"I/O buffer reset failed on port {self._currentPort}",
 				exc_info=True,
@@ -395,7 +395,7 @@ class BrailleDisplayDriver(braille.display.driver.BrailleDisplayDriver):
 			try:
 				self._dev.close()
 				log.debug(f"Port {self._currentPort} closed")
-			except (AttributeError, OSError):
+			except AttributeError, OSError:
 				log.debug(f"Port {self._currentPort} close failed", exc_info=True)
 		if len(self._oldCells):
 			self._clearOldCells()
@@ -444,7 +444,7 @@ class BrailleDisplayDriver(braille.display.driver.BrailleDisplayDriver):
 		# Considering situation where "albatross_read" thread is about to read
 		# but writing to display fails during it - or vice versa - AttributeError
 		# might raise.
-		except (OSError, AttributeError):
+		except OSError, AttributeError:
 			self._disableConnection()
 			log.debug("Read failed, trying to reconnect", exc_info=True)
 			return None
@@ -513,7 +513,7 @@ class BrailleDisplayDriver(braille.display.driver.BrailleDisplayDriver):
 			# Considering situation where "albatross_read" thread is about to read
 			# but writing to display fails during it - or vice versa - AttributeError
 			# might raise.
-			except (OSError, AttributeError):
+			except OSError, AttributeError:
 				self._disableConnection()
 				log.debug(f"Write failed: {data}, trying to reconnect", exc_info=True)
 
@@ -681,7 +681,7 @@ class BrailleDisplayDriver(braille.display.driver.BrailleDisplayDriver):
 				gestures.InputGestureKeys(pressedKeys, self.name),
 			)
 		# Attribute error which rarely occurs here is something strange.
-		except (inputCore.NoInputGestureAction, AttributeError):
+		except inputCore.NoInputGestureAction, AttributeError:
 			log.debug("", exc_info=True)
 		if self._waitingCtrlPacket:
 			self._waitingCtrlPacket = False

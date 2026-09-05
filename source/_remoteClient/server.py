@@ -384,7 +384,7 @@ class LocalRelayServer:
 		try:
 			clientSock, addr = sock.accept()
 			log.info(f"New client connection from {addr}")
-		except (ssl.SSLError, OSError):
+		except ssl.SSLError, OSError:
 			log.error("Error accepting connection", exc_info=True)  # noqa: G201
 			return
 		# Disable Nagle's algorithm so that packets are always sent immediately.
@@ -392,17 +392,17 @@ class LocalRelayServer:
 		client = Client(server=self, socket=clientSock)
 		self.addClient(client)
 
-	def addClient(self, client: "Client") -> None:
+	def addClient(self, client: Client) -> None:
 		"""Add a new client to the server."""
 		self.clients[client.socket] = client
 		self.clientSockets.append(client.socket)
 
-	def removeClient(self, client: "Client") -> None:
+	def removeClient(self, client: Client) -> None:
 		"""Remove a client from the server."""
 		del self.clients[client.socket]
 		self.clientSockets.remove(client.socket)
 
-	def clientDisconnected(self, client: "Client") -> None:
+	def clientDisconnected(self, client: Client) -> None:
 		"""Handle client disconnection and notify other clients."""
 		log.info(f"Client {client.id} disconnected")
 		self.removeClient(client)

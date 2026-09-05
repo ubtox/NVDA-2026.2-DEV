@@ -74,7 +74,7 @@ class ImeCandidateItem(CandidateItemBehavior, UIA):
 		number = super().keyboardShortcut
 		try:
 			number = int(number)
-		except (ValueError, TypeError):
+		except ValueError, TypeError:
 			pass
 		return number
 
@@ -89,7 +89,7 @@ class ImeCandidateItem(CandidateItemBehavior, UIA):
 	def _get_name(self):
 		try:
 			number = int(self.candidateNumber)
-		except (TypeError, ValueError):
+		except TypeError, ValueError:
 			return super().name
 		candidate = super().name
 		return self.getFormattedCandidateName(number, candidate)

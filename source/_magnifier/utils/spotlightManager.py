@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 class SpotlightManager:
 	def __init__(
 		self,
-		fullscreenMagnifier: "FullScreenMagnifier",
+		fullscreenMagnifier: FullScreenMagnifier,
 	):
 		self._fullscreenMagnifier: FullScreenMagnifier = fullscreenMagnifier
 		self._spotlightIsActive: bool = False

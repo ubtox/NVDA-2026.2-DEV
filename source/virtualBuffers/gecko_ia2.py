@@ -602,7 +602,7 @@ class Gecko_ia2(VirtualBuffer):
 			if cell.IA2Attributes.get("hidden"):
 				raise LookupError("Found hidden cell")
 			return self.makeTextInfo(cell)
-		except (COMError, RuntimeError):
+		except COMError, RuntimeError:
 			raise LookupError
 
 	def _getNearestTableCell(
@@ -627,7 +627,7 @@ class Gecko_ia2(VirtualBuffer):
 			return initialPos
 		return self._initialScrollObj
 
-	def _getStartSelection(self, ia2Sel: "_Ia2Selection", selFields: TextInfo.TextWithFieldsT):
+	def _getStartSelection(self, ia2Sel: _Ia2Selection, selFields: TextInfo.TextWithFieldsT):
 		"""Get the start of the selection.
 
 		:param ia2Sel: Selection object to update.
@@ -669,7 +669,7 @@ class Gecko_ia2(VirtualBuffer):
 		ia2Sel.startObj = ia2Sel.startObj.QueryInterface(IAccessibleText)
 		log.debug(f"ia2 start obj: {ia2Sel.startObj}")
 
-	def _getEndSelection(self, ia2Sel: "_Ia2Selection", selFields: TextInfo.TextWithFieldsT):
+	def _getEndSelection(self, ia2Sel: _Ia2Selection, selFields: TextInfo.TextWithFieldsT):
 		"""Get the end of the selection.
 
 		:param ia2Sel: Selection object to update.
@@ -725,7 +725,7 @@ class Gecko_ia2(VirtualBuffer):
 		try:
 			self.clearAppSelection()
 			self.updateAppSelection()
-		except (NotImplementedError, COMError):
+		except NotImplementedError, COMError:
 			log.debugWarning(
 				"Native selection unsupported in this document, not enabling native selection mode",
 				exc_info=True,

@@ -26,7 +26,7 @@ class FeatureFlagEnumProtocol(Protocol):
 	This definition is provided only for type annotations
 	"""
 
-	DEFAULT: "FlagValueEnum"  # Required enum member
+	DEFAULT: FlagValueEnum  # Required enum member
 	name: str  # comes from enum.Enum
 	value: str  # comes from enum.Enum
 
@@ -128,7 +128,7 @@ class FontFormattingBrailleModeFlag(DisplayStringEnum):
 	TAGS = enum.auto()
 
 	@property
-	def _displayStringLabels(self) -> dict["FontFormattingBrailleModeFlag", str]:
+	def _displayStringLabels(self) -> dict[FontFormattingBrailleModeFlag, str]:
 		return {
 			# Translators: Label for a way of outputting formatting in braille.
 			FontFormattingBrailleModeFlag.LIBLOUIS: _("Liblouis"),
@@ -147,7 +147,7 @@ class WordNavigationUnitFlag(DisplayStringEnum):
 	UNISCRIBE = enum.auto()
 
 	@property
-	def _displayStringLabels(self) -> dict["WordNavigationUnitFlag", str]:
+	def _displayStringLabels(self) -> dict[WordNavigationUnitFlag, str]:
 		return {
 			# Translators: Label for a method of word segmentation.
 			self.AUTO: _("Automatic"),

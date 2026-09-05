@@ -237,7 +237,7 @@ class TestBle(unittest.TestCase):
 		self.runCoroutineSyncPatcher.stop()
 		self.bleakClientPatcher.stop()
 
-	def _makeBle(self, **kwargs) -> "object":
+	def _makeBle(self, **kwargs) -> object:
 		"""Construct a Ble instance and track it for cleanup."""
 
 		ble = self.Ble(**kwargs)

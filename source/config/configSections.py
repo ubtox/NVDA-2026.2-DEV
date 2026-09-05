@@ -105,5 +105,5 @@ def _saveCustomSections() -> None:
 	try:
 		with open(path, "w", encoding="utf-8") as f:
 			yaml.safe_dump(_customSections, f, allow_unicode=True, default_flow_style=False)
-	except (OSError, yaml.YAMLError):
+	except OSError, yaml.YAMLError:
 		log.exception(f"Error saving sections to {path}.")

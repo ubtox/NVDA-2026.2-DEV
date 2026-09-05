@@ -47,9 +47,9 @@ SayAllHandler = None
 
 def initialize(
 	speakFunc: Callable[[SpeechSequence], None],
-	speakObject: "speakObject",
-	getTextInfoSpeech: "getTextInfoSpeech",
-	SpeakTextInfoState: "SpeakTextInfoState",
+	speakObject: speakObject,
+	getTextInfoSpeech: getTextInfoSpeech,
+	SpeakTextInfoState: SpeakTextInfoState,
 ):
 	log.debug("Initializing sayAllHandler")
 	global SayAllHandler
@@ -65,9 +65,9 @@ class _SayAllHandler:
 	def __init__(
 		self,
 		speechWithoutPausesInstance: SpeechWithoutPauses,
-		speakObject: "speakObject",
-		getTextInfoSpeech: "getTextInfoSpeech",
-		SpeakTextInfoState: "SpeakTextInfoState",
+		speakObject: speakObject,
+		getTextInfoSpeech: getTextInfoSpeech,
+		SpeakTextInfoState: SpeakTextInfoState,
 	):
 		self.lastSayAllMode = None
 		self.speechWithoutPausesInstance = speechWithoutPausesInstance
@@ -94,7 +94,7 @@ class _SayAllHandler:
 		"""
 		return bool(self._getActiveSayAll())
 
-	def readObjects(self, obj: "NVDAObjects.NVDAObject", startedFromScript: bool | None = False):
+	def readObjects(self, obj: NVDAObjects.NVDAObject, startedFromScript: bool | None = False):
 		"""Start or restarts the object reader.
 		:param obj: the object to be read
 		:param startedFromScript: whether the current say all action was initially started from a script; use None to keep
@@ -163,12 +163,12 @@ class _Reader(garbageHandler.TrackedObject, metaclass=ABCMeta):
 class _ObjectsReader(_Reader):
 	"""Manages continuous reading of objects."""
 
-	def __init__(self, handler: _SayAllHandler, root: "NVDAObjects.NVDAObject"):
+	def __init__(self, handler: _SayAllHandler, root: NVDAObjects.NVDAObject):
 		super().__init__(handler)
 		self.walker = self.walk(root)
 		self.prevObj = None
 
-	def walk(self, obj: "NVDAObjects.NVDAObject"):
+	def walk(self, obj: NVDAObjects.NVDAObject):
 		yield obj
 		child = obj.simpleFirstChild
 		while child:

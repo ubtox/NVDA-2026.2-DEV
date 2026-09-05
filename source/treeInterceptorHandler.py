@@ -107,7 +107,7 @@ class TreeInterceptor(baseObject.ScriptableObject):
 
 	shouldTrapNonCommandGestures = False  #: If true then gestures that do not have a script and are not a command gesture should be trapped from going through to Windows.
 
-	def __init__(self, rootNVDAObject: "NVDAObjects.NVDAObject"):
+	def __init__(self, rootNVDAObject: NVDAObjects.NVDAObject):
 		super().__init__()
 		self._passThrough = False
 		#: The root object of the tree wherein events and scripts are intercepted.
@@ -227,7 +227,7 @@ class RootProxyTextInfo(textInfos.TextInfo):
 	def activate(self):
 		return self.innerTextInfo.activate()
 
-	def _getLinkDataAtCaretPosition(self) -> "_LinkData | None":
+	def _getLinkDataAtCaretPosition(self) -> _LinkData | None:
 		return self.innerTextInfo._getLinkDataAtCaretPosition()
 
 	def compareEndPoints(self, other, which):

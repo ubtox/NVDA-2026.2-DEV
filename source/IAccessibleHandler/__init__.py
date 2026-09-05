@@ -270,7 +270,7 @@ def getStatesSetFromIAccessible2States(IAccessible2States: int) -> set[State]:
 	)
 
 
-def getStatesSetFromIAccessibleAttrs(attrs: "textInfos.ControlField") -> set[State]:
+def getStatesSetFromIAccessibleAttrs(attrs: textInfos.ControlField) -> set[State]:
 	# States are serialized (in XML) with an attribute per state.
 	# The value for the state is used in the attribute name.
 	# The attribute value is always 1.
@@ -283,7 +283,7 @@ def getStatesSetFromIAccessibleAttrs(attrs: "textInfos.ControlField") -> set[Sta
 	)
 
 
-def getStatesSetFromIAccessible2Attrs(attrs: "textInfos.ControlField") -> set[State]:
+def getStatesSetFromIAccessible2Attrs(attrs: textInfos.ControlField) -> set[State]:
 	# States are serialized (in XML) with an attribute per state.
 	# The value for the state is used in the attribute name.
 	# The attribute value is always 1.
@@ -382,7 +382,7 @@ def accessibleChildren(ia, startIndex, numChildren):
 	# new profiles dialogs
 	try:
 		rawChildren = oleacc.AccessibleChildren(ia, startIndex, numChildren)
-	except (OSError, COMError):
+	except OSError, COMError:
 		log.debugWarning("AccessibleChildren failed", exc_info=True)
 		return []
 	children = []

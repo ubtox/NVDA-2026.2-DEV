@@ -95,7 +95,7 @@ class SynthDriver(driverHandler.Driver):
 	#: @type: str
 	description = ""
 	#: The speech commands supported by the synth.
-	supportedCommands: set[type["SynthCommand"]] = frozenset()
+	supportedCommands: set[type[SynthCommand]] = frozenset()
 	#: The notifications provided by the synth.
 	#: @type: set of L{extensionPoints.Action} instances
 	supportedNotifications = frozenset()
