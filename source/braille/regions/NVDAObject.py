@@ -113,7 +113,7 @@ class NVDAObjectRegion(Region):
 					text += TEXT_SEPARATOR + mathPres.brailleProvider.getBrailleForMathMl(
 						obj.mathMl,
 					)
-				except (NotImplementedError, LookupError):
+				except NotImplementedError, LookupError:
 					pass
 		self.rawText = text + self.appendText
 		super().update()

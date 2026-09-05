@@ -6,13 +6,11 @@
 
 from __future__ import annotations
 from typing import (
-	Type,
 	Any,
-	Callable,
-	Generator,
 	TypeVar,
 	cast,
 )
+from collections.abc import Callable, Generator
 import contextlib
 from comtypes import (
 	GUID,
@@ -53,7 +51,7 @@ class RemoteAPI(builder._RemoteBase):
 		self._op = op
 		self._logObj = self.newString() if enableRemoteLogging else None
 
-	def Return(self, *values: RemoteBaseObject | int | float | str | bool | None):
+	def Return(self, *values: RemoteBaseObject | float | str | bool | None):
 		remoteValues = [RemoteBaseObject.ensureRemote(self.rob, value) for value in values]
 		if len(remoteValues) == 1:
 			remoteValue = remoteValues[0]
@@ -73,7 +71,7 @@ class RemoteAPI(builder._RemoteBase):
 		self._op._returnIdOperand.set(remoteValue.operandId.value)
 		self.halt()
 
-	def Yield(self, *values: RemoteBaseObject | int | float | str | bool | None):
+	def Yield(self, *values: RemoteBaseObject | float | str | bool | None):
 		self.addCompiletimeComment(f"Begin yield {values}")
 		remoteValues = [RemoteBaseObject.ensureRemote(self.rob, value) for value in values]
 		if len(remoteValues) == 1:
@@ -95,7 +93,7 @@ class RemoteAPI(builder._RemoteBase):
 
 	def _newObject(
 		self,
-		RemoteType: Type[_newObject_RemoteType],
+		RemoteType: type[_newObject_RemoteType],
 		value: Any,
 		static: bool = False,
 	) -> _newObject_RemoteType:
@@ -240,7 +238,9 @@ class RemoteAPI(builder._RemoteBase):
 		# Ensure this else block is directly preceded by an if or elif block
 		prevInstruction = self._lastChainedBlockTailInstruction
 		if not isinstance(prevInstruction, instructions.JumpElse):
-			raise RuntimeError(f"Else block not directly preceded by If block. Expected JumpElse, got {prevInstruction.__class__.__name__}")
+			raise RuntimeError(
+				f"Else block not directly preceded by If block. Expected JumpElse, got {prevInstruction.__class__.__name__}",
+			)
 		self._lastChainedBlockTailInstruction = None
 		if not silent:
 			instructionList.addComment("Else block body")
@@ -300,8 +300,8 @@ class RemoteAPI(builder._RemoteBase):
 		start: _range_intTypeVar | int,
 		stop: _range_intTypeVar | int,
 		step: _range_intTypeVar | int = 1,
-	) -> Generator[RemoteIntBase, None, None]:
-		RemoteType: Type[RemoteIntBase] = RemoteInt
+	) -> Generator[RemoteIntBase]:
+		RemoteType: type[RemoteIntBase] = RemoteInt
 		for arg in (start, stop, step):
 			if isinstance(arg, RemoteUint):
 				RemoteType = RemoteUint
@@ -318,7 +318,7 @@ class RemoteAPI(builder._RemoteBase):
 	def forEachItemInArray(
 		self,
 		array: RemoteArray,
-	) -> Generator[RemoteVariant, None, None]:
+	) -> Generator[RemoteVariant]:
 		with self.forEachNumInRange(0, array.size()) as index:
 			yield array[index]
 
@@ -404,7 +404,11 @@ class RemoteAPI(builder._RemoteBase):
 		instructionList = self.rob.getDefaultInstructionList()
 		instructionList.addComment(comment)
 
-	def lookupGuidFromAutomationIdentifier(self, automationIdentifier: RemoteInt, identifierType: AutomationIdentifierType) -> RemoteGuid:
+	def lookupGuidFromAutomationIdentifier(
+		self,
+		automationIdentifier: RemoteInt,
+		identifierType: AutomationIdentifierType,
+	) -> RemoteGuid:
 		result = RemoteGuid(self.rob, self.rob.requestNewOperandId())
 		self.rob.getDefaultInstructionList().addInstruction(
 			instructions.LookupGuid(

@@ -61,7 +61,7 @@ class ScreenExplorer:
 		if not pos:
 			try:
 				pos = obj.makeTextInfo(locationHelper.Point(x, y))
-			except (NotImplementedError, LookupError):
+			except NotImplementedError, LookupError:
 				pass
 			if pos:
 				pos.expand(unit)

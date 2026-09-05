@@ -31,10 +31,12 @@ py_libpath = os.path.join(py_base, "libs")
 py_lib = f"python{py_version.replace('.', '')}"
 
 env = env.Clone()
-env.Append(CPPPATH=[
-	"#include/pybind11/include",
-	py_inc,
-])
+env.Append(
+	CPPPATH=[
+		"#include/pybind11/include",
+		py_inc,
+	],
+)
 env.Append(LIBPATH=[py_libpath])
 
 UIARemoteLib = env.SharedLibrary(
@@ -54,4 +56,4 @@ UIARemoteLib = env.SharedLibrary(
 	SHLIBSUFFIX=".pyd",
 )
 
-Return('UIARemoteLib')
+Return("UIARemoteLib")

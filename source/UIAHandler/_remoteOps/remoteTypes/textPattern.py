@@ -52,5 +52,6 @@ class RemoteTextPattern(RemoteExtensionTarget[POINTER(UIA.IUIAutomationTextPatte
 		)
 		return result
 
+
 from .element import RemoteElement
 from .textRange import RemoteTextRange

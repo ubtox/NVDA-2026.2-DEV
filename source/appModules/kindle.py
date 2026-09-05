@@ -93,7 +93,7 @@ class BookPageViewTreeInterceptor(
 				raise LookupError("Found hidden cell")
 			# Return the position of the found cell
 			return self.makeTextInfo(cell)
-		except (COMError, RuntimeError):
+		except COMError, RuntimeError:
 			# Any of the above calls could throw a COMError, and sometimes a RuntimeError.
 			# Treet this as the cell not existing.
 			raise LookupError

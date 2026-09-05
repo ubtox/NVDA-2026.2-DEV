@@ -88,7 +88,7 @@ class HTMLAttribCache:
 			pass
 		try:
 			value = self.HTMLNode.getAttribute(item)
-		except (COMError, NameError):
+		except COMError, NameError:
 			value = None
 		self.cache[item] = value
 		return value
@@ -102,7 +102,7 @@ class HTMLAttribCache:
 		if not contains:
 			try:
 				contains = self.HTMLNode.hasAttribute(item)
-			except (COMError, NameError):
+			except COMError, NameError:
 				pass
 		self.containsCache[item] = contains
 		return contains
@@ -161,7 +161,7 @@ nodeNamesToNVDARoles: dict[str, int] = {
 def getZoomFactorsFromHTMLDocument(HTMLDocument):
 	try:
 		scr = HTMLDocument.parentWindow.screen
-	except (COMError, NameError, AttributeError):
+	except COMError, NameError, AttributeError:
 		log.debugWarning("no screen object for MSHTML document")
 		return (1, 1)
 	try:
@@ -169,7 +169,7 @@ def getZoomFactorsFromHTMLDocument(HTMLDocument):
 		devY = float(scr.deviceYDPI)
 		logX = float(scr.logicalXDPI)
 		logY = float(scr.logicalYDPI)
-	except (COMError, NameError, AttributeError, TypeError):
+	except COMError, NameError, AttributeError, TypeError:
 		log.debugWarning("unable to fetch DPI factors")
 		return (1, 1)
 	return (devX // logX, devY // logY)
@@ -545,7 +545,7 @@ class MSHTML(IAccessible):
 			elif nodeNamesToNVDARoles.get(nodeName) == controlTypes.Role.DOCUMENT:
 				try:
 					isBodyNode = self.HTMLNodeUniqueNumber == self.HTMLNode.document.body.uniqueNumber
-				except (COMError, NameError):
+				except COMError, NameError:
 					isBodyNode = False
 				if isBodyNode:
 					clsList.append(Body)
@@ -660,7 +660,7 @@ class MSHTML(IAccessible):
 			try:
 				self.HTMLNode.createTextRange()
 				self._HTMLNodeSupportsTextRanges = True
-			except (COMError, NameError):
+			except COMError, NameError:
 				self._HTMLNodeSupportsTextRanges = False
 		if self._HTMLNodeSupportsTextRanges:
 			return MSHTMLTextInfo
@@ -679,7 +679,7 @@ class MSHTML(IAccessible):
 					self.windowHandle == other.windowHandle
 					and self.HTMLNodeUniqueNumber == other.HTMLNodeUniqueNumber
 				)
-			except (COMError, NameError):
+			except COMError, NameError:
 				pass
 		return super()._isEqual(other)
 
@@ -712,12 +712,12 @@ class MSHTML(IAccessible):
 		if ariaLabelledBy:
 			try:
 				labelNode = self.HTMLNode.document.getElementById(ariaLabelledBy)
-			except (COMError, NameError):
+			except COMError, NameError:
 				labelNode = None
 			if labelNode:
 				try:
 					return labelNode.innerText
-				except (COMError, NameError):
+				except COMError, NameError:
 					pass
 		ariaLabel = self.HTMLAttributes["aria-label"]
 		if ariaLabel:
@@ -770,7 +770,7 @@ class MSHTML(IAccessible):
 		if self.HTMLNodeHasAncestorIAccessible:
 			try:
 				value = self.HTMLNode.data
-			except (COMError, NameError):
+			except COMError, NameError:
 				value = ""
 			return value
 		IARole = self.IAccessibleRole
@@ -787,12 +787,12 @@ class MSHTML(IAccessible):
 		if ariaDescribedBy:
 			try:
 				descNode = self.HTMLNode.document.getElementById(ariaDescribedBy)
-			except (COMError, NameError):
+			except COMError, NameError:
 				descNode = None
 			if descNode:
 				try:
 					return descNode.innerText
-				except (COMError, NameError):
+				except COMError, NameError:
 					pass
 		if self.HTMLNodeHasAncestorIAccessible:
 			return ""
@@ -802,11 +802,11 @@ class MSHTML(IAccessible):
 		if self.HTMLNode and not self.HTMLNodeName == "SELECT":  # noqa: SIM201
 			try:
 				return self.HTMLNode.data or ""
-			except (COMError, AttributeError, NameError):
+			except COMError, AttributeError, NameError:
 				pass
 			try:
 				return self.HTMLNode.innerText or super().basicText
-			except (COMError, AttributeError, NameError):
+			except COMError, AttributeError, NameError:
 				pass
 		return super().basicText
 
@@ -909,12 +909,12 @@ class MSHTML(IAccessible):
 		if self.HTMLNode:
 			try:
 				parentNode = self.HTMLNode.parentElement
-			except (COMError, NameError):
+			except COMError, NameError:
 				parentNode = None
 			if not parentNode and self.HTMLNodeHasAncestorIAccessible:
 				try:
 					parentNode = self.HTMLNode.parentNode
-				except (COMError, NameError):
+				except COMError, NameError:
 					parentNode = None
 			if parentNode:
 				obj = MSHTML(HTMLNode=parentNode)
@@ -1019,7 +1019,7 @@ class MSHTML(IAccessible):
 			return
 		try:
 			self.HTMLNode.scrollInToView()
-		except (COMError, NameError):
+		except COMError, NameError:
 			pass
 
 	def doAction(self, index=None):
@@ -1055,7 +1055,7 @@ class MSHTML(IAccessible):
 		if self.HTMLNodeHasAncestorIAccessible:
 			try:
 				self.HTMLNode.focus()
-			except (COMError, AttributeError, NameError):
+			except COMError, AttributeError, NameError:
 				pass
 			return
 		super().setFocus()
@@ -1085,7 +1085,7 @@ class MSHTML(IAccessible):
 		if not hasattr(self, "_HTMLNodeName"):
 			try:
 				self._HTMLNodeName = self.HTMLNode.nodeName
-			except (COMError, NameError):
+			except COMError, NameError:
 				return ""
 			if self._HTMLNodeName:
 				self._HTMLNodeName = self._HTMLNodeName.upper()
@@ -1149,13 +1149,13 @@ class Fieldset(MSHTML):
 	def _get_name(self):
 		try:
 			child = self.HTMLNode.children[0]
-		except (COMError, NameError):
+		except COMError, NameError:
 			child = None
 		if not child:
 			return super().name
 		try:
 			nodeName = child.nodeName
-		except (COMError, NameError):
+		except COMError, NameError:
 			return super().name
 		if nodeName:
 			nodeName = nodeName.upper()
@@ -1163,7 +1163,7 @@ class Fieldset(MSHTML):
 			return super().name
 		try:
 			text = child.innerText
-		except (COMError, NameError):
+		except COMError, NameError:
 			return super().name
 		return text
 

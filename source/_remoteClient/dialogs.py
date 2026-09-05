@@ -34,7 +34,7 @@ class ClientPanel(ContextHelpMixin, wx.Panel):
 	host: wx.ComboBox
 	key: wx.TextCtrl
 	_generateKeyButton: wx.Button
-	_keyConnector: "transport.RelayTransport | None"
+	_keyConnector: transport.RelayTransport | None
 	_keyGenerationProgressDialog: gui.IndeterminateProgressDialog | None = None
 
 	def __init__(self, parent: wx.Window | None = None, id: int = wx.ID_ANY):

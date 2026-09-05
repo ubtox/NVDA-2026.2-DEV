@@ -171,7 +171,7 @@ def getAppNameFromProcessID(processID: int, includeExt: bool = False) -> str:
 	# Try querying the app module for the name of the app being hosted.
 	try:
 		return _importAppModuleForExecutable(appName).getAppNameFromHost(processID)
-	except (AttributeError, LookupError):
+	except AttributeError, LookupError:
 		pass
 	return appName
 
@@ -214,7 +214,7 @@ def getProcessHandleFromProcessId(processId: int, fallBackToTopLevelWindowEnumer
 				raise RuntimeError(f"No window handle found for process {processId} to create process handle")
 			if not (processHandle := _getProcessHandleFromHwnd(foundWindowHandle)):
 				raise ctypes.WinError()
-		except (OSError, RuntimeError):
+		except OSError, RuntimeError:
 			log.debugWarning(
 				f"Unable to get process handle for process {processId} using window enumeration "
 				"and subsequently getting process handle from that window",

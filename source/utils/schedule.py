@@ -14,7 +14,7 @@ import schedule
 from logHandler import log
 import NVDAState
 
-scheduleThread: "ScheduleThread | None" = None
+scheduleThread: ScheduleThread | None = None
 
 
 class ThreadTarget(Enum):

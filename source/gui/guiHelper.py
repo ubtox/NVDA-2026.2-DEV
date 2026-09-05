@@ -368,7 +368,7 @@ class BoxSizerHelper:
 
 	_ItemT = TypeVar("_ItemT")
 
-	def addItem(self, item: "_ItemT", **keywordArgs) -> "_ItemT":
+	def addItem(self, item: _ItemT, **keywordArgs) -> _ItemT:
 		"""Adds an item with space between it and the previous item.
 		Does not handle adding LabledControlHelper; use L{addLabeledControl} instead.
 		@param item: the item to add to the sizer
@@ -442,9 +442,9 @@ class BoxSizerHelper:
 
 	def addDialogDismissButtons(
 		self,
-		buttons: "_ButtonsT",
+		buttons: _ButtonsT,
 		separated: bool = False,
-	) -> "_ButtonsT":
+	) -> _ButtonsT:
 		"""Adds and aligns the buttons for dismissing the dialog; e.g. "ok | cancel". These buttons are expected
 		to be the last items added to the dialog. Buttons that launch an action, do not dismiss the dialog, or are not
 		the last item should be added via L{addItem}

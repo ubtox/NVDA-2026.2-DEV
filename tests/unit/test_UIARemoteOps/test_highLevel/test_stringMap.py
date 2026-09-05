@@ -13,7 +13,6 @@ from UIAHandler._remoteOps import remoteAPI
 
 
 class Test_stringMap(TestCase):
-
 	def test_newStringMap(self):
 		op = operation.Operation(localMode=True)
 
@@ -31,12 +30,12 @@ class Test_stringMap(TestCase):
 		@op.buildFunction
 		def code(ra: remoteAPI.RemoteAPI):
 			sm = ra.newStringMap()
-			sm['a'] = 1
-			sm['b'] = 2
+			sm["a"] = 1
+			sm["b"] = 2
 			ra.Return(sm)
 
 		sm = op.execute()
-		self.assertEqual(sm, {'a': 1, 'b': 2})
+		self.assertEqual(sm, {"a": 1, "b": 2})
 
 	def test_lookup(self):
 		op = operation.Operation(localMode=True)
@@ -44,10 +43,10 @@ class Test_stringMap(TestCase):
 		@op.buildFunction
 		def code(ra: remoteAPI.RemoteAPI):
 			sm = ra.newStringMap()
-			sm['a'] = 1
-			sm['b'] = 2
-			a = sm['a']
-			b = sm['b']
+			sm["a"] = 1
+			sm["b"] = 2
+			a = sm["a"]
+			b = sm["b"]
 			ra.Return(a, b)
 
 		a, b = op.execute()
@@ -60,9 +59,9 @@ class Test_stringMap(TestCase):
 		@op.buildFunction
 		def code(ra: remoteAPI.RemoteAPI):
 			sm = ra.newStringMap()
-			sm['a'] = 1
-			has_a = sm.hasKey('a')
-			has_b = sm.hasKey('b')
+			sm["a"] = 1
+			has_a = sm.hasKey("a")
+			has_b = sm.hasKey("b")
 			ra.Return(has_a, has_b)
 
 		has_a, has_b = op.execute()
@@ -75,13 +74,13 @@ class Test_stringMap(TestCase):
 		@op.buildFunction
 		def code(ra: remoteAPI.RemoteAPI):
 			sm = ra.newStringMap()
-			sm['a'] = "hello"
-			sm['b'] = "goodbye"
-			sm.remove('a')
+			sm["a"] = "hello"
+			sm["b"] = "goodbye"
+			sm.remove("a")
 			ra.Return(sm)
 
 		sm = op.execute()
-		self.assertEqual(sm, {'b': "goodbye"})
+		self.assertEqual(sm, {"b": "goodbye"})
 
 	def test_size(self):
 		op = operation.Operation(localMode=True)
@@ -90,8 +89,8 @@ class Test_stringMap(TestCase):
 		def code(ra: remoteAPI.RemoteAPI):
 			sm = ra.newStringMap()
 			initialSize = sm.size()
-			sm['a'] = 1
-			sm['b'] = 2
+			sm["a"] = 1
+			sm["b"] = 2
 			finalSize = sm.size()
 			ra.Return(initialSize, finalSize)
 

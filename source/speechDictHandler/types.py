@@ -67,7 +67,7 @@ class EntryType(DisplayStringIntEnum):
 		}
 
 
-def _selectRegexEngine(entryType: "EntryType") -> ModuleType:
+def _selectRegexEngine(entryType: EntryType) -> ModuleType:
 	"""Return the regex module to use for compiling a SpeechDictEntry of the
 	given type.
 
@@ -126,7 +126,7 @@ class SpeechDictEntry:
 	"""Whether the match is case sensitive."""
 	type: EntryType = EntryType.ANYWHERE
 	"""The type of the entry."""
-	compiled: "re.Pattern[str] | regex.Pattern[str]" = field(init=False)
+	compiled: re.Pattern[str] | regex.Pattern[str] = field(init=False)
 	"""The compiled regular expression. May be a `re.Pattern` or a
 	`regex.Pattern` depending on the entry type."""
 
@@ -249,7 +249,7 @@ class SpeechDict(list[SpeechDictEntry]):
 		for index, entry in enumerate(self):
 			try:
 				text = entry.sub(text)
-			except (re.error, regex.error):
+			except re.error, regex.error:
 				dictName = self.fileName or DictionaryType.TEMP.value
 				log.exception("Invalid dictionary entry %d in %r: %r", index + 1, dictName, entry.pattern)
 				invalidEntries.append(index)
@@ -328,7 +328,7 @@ class VoiceSpeechDictDefinition(SpeechDictDefinition):
 		# Ignore any attempts to set displayName, as it is computed.
 		pass
 
-	def load(self, synth: "synthDriverHandler.SynthDriver"):
+	def load(self, synth: synthDriverHandler.SynthDriver):
 		"""Loads appropriate dictionary for the given synthesizer.
 		It handles the case when the synthesizer doesn't support the voice setting.
 		"""

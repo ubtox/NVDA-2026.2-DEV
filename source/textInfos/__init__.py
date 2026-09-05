@@ -363,7 +363,7 @@ class TextInfo(baseObject.AutoPropertyObject):
 
 	def __init__(
 		self,
-		obj: "documentBase.TextContainerObject",
+		obj: documentBase.TextContainerObject,
 		position: int | tuple | str,
 	):
 		"""Constructor.
@@ -377,27 +377,27 @@ class TextInfo(baseObject.AutoPropertyObject):
 		self.basePosition = position
 
 	#: Typing information for auto-property: start
-	start: "TextInfoEndpoint"
+	start: TextInfoEndpoint
 
-	def _get_start(self) -> "TextInfoEndpoint":
+	def _get_start(self) -> TextInfoEndpoint:
 		return TextInfoEndpoint(self, True)
 
-	def _set_start(self, otherEndpoint: "TextInfoEndpoint"):
+	def _set_start(self, otherEndpoint: TextInfoEndpoint):
 		self.start.moveTo(otherEndpoint)
 
 	#: Typing information for auto-property: end
-	end: "TextInfoEndpoint"
+	end: TextInfoEndpoint
 
-	def _get_end(self) -> "TextInfoEndpoint":
+	def _get_end(self) -> TextInfoEndpoint:
 		return TextInfoEndpoint(self, False)
 
-	def _set_end(self, otherEndpoint: "TextInfoEndpoint"):
+	def _set_end(self, otherEndpoint: TextInfoEndpoint):
 		self.end.moveTo(otherEndpoint)
 
 	#: Typing information for auto-property: _get_obj
-	obj: "documentBase.TextContainerObject"
+	obj: documentBase.TextContainerObject
 
-	def _get_obj(self) -> "documentBase.TextContainerObject":
+	def _get_obj(self) -> documentBase.TextContainerObject:
 		"""The object containing the range of text being represented."""
 		return self._obj()
 
@@ -446,7 +446,7 @@ class TextInfo(baseObject.AutoPropertyObject):
 	TextOrFieldsT = Union[str, FieldCommand]  # noqa: UP007
 	TextWithFieldsT = list[TextOrFieldsT]
 
-	def getTextWithFields(self, formatConfig: dict | None = None) -> "TextInfo.TextWithFieldsT":
+	def getTextWithFields(self, formatConfig: dict | None = None) -> TextInfo.TextWithFieldsT:
 		"""Retrieves the text in this range, as well as any control/format fields associated therewith.
 		Subclasses may override this. The base implementation just returns the text.
 		@param formatConfig: Document formatting configuration, useful if you wish to force a particular
@@ -459,7 +459,7 @@ class TextInfo(baseObject.AutoPropertyObject):
 		"""A message that explains the location of the text position in friendly terms."""
 		try:
 			curPoint = self.pointAtStart
-		except (NotImplementedError, LookupError):
+		except NotImplementedError, LookupError:
 			return None
 		# Translators: the current position's screen coordinates in pixels
 		return _("Positioned at {x}, {y}").format(x=curPoint.x, y=curPoint.y)
@@ -593,9 +593,9 @@ class TextInfo(baseObject.AutoPropertyObject):
 		raise NotImplementedError
 
 	#: Typing information for auto-property: _get_NVDAObjectAtStart
-	NVDAObjectAtStart: "NVDAObjects.NVDAObject"
+	NVDAObjectAtStart: NVDAObjects.NVDAObject
 
-	def _get_NVDAObjectAtStart(self) -> "NVDAObjects.NVDAObject":
+	def _get_NVDAObjectAtStart(self) -> NVDAObjects.NVDAObject:
 		"""Get the NVDAObject related to the start of the range.
 		Usually it is just the owner NVDAObject, but in the case of virtualBuffers it may be a descendant object.
 		@returns: the NVDAObject at the start
@@ -1029,7 +1029,7 @@ class TextInfoEndpoint:
 		(False, False): "endToEnd",
 	}
 
-	def _cmp(self, other: "TextInfoEndpoint") -> int:
+	def _cmp(self, other: TextInfoEndpoint) -> int:
 		"""
 		A standard cmp function returning:
 		-1 for less than, 0 for equal and 1 for greater than.
@@ -1068,7 +1068,7 @@ class TextInfoEndpoint:
 	def __gt__(self, other) -> bool:
 		return self._cmp(other) > 0
 
-	def moveTo(self, other: "TextInfoEndpoint") -> None:
+	def moveTo(self, other: TextInfoEndpoint) -> None:
 		"""
 		Moves the end of the TextInfo this endpoint represents to the position of the given endpoint.
 		"""

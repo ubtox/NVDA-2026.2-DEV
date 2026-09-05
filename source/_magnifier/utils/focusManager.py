@@ -215,7 +215,7 @@ class FocusManager:
 				if coords != Coordinates(0, 0):
 					self._lastValidReviewPosition = coords
 				return coords
-			except (NotImplementedError, LookupError, AttributeError, COMError, RuntimeError):
+			except NotImplementedError, LookupError, AttributeError, COMError, RuntimeError:
 				# Review position may not support pointAtStart, or COM object may not be IAccessible
 				pass
 		return None

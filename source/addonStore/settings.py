@@ -63,7 +63,7 @@ class _AddonStoreSettings:
 				settingsDict: dict[str, Any] = json.load(storeSettingsFile)
 		except FileNotFoundError:
 			return
-		except (json.JSONDecodeError, UnicodeDecodeError):
+		except json.JSONDecodeError, UnicodeDecodeError:
 			log.exception("Invalid add-on store settings")
 			if NVDAState.shouldWriteToDisk():
 				os.remove(self._storeSettingsFile)
@@ -79,7 +79,7 @@ class _AddonStoreSettings:
 			if not isinstance(settingsDict["showWarning"], bool):
 				raise ValueError("showWarning must be a bool")  # noqa: TRY004
 
-		except (KeyError, ValueError):
+		except KeyError, ValueError:
 			log.exception(f"Invalid add-on store cache:\n{settingsDict}")
 			if NVDAState.shouldWriteToDisk():
 				os.remove(self._storeSettingsFile)

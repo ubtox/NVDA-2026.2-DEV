@@ -12,7 +12,6 @@ from collections.abc import Callable  # noqa: I001
 from datetime import datetime
 from typing import (
 	Any,
-	Optional,
 	Self,
 )
 from uuid import uuid4
@@ -100,7 +99,7 @@ state: dict[str, Any] | None = None
 
 #: The single instance of L{AutoUpdateChecker} if automatic update checking is enabled,
 #: C{None} if it is disabled.
-autoChecker: Optional["AutoUpdateChecker"] = None
+autoChecker: AutoUpdateChecker | None = None
 
 
 @dataclass

@@ -47,7 +47,7 @@ def check_HidP_status(func, *args):
 class HidReport:
 	_reportType: hidpi.HIDP_REPORT_TYPE
 	_reportSize: int
-	_reportBuf: "ctypes.Array"
+	_reportBuf: ctypes.Array
 
 	def __init__(self, device):
 		self._dev = device

@@ -137,7 +137,7 @@ def threadDpiAwarenessContextOfWindow(window: int) -> Iterator[None]:
 		yield
 
 
-def _fetchWindowRect(window: int) -> "locationHelper.RectLTRB":
+def _fetchWindowRect(window: int) -> locationHelper.RectLTRB:
 	"""Fetch a window's bounding rectangle in the current thread's DPI awareness context.
 
 	:param window: The window handle.
@@ -152,7 +152,7 @@ def _fetchWindowRect(window: int) -> "locationHelper.RectLTRB":
 	return locationHelper.RectLTRB.fromCompatibleType(rect)
 
 
-def getPhysicalWindowRect(window: int) -> "locationHelper.RectLTRB":
+def getPhysicalWindowRect(window: int) -> locationHelper.RectLTRB:
 	"""Fetch a window's bounding rectangle in physical screen coordinates.
 
 	NVDA is per monitor DPI aware, so its own view of screen coordinates is physical.
@@ -164,7 +164,7 @@ def getPhysicalWindowRect(window: int) -> "locationHelper.RectLTRB":
 	return _fetchWindowRect(window)
 
 
-def getWindowRectInWindowDpiContext(window: int) -> "locationHelper.RectLTRB":
+def getWindowRectInWindowDpiContext(window: int) -> locationHelper.RectLTRB:
 	"""Fetch a window's bounding rectangle as seen from the window's own DPI awareness context.
 
 	For a window whose coordinates are DPI virtualized by the system,
@@ -182,7 +182,7 @@ def getWindowRectInWindowDpiContext(window: int) -> "locationHelper.RectLTRB":
 		return _fetchWindowRect(window)
 
 
-def getWindowRectInUnawareDpiContext(window: int) -> "locationHelper.RectLTRB":
+def getWindowRectInUnawareDpiContext(window: int) -> locationHelper.RectLTRB:
 	"""Fetch a window's bounding rectangle as seen by a DPI unaware process.
 
 	This is the 96 DPI based view the system presents to DPI unaware callers.

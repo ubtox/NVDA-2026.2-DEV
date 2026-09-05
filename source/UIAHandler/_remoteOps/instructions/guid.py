@@ -36,6 +36,7 @@ class IsGuid(_TypedInstruction):
 	def localExecute(self, registers: dict[lowLevel.OperandId, object]):
 		registers[self.result.operandId] = isinstance(registers[self.target.operandId], GUID)
 
+
 @dataclass
 class GuidLookupId(_TypedInstruction):
 	opCode = lowLevel.InstructionType.LookupId
@@ -47,7 +48,11 @@ class GuidLookupId(_TypedInstruction):
 		guid = registers[self.target.operandId]
 		if not isinstance(guid, GUID):
 			raise TypeError("Expected a GUID")
-		registers[self.result.operandId] = windll.UIAutomationCore.UiaLookupId(self.identifierType, byref(guid))
+		registers[self.result.operandId] = windll.UIAutomationCore.UiaLookupId(
+			self.identifierType,
+			byref(guid),
+		)
+
 
 @dataclass
 class LookupGuid(_TypedInstruction):

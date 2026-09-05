@@ -15,6 +15,7 @@ from .. import lowLevel
 from .. import builder
 from ._base import _TypedInstruction
 
+
 @dataclass
 class NewStringMap(_TypedInstruction):
 	opCode = lowLevel.InstructionType.NewStringMap
@@ -42,7 +43,7 @@ class StringMapInsert(_TypedInstruction):
 	value: builder.Operand
 
 	def localExecute(self, registers: dict[lowLevel.OperandId, object]):
-		stringMap = cast(dict[str,Any], registers[self.target.operandId])
+		stringMap = cast(dict[str, Any], registers[self.target.operandId])
 		key = cast(str, registers[self.key.operandId])
 		value = registers[self.value.operandId]
 		stringMap[key] = value
@@ -56,7 +57,7 @@ class StringMapLookup(_TypedInstruction):
 	key: builder.Operand
 
 	def localExecute(self, registers: dict[lowLevel.OperandId, object]):
-		stringMap = cast(dict[str,Any], registers[self.target.operandId])
+		stringMap = cast(dict[str, Any], registers[self.target.operandId])
 		key = cast(str, registers[self.key.operandId])
 		registers[self.result.operandId] = stringMap[key]
 
@@ -69,9 +70,10 @@ class StringMapHasKey(_TypedInstruction):
 	key: builder.Operand
 
 	def localExecute(self, registers: dict[lowLevel.OperandId, object]):
-		stringMap = cast(dict[str,Any], registers[self.target.operandId])
+		stringMap = cast(dict[str, Any], registers[self.target.operandId])
 		key = cast(str, registers[self.key.operandId])
 		registers[self.result.operandId] = key in stringMap
+
 
 @dataclass
 class StringMapRemove(_TypedInstruction):
@@ -80,7 +82,7 @@ class StringMapRemove(_TypedInstruction):
 	key: builder.Operand
 
 	def localExecute(self, registers: dict[lowLevel.OperandId, object]):
-		StringMap = cast(dict[str,Any], registers[self.target.operandId])
+		StringMap = cast(dict[str, Any], registers[self.target.operandId])
 		key = cast(str, registers[self.key.operandId])
 		del StringMap[key]
 
@@ -92,5 +94,5 @@ class StringMapSize(_TypedInstruction):
 	target: builder.Operand
 
 	def localExecute(self, registers: dict[lowLevel.OperandId, object]):
-		StringMap = cast(dict[str,Any], registers[self.target.operandId])
+		StringMap = cast(dict[str, Any], registers[self.target.operandId])
 		registers[self.result.operandId] = len(StringMap)

@@ -126,7 +126,7 @@ def _processHtml(text: str) -> str:
 
 
 class JABTextInfo(textInfos.offsets.OffsetsTextInfo):
-	obj: "JAB"
+	obj: JAB
 
 	def _getOffsetFromPoint(self, x: int, y: int) -> int:
 		info = self.obj.jabContext.getAccessibleTextInfo(x, y)
@@ -217,7 +217,7 @@ class JABTextInfo(textInfos.offsets.OffsetsTextInfo):
 		# TODO: Not sure how to interpret Java's alignment numbers.
 		return field, (offset, offset + length)
 
-	def getEmbeddedObject(self, offset: int = 0) -> "JAB":
+	def getEmbeddedObject(self, offset: int = 0) -> JAB:
 		offset += self._startOffset
 
 		# We need to count the embedded objects to determine which child to use.
@@ -586,7 +586,7 @@ class JAB(Window):
 	def _get_childCount(self) -> int:
 		return self._JABAccContextInfo.childrenCount
 
-	def _get_children(self) -> list["JAB"]:
+	def _get_children(self) -> list[JAB]:
 		children = []
 		for index in range(self._JABAccContextInfo.childrenCount):
 			jabContext = self.jabContext.getAccessibleChildFromContext(index)
@@ -605,7 +605,7 @@ class JAB(Window):
 			return None
 		return index
 
-	def _getJABRelationTargets(self, key: str) -> list["JABHandler.JABContext"]:
+	def _getJABRelationTargets(self, key: str) -> list[JABHandler.JABContext]:
 		rs = self.jabContext.getAccessibleRelationSet()
 		targets = []
 		for relation in rs.relations[: rs.relationCount]:
@@ -662,7 +662,7 @@ class JAB(Window):
 				JABHandler.AccessibleActionsToDo(actionsCount=1, actions=(self._actions[index],)),
 				JABHandler.jint(),
 			)
-		except (IndexError, RuntimeError):
+		except IndexError, RuntimeError:
 			raise NotImplementedError
 
 	def _get_activeDescendant(self):

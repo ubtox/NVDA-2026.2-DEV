@@ -161,7 +161,7 @@ _gestureMap = inputCore.GlobalGestureMap(GestureMapEntries)
 class InputGesture(braille.display.gesture.BrailleDisplayGesture, braille.input.gesture.BrailleInputGesture):
 	source = constants.name
 
-	def __init__(self, display: "BrailleDisplayDriver"):
+	def __init__(self, display: BrailleDisplayDriver):
 		super().__init__()
 		self.model = display.deviceType.lower().split(" ")[0]
 		keysDown = dict(display.keysDown)

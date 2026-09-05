@@ -51,9 +51,9 @@ def _makeKbEmulateScript(scriptName):
 
 
 def _getObjScript(
-	obj: "NVDAObjects.NVDAObject",
-	gesture: "inputCore.InputGesture",
-	globalMapScripts: list["inputCore.InputGestureScriptT"],
+	obj: NVDAObjects.NVDAObject,
+	gesture: inputCore.InputGesture,
+	globalMapScripts: list[inputCore.InputGestureScriptT],
 ) -> _ScriptFunctionT | None:
 	"""
 	@param globalMapScripts: An ordered list of scripts.
@@ -81,7 +81,7 @@ def _getObjScript(
 		log.exception()
 
 
-def getGlobalMapScripts(gesture: "inputCore.InputGesture") -> list["inputCore.InputGestureScriptT"]:
+def getGlobalMapScripts(gesture: inputCore.InputGesture) -> list[inputCore.InputGestureScriptT]:
 	"""
 	@returns: An ordered list of scripts.
 	The list is ordered by resolution priority,
@@ -98,7 +98,7 @@ def getGlobalMapScripts(gesture: "inputCore.InputGesture") -> list["inputCore.In
 	return globalMapScripts
 
 
-def findScript(gesture: "inputCore.InputGesture") -> _ScriptFunctionT | None:
+def findScript(gesture: inputCore.InputGesture) -> _ScriptFunctionT | None:
 	from utils.security import getSafeScripts
 	from winAPI.sessionTracking import isLockScreenModeActive
 
@@ -108,7 +108,7 @@ def findScript(gesture: "inputCore.InputGesture") -> _ScriptFunctionT | None:
 	return foundScript
 
 
-def _findScript(gesture: "inputCore.InputGesture") -> _ScriptFunctionT | None:
+def _findScript(gesture: inputCore.InputGesture) -> _ScriptFunctionT | None:
 	focus = api.getFocusObject()
 	if not focus:
 		return None
@@ -128,8 +128,8 @@ def _findScript(gesture: "inputCore.InputGesture") -> _ScriptFunctionT | None:
 
 def _getTreeModeInterceptorScript(
 	func: _ScriptFunctionT | None,
-	obj: "NVDAObjects.NVDAObject",
-	gesture: "inputCore.InputGesture",
+	obj: NVDAObjects.NVDAObject,
+	gesture: inputCore.InputGesture,
 ) -> _ScriptFunctionT | None:
 	"""
 	A filtering function used with _yieldObjectsForFindScript, to ensure a tree interceptor
@@ -146,8 +146,8 @@ def _getTreeModeInterceptorScript(
 
 def _getFocusAncestorScript(
 	func: _ScriptFunctionT | None,
-	obj: "NVDAObjects.NVDAObject",
-	gesture: "inputCore.InputGesture",
+	obj: NVDAObjects.NVDAObject,
+	gesture: inputCore.InputGesture,
 ) -> _ScriptFunctionT | None:
 	"""
 	A filtering function used with _yieldObjectsForFindScript, to ensure a focus ancestor
@@ -159,8 +159,8 @@ def _getFocusAncestorScript(
 
 
 def _yieldObjectsForFindScript(
-	gesture: "inputCore.InputGesture",
-) -> Generator[tuple["NVDAObjects.NVDAObject", _ScriptFilterT | None]]:
+	gesture: inputCore.InputGesture,
+) -> Generator[tuple[NVDAObjects.NVDAObject, _ScriptFilterT | None]]:
 	"""
 	This generator is used to determine which NVDAObject to perform an input gesture on,
 	in order of priority.

@@ -595,7 +595,7 @@ class InputGesturesDialog(SettingsDialog):
 	title = _("Input Gestures")
 	helpId = "InputGestures"
 
-	def __init__(self, parent: "InputGesturesDialog"):
+	def __init__(self, parent: InputGesturesDialog):
 		#: The index in the _GesturesTree of the prompt for entering a new gesture
 		super().__init__(parent, resizeable=True)
 

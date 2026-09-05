@@ -30,7 +30,7 @@ class RGB(namedtuple("RGB", ("red", "green", "blue"))):
 	alphaValue: int = ALPHA_OPAQUE  # no transparency by default
 
 	@classmethod
-	def fromDisplayModelFormatColor_t(cls, c: int) -> "RGB":
+	def fromDisplayModelFormatColor_t(cls, c: int) -> RGB:
 		"""factory method to create an RGB from a DisplayModelFormatColor_t
 		Color format is 4 bytes:  0xTTbbggrr
 		TT bit flags, only bit 1 used: set for transparent.
@@ -47,7 +47,7 @@ class RGB(namedtuple("RGB", ("red", "green", "blue"))):
 		return rgb
 
 	@classmethod
-	def fromCOLORREF(cls, c: COLORREF | int) -> "RGB":
+	def fromCOLORREF(cls, c: COLORREF | int) -> RGB:
 		"""factory method to create an RGB from a COLORREF ctypes instance
 		COLORREF format is 4 bytes: 0x00bbggrr
 		According to MSDN, COLORREF high order byte must be zero.

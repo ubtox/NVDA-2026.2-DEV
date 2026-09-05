@@ -1052,7 +1052,7 @@ class Edit(EditableTextWithAutoSelectDetection, EditBase):
 					winUser.OBJID_NATIVEOM,
 					interface=comInterfaces.tom.ITextDocument,
 				)
-			except (COMError, OSError):
+			except COMError, OSError:
 				log.debugWarning("Error getting ITextDocument", exc_info=True)
 				self._ITextDocumentObject = None
 		return self._ITextDocumentObject
@@ -1094,7 +1094,7 @@ class RichEdit(Edit):
 		# We then fall back to normal Edit support.
 		try:
 			return self.TextInfo(self, position)
-		except (COMError, AttributeError):
+		except COMError, AttributeError:
 			log.debugWarning("Could not instanciate ITextDocumentTextInfo", exc_info=True)
 			self.TextInfo = EditTextInfo
 			return self.TextInfo(self, position)

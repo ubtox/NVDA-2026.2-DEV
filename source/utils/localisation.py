@@ -21,7 +21,7 @@ class TimeOutputFormat(DisplayStringEnum):
 	DAYS = auto()
 
 	@property
-	def _displayStringLabels(self) -> dict["TimeOutputFormat", str]:
+	def _displayStringLabels(self) -> dict[TimeOutputFormat, str]:
 		return {
 			# Translators: used to format time locally.
 			# substitution rules: {S} seconds
@@ -41,7 +41,7 @@ class TimeOutputFormat(DisplayStringEnum):
 		}
 
 	@staticmethod
-	def convertTimeDeltaToTimeOutputFormat(td: timedelta) -> "TimeOutputFormat":
+	def convertTimeDeltaToTimeOutputFormat(td: timedelta) -> TimeOutputFormat:
 		"""Returns a TimeOutputFormat with the least leading zeros."""
 		seconds = td.total_seconds()
 		if seconds < 60:

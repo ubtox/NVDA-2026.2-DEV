@@ -34,7 +34,7 @@ class MathPresentationProvider:
 	A single provider does not need to implement all presentation types.
 	"""
 
-	def getSpeechForMathMl(self, mathMl: str) -> list[Union[str, "SpeechCommand"]]:
+	def getSpeechForMathMl(self, mathMl: str) -> list[str | SpeechCommand]:
 		"""Get speech output for specified MathML markup.
 
 		:param mathMl: The MathML markup.
@@ -60,7 +60,7 @@ class MathPresentationProvider:
 	def interactWithMathMlFromSource(
 		self,
 		mathMl: str,
-		sourceObj: "NVDAObject",
+		sourceObj: NVDAObject,
 	) -> None:
 		"""Begin interaction with specified MathML markup from the given source object.
 
@@ -144,7 +144,7 @@ class MathInteractionNVDAObject(Window):
 		self,
 		provider: MathPresentationProvider | None = None,
 		mathMl: str | None = None,
-		sourceObj: "NVDAObject | None" = None,
+		sourceObj: NVDAObject | None = None,
 	) -> None:
 		"""Initialize a math interaction object.
 
@@ -209,12 +209,12 @@ def getMathMlFromTextInfo(pos: textInfos.TextInfo) -> str | None:
 			continue
 		try:
 			return pos.getMathMl(field)
-		except (NotImplementedError, LookupError):
+		except NotImplementedError, LookupError:
 			continue
 	return None
 
 
-def interactWithMathMl(mathMl: str, sourceObj: "NVDAObject | None" = None) -> None:
+def interactWithMathMl(mathMl: str, sourceObj: NVDAObject | None = None) -> None:
 	"""Begin interaction with specified MathML markup, reporting any errors to the user.
 
 	This is intended to be called from scripts.

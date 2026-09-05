@@ -54,9 +54,8 @@ class Test_if(TestCase):
 
 		@op.buildFunction
 		def code(ra: remoteAPI.RemoteAPI):
-			with self.assertRaises(RuntimeError):
-				with ra.elseBlock():
-					pass
+			with self.assertRaises(RuntimeError), ra.elseBlock():
+				pass
 
 	def test_if_with_multiple_returns_first(self):
 		op = operation.Operation(localMode=True)
@@ -142,9 +141,8 @@ class Test_if(TestCase):
 
 		@op.buildFunction
 		def code(ra: remoteAPI.RemoteAPI):
-			with self.assertRaises(RuntimeError):
-				with ra.elifBlock(True):
-					pass
+			with self.assertRaises(RuntimeError), ra.elifBlock(True):
+				pass
 			ra.Return(1)
 
 		op.execute()
@@ -188,6 +186,7 @@ class Test_if(TestCase):
 			with ra.elseBlock():
 				was_in_else.set(True)
 			ra.Return(was_in_if, was_in_elif, was_in_else)
+
 		was_in_if, was_in_elif, was_in_else = op.execute()
 		self.assertFalse(was_in_if)
 		self.assertTrue(was_in_elif)

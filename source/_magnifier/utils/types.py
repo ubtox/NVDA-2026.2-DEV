@@ -15,9 +15,9 @@ from utils.displayString import DisplayStringStrEnum, DisplayStringEnum
 class MagnifierParameters(NamedTuple):
 	"""Named tuple representing the size, position and filter of the magnifier"""
 
-	magnifierSize: "Size"
-	coordinates: "Coordinates"
-	filter: "Filter"
+	magnifierSize: Size
+	coordinates: Coordinates
+	filter: Filter
 
 
 class Direction(Enum):
@@ -55,7 +55,7 @@ class MagnifierAction(DisplayStringEnum):
 	MOVE_MOUSE_TO_VIEW = auto()
 
 	@property
-	def _displayStringLabels(self) -> dict["MagnifierAction", str]:
+	def _displayStringLabels(self) -> dict[MagnifierAction, str]:
 		return {
 			# Translators: Action description for zooming in.
 			self.ZOOM_IN: pgettext("magnifier action", "zoom in"),
@@ -101,7 +101,7 @@ class MagnifierTrackingType(DisplayStringEnum):
 	NAVIGATOR_OBJECT = auto()
 
 	@property
-	def _displayStringLabels(self) -> dict["MagnifierTrackingType", str]:
+	def _displayStringLabels(self) -> dict[MagnifierTrackingType, str]:
 		return {
 			# Translators: Type of item tracked by the Magnifier - mouse cursor.
 			self.MOUSE: pgettext("magnifier", "Mouse"),
@@ -123,7 +123,7 @@ class MagnifiedView(DisplayStringStrEnum):
 	LENS = "lens"
 
 	@property
-	def _displayStringLabels(self) -> dict["MagnifiedView", str]:
+	def _displayStringLabels(self) -> dict[MagnifiedView, str]:
 		return {
 			# Translators: Magnifier view - full-screen mode.
 			self.FULLSCREEN: pgettext("magnifier", "Fullscreen"),
@@ -155,7 +155,7 @@ class FullScreenMode(DisplayStringStrEnum):
 	RELATIVE = "relative"
 
 	@property
-	def _displayStringLabels(self) -> dict["FullScreenMode", str]:
+	def _displayStringLabels(self) -> dict[FullScreenMode, str]:
 		return {
 			# Translators: Magnifier tracking mode - center the tracked item on the screen.
 			self.CENTER: pgettext("magnifier", "Center"),
@@ -170,7 +170,7 @@ class Filter(DisplayStringStrEnum):
 	INVERTED = "inverted"
 
 	@property
-	def _displayStringLabels(self) -> dict["Filter", str]:
+	def _displayStringLabels(self) -> dict[Filter, str]:
 		return {
 			# Translators: Magnifier color filter - no filter applied.
 			self.NORMAL: pgettext("magnifier", "Normal"),

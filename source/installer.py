@@ -155,13 +155,13 @@ def _comparePreviousCopy(previousCopyPath: str | None) -> ComparisonState:
 	oldSlavePath = os.path.join(previousCopyPath, "nvda_slave.exe")
 	try:
 		oldVersion = fileUtils.getFileVersionInfo(oldSlavePath, "FileVersion")
-	except (OSError, RuntimeError):
+	except OSError, RuntimeError:
 		log.debug("Unable to get file version of nvda_slave.exe in previous copy.")
 		return ComparisonState.UNKNOWN
 
 	try:
 		newVersion = fileUtils.getFileVersionInfo("nvda_slave.exe", "FileVersion")
-	except (OSError, RuntimeError):
+	except OSError, RuntimeError:
 		# This should never happen.
 		log.exception("Unable to get file version of nvda_slave.exe in current process.")
 		return ComparisonState.UNKNOWN
@@ -169,7 +169,7 @@ def _comparePreviousCopy(previousCopyPath: str | None) -> ComparisonState:
 	try:
 		oldVersion = [int(x) for x in oldVersion["FileVersion"].split(".")]
 		newVersion = [int(x) for x in newVersion["FileVersion"].split(".")]
-	except (KeyError, AttributeError, ValueError, TypeError):
+	except KeyError, AttributeError, ValueError, TypeError:
 		log.exception("Error parsing version information.")
 		return ComparisonState.UNKNOWN
 

@@ -230,7 +230,7 @@ class Magnifier:
 			self._doUpdate()
 			self._consecutiveErrors = 0
 			self._recoveryAttempts = 0
-		except (OSError, COMError):
+		except OSError, COMError:
 			self._consecutiveErrors += 1
 			if self._consecutiveErrors >= self._MAX_CONSECUTIVE_ERRORS:
 				log.error(  # noqa: G201

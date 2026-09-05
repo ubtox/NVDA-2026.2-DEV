@@ -591,7 +591,7 @@ class DisplayModelTextInfo(OffsetsTextInfo):
 	def _getNVDAObjectFromOffset(self, offset):
 		try:
 			p = self._getPointFromOffset(offset)
-		except (NotImplementedError, LookupError):
+		except NotImplementedError, LookupError:
 			return self.obj
 		obj = api.getDesktopObject().objectFromPoint(p.x, p.y)
 		from NVDAObjects.window import Window

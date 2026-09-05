@@ -55,7 +55,7 @@ class FindDialog(
 
 	shouldSuspendConfigProfileTriggers = True
 
-	_instance: "weakref.ReferenceType[FindDialog] | None" = None
+	_instance: weakref.ReferenceType[FindDialog] | None = None
 
 	def __new__(cls, *args, **kwargs):
 		# Make this a singleton.
@@ -68,7 +68,7 @@ class FindDialog(
 	def __init__(
 		self,
 		parent: wx.Window,
-		cursorManager: "CursorManager",
+		cursorManager: CursorManager,
 		text: str,
 		caseSensitivity: bool,
 		reverse: bool = False,
@@ -124,7 +124,7 @@ class FindDialog(
 
 	def _retarget(
 		self,
-		cursorManager: "CursorManager",
+		cursorManager: CursorManager,
 		text: str,
 		caseSensitivity: bool,
 		reverse: bool,

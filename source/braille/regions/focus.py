@@ -130,7 +130,7 @@ def getFocusRegions(
 	# Allow objects to override normal behaviour.
 	try:
 		regions = obj.getBrailleRegions(review=review)
-	except (AttributeError, NotImplementedError):
+	except AttributeError, NotImplementedError:
 		pass
 	else:
 		for region in regions:

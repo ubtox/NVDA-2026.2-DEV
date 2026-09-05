@@ -80,7 +80,9 @@ class RemoteElement(RemoteExtensionTarget[POINTER(UIA.IUIAutomationElement)]):
 			instructions.ElementGetPropertyValue(
 				result=result,
 				target=self,
-				propertyId=RemoteGuid.ensureRemote(self.rob, propertyId).lookupId(lowLevel.AutomationIdentifierType.Property),
+				propertyId=RemoteGuid.ensureRemote(self.rob, propertyId).lookupId(
+					lowLevel.AutomationIdentifierType.Property,
+				),
 				ignoreDefault=RemoteBool.ensureRemote(self.rob, ignoreDefault),
 			),
 		)
@@ -136,5 +138,6 @@ class RemoteElement(RemoteExtensionTarget[POINTER(UIA.IUIAutomationElement)]):
 			),
 		)
 		return result
+
 
 from .textPattern import RemoteTextPattern

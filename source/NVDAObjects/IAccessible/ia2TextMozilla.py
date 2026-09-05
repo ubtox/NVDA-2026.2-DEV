@@ -823,7 +823,7 @@ class MozillaCompoundTextInfo(CompoundTextInfo):
 			if not obj.hasIrrelevantLocation:
 				try:
 					rects.extend(ti.boundingRects)
-				except (NotImplementedError, LookupError):
+				except NotImplementedError, LookupError:
 					pass
 			if obj == copy._endObj:
 				# We're at the end of the range.

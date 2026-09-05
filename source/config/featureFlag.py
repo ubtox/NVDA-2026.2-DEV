@@ -8,7 +8,6 @@ Provides utility classes to make handling featureFlags easier.
 """
 
 import enum  # noqa: I001
-import typing
 
 from . import featureFlagEnums
 from .featureFlagEnums import (
@@ -64,7 +63,7 @@ class FeatureFlag:
 			return self.behaviorOfDefault
 		return self.value
 
-	def __eq__(self, other: typing.Union["FeatureFlag", FlagValueEnum]):
+	def __eq__(self, other: FeatureFlag | FlagValueEnum):
 		if isinstance(other, type(self.value)):
 			other = FeatureFlag(other, behaviorOfDefault=self.behaviorOfDefault)
 		if isinstance(other, FeatureFlag):

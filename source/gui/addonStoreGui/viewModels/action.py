@@ -47,7 +47,7 @@ class _AddonAction(Generic[ActionTargetT], ABC):  # noqa: PYI059, UP046
 		"""Notify of changes to the action"""
 
 	@abstractmethod
-	def _listItemChanged(self, addonListItemVM: "AddonListItemVM"): ...
+	def _listItemChanged(self, addonListItemVM: AddonListItemVM): ...
 
 	@property
 	def isValid(self) -> bool:
@@ -77,9 +77,9 @@ class AddonActionVM(_AddonAction[Optional["AddonListItemVM"]]):
 	def __init__(
 		self,
 		displayName: str,
-		actionHandler: Callable[["AddonListItemVM"], None],
-		validCheck: Callable[["AddonListItemVM"], bool],
-		actionTarget: Optional["AddonListItemVM"],
+		actionHandler: Callable[[AddonListItemVM], None],
+		validCheck: Callable[[AddonListItemVM], bool],
+		actionTarget: AddonListItemVM | None,
 	):
 		"""
 		@param displayName: Translated string, to be displayed to the user. Should describe the action / behaviour.
@@ -88,11 +88,11 @@ class AddonActionVM(_AddonAction[Optional["AddonListItemVM"]]):
 		@param actionTarget: The listItemVM this action will be applied to. L{updated} notifies of modification.
 		"""
 
-		def _validCheck(listItemVM: Optional["AddonListItemVM"]) -> bool:
+		def _validCheck(listItemVM: AddonListItemVM | None) -> bool:
 			# Handle the None case so that each validCheck doesn't have to.
 			return listItemVM is not None and validCheck(listItemVM)
 
-		def _actionHandler(listItemVM: Optional["AddonListItemVM"]):
+		def _actionHandler(listItemVM: AddonListItemVM | None):
 			# Handle the None case so that each actionHandler doesn't have to.
 			if listItemVM is not None:
 				actionHandler(listItemVM)
@@ -103,13 +103,13 @@ class AddonActionVM(_AddonAction[Optional["AddonListItemVM"]]):
 		if actionTarget:
 			actionTarget.updated.register(self._listItemChanged)
 
-	def _listItemChanged(self, addonListItemVM: Optional["AddonListItemVM"]):
+	def _listItemChanged(self, addonListItemVM: AddonListItemVM | None):
 		"""Something inside the AddonListItemVM has changed"""
 		assert self._actionTarget == addonListItemVM
 		self._notify()
 
 	@_AddonAction.actionTarget.setter
-	def actionTarget(self, newActionTarget: Optional["AddonListItemVM"]):
+	def actionTarget(self, newActionTarget: AddonListItemVM | None):
 		if self._actionTarget == newActionTarget:
 			return
 		if self._actionTarget:
@@ -134,9 +134,9 @@ class BatchAddonActionVM(_AddonAction[Iterable["AddonListItemVM"]]):
 	def __init__(
 		self,
 		displayName: str,
-		actionHandler: Callable[[Iterable["AddonListItemVM"]], None],
-		validCheck: Callable[[Iterable["AddonListItemVM"]], bool],
-		actionTarget: Iterable["AddonListItemVM"],
+		actionHandler: Callable[[Iterable[AddonListItemVM]], None],
+		validCheck: Callable[[Iterable[AddonListItemVM]], bool],
+		actionTarget: Iterable[AddonListItemVM],
 	):
 		"""
 		@param displayName: Translated string, to be displayed to the user. Should describe the action / behaviour.
@@ -148,13 +148,13 @@ class BatchAddonActionVM(_AddonAction[Iterable["AddonListItemVM"]]):
 		for listItemVM in self._actionTarget:
 			listItemVM.updated.register(self._listItemChanged)
 
-	def _listItemChanged(self, addonListItemVM: "AddonListItemVM"):
+	def _listItemChanged(self, addonListItemVM: AddonListItemVM):
 		"""Something inside the AddonListItemVM has changed"""
 		assert addonListItemVM in self._actionTarget
 		self._notify()
 
 	@_AddonAction.actionTarget.setter
-	def actionTarget(self, newActionTarget: Iterable["AddonListItemVM"]):
+	def actionTarget(self, newActionTarget: Iterable[AddonListItemVM]):
 		if self._actionTarget == newActionTarget:
 			return
 
@@ -173,7 +173,7 @@ class BatchAddonActionVM(_AddonAction[Iterable["AddonListItemVM"]]):
 class AddonUpdateChannelActionVM(AddonActionVM):
 	"""Action for updating the channel of an addon"""
 
-	def __init__(self, actionTarget: "AddonListItemVM[_AddonGUIModel]", channel: UpdateChannel):
+	def __init__(self, actionTarget: AddonListItemVM[_AddonGUIModel], channel: UpdateChannel):
 		super().__init__(
 			displayName=channel.displayString,
 			actionHandler=self._updateChannel,
@@ -183,5 +183,5 @@ class AddonUpdateChannelActionVM(AddonActionVM):
 		)
 		self.channel = channel
 
-	def _updateChannel(self, listItemVM: "AddonListItemVM[_AddonGUIModel]"):
+	def _updateChannel(self, listItemVM: AddonListItemVM[_AddonGUIModel]):
 		addonDataManager.storeSettings.setAddonSettings(listItemVM.model.addonId, updateChannel=self.channel)

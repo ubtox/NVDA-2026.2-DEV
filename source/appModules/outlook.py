@@ -152,7 +152,7 @@ class AppModule(appModuleHandler.AppModule):
 	def _get_nativeOm(self):
 		try:
 			nativeOm = comHelper.getActiveObject("outlook.application", dynamic=True)
-		except (OSError, COMError, RuntimeError):
+		except OSError, COMError, RuntimeError:
 			if self._hasTriedoutlookAppSwitch:
 				log.error("Failed to get native object model", exc_info=True)  # noqa: G201
 			nativeOm = None
@@ -742,7 +742,7 @@ class OutlookWordDocument(WordDocument, BaseOutlookWordDocument):
 		# #2975: The only way we know an email is read-only is if the underlying email has been sent.
 		try:
 			return self.appModule.nativeOm.activeInspector().currentItem.sent
-		except (COMError, NameError, AttributeError):
+		except COMError, NameError, AttributeError:
 			return False
 
 	def _get_treeInterceptorClass(self):

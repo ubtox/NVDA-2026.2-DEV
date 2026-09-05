@@ -225,7 +225,7 @@ def closeHandle(*args):
 	return winBindings.kernel32.CloseHandle(*args)
 
 
-def GetSystemPowerStatus(sps: "SystemPowerStatus") -> int:
+def GetSystemPowerStatus(sps: SystemPowerStatus) -> int:
 	return winBindings.kernel32.GetSystemPowerStatus(ctypes.byref(sps))
 
 

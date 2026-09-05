@@ -23,7 +23,7 @@ class ImpairmentOption(DisplayStringStrEnum):
 	LOW_VISION = "LowVision"
 
 	@property
-	def _displayStringLabels(self) -> dict["ImpairmentOption", str]:
+	def _displayStringLabels(self) -> dict[ImpairmentOption, str]:
 		return {
 			# Translators: Learning disabilities includes dyslexia and ADHD
 			# category of impairment that MathCAT supports: people with learning disabilities
@@ -43,7 +43,7 @@ class DecimalSeparatorOption(DisplayStringStrEnum):
 	"""Custom is currently not functional or surfaced in the UI, but is included here for future use."""
 
 	@property
-	def _displayStringLabels(self) -> dict["DecimalSeparatorOption", str]:
+	def _displayStringLabels(self) -> dict[DecimalSeparatorOption, str]:
 		return {
 			# Translators: options for decimal separator -- "Auto" = automatically pick the choice based on the language
 			self.AUTO: pgettext("math", "Automatic"),
@@ -61,7 +61,7 @@ class VerbosityOption(DisplayStringStrEnum):
 	VERBOSE = "Verbose"
 
 	@property
-	def _displayStringLabels(self) -> dict["VerbosityOption", str]:
+	def _displayStringLabels(self) -> dict[VerbosityOption, str]:
 		return {
 			# Translators: options for speech verbosity -- "terse" = use less words
 			self.TERSE: pgettext("math", "Terse"),
@@ -77,7 +77,7 @@ class ChemistryOption(DisplayStringStrEnum):
 	OFF = "Off"
 
 	@property
-	def _displayStringLabels(self) -> dict["ChemistryOption", str]:
+	def _displayStringLabels(self) -> dict[ChemistryOption, str]:
 		return {
 			# Translators: values for chemistry options with example speech in parenthesis
 			self.SPELL_OUT: pgettext("math", "Spell it out (H 2 O)"),
@@ -92,7 +92,7 @@ class NavModeOption(DisplayStringStrEnum):
 	CHARACTER = "Character"
 
 	@property
-	def _displayStringLabels(self) -> dict["NavModeOption", str]:
+	def _displayStringLabels(self) -> dict[NavModeOption, str]:
 		return {
 			# Translators: names of different modes of navigation. "Enhanced" mode understands math structure
 			self.ENHANCED: pgettext("math", "Enhanced"),
@@ -109,7 +109,7 @@ class NavVerbosityOption(DisplayStringStrEnum):
 	VERBOSE = "Verbose"
 
 	@property
-	def _displayStringLabels(self) -> dict["NavVerbosityOption", str]:
+	def _displayStringLabels(self) -> dict[NavVerbosityOption, str]:
 		return {
 			# Translators: options for navigation verbosity -- "terse" = use less words
 			self.TERSE: pgettext("math", "Terse"),
@@ -127,7 +127,7 @@ class CopyAsOption(DisplayStringStrEnum):
 	SPEECH = "Speech"
 
 	@property
-	def _displayStringLabels(self) -> dict["CopyAsOption", str]:
+	def _displayStringLabels(self) -> dict[CopyAsOption, str]:
 		return {
 			# Translators: options for Copy expression to clipboard as -- "MathML"
 			self.MATHML: pgettext("math", "MathML"),
@@ -147,7 +147,7 @@ class BrailleNavHighlightOption(DisplayStringStrEnum):
 	ALL = "All"
 
 	@property
-	def _displayStringLabels(self) -> dict["BrailleNavHighlightOption", str]:
+	def _displayStringLabels(self) -> dict[BrailleNavHighlightOption, str]:
 		return {
 			# Translators: Math option for using dots 7 and 8: don't highlight
 			self.OFF: pgettext("math", "Off"),
@@ -379,7 +379,7 @@ class MathCATUserPreferences:
 			return MathCATUserPreferences.defaults()[key1][key2]
 
 	@staticmethod
-	def fromNVDAConfig() -> "MathCATUserPreferences":
+	def fromNVDAConfig() -> MathCATUserPreferences:
 		prefs: PreferencesDict = MathCATUserPreferences.defaults()
 		mathConf = config.conf["math"]
 		for key1 in prefs:

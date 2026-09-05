@@ -10,7 +10,6 @@ import pathlib
 import threading
 from typing import (
 	TYPE_CHECKING,
-	Optional,
 )
 
 import requests
@@ -54,7 +53,7 @@ if TYPE_CHECKING:
 	from gui.message import DisplayableError
 
 
-addonDataManager: Optional["_DataManager"] = None
+addonDataManager: _DataManager | None = None
 FETCH_TIMEOUT_S = 120  # seconds
 
 
@@ -80,8 +79,8 @@ def terminate():
 class _DataManager:
 	_cacheLatestFilename: str = "_cachedLatestAddons.json"
 	_cacheCompatibleFilename: str = "_cachedCompatibleAddons.json"
-	_downloadsPendingInstall: set[tuple["AddonListItemVM[_AddonStoreModel]", os.PathLike]] = set()  # noqa: RUF012
-	_downloadsPendingCompletion: set["AddonListItemVM[_AddonStoreModel]"] = set()  # noqa: RUF012
+	_downloadsPendingInstall: set[tuple[AddonListItemVM[_AddonStoreModel], os.PathLike]] = set()  # noqa: RUF012
+	_downloadsPendingCompletion: set[AddonListItemVM[_AddonStoreModel]] = set()  # noqa: RUF012
 
 	def __init__(self):
 		self._lang = languageHandler.getLanguage()
@@ -194,7 +193,7 @@ class _DataManager:
 			cacheHash = cacheData["cacheHash"]
 			cachedLanguage = cacheData["cachedLanguage"]
 			nvdaAPIVersion = cacheData["nvdaAPIVersion"]
-		except (KeyError, JSONDecodeError):
+		except KeyError, JSONDecodeError:
 			log.exception(f"Invalid add-on store cache:\n{cacheData}")
 			if NVDAState.shouldWriteToDisk():
 				os.remove(cacheFilePath)
@@ -223,8 +222,8 @@ class _DataManager:
 
 	def getLatestCompatibleAddons(
 		self,
-		onDisplayableError: Optional["DisplayableError.OnDisplayableErrorT"] = None,
-	) -> "AddonGUICollectionT":
+		onDisplayableError: DisplayableError.OnDisplayableErrorT | None = None,
+	) -> AddonGUICollectionT:
 		cacheHash = self._getCacheHash()
 		shouldRefreshData = (
 			not self._compatibleAddonCache
@@ -260,8 +259,8 @@ class _DataManager:
 
 	def getLatestAddons(
 		self,
-		onDisplayableError: Optional["DisplayableError.OnDisplayableErrorT"] = None,
-	) -> "AddonGUICollectionT":
+		onDisplayableError: DisplayableError.OnDisplayableErrorT | None = None,
+	) -> AddonGUICollectionT:
 		cacheHash = self._getCacheHash()
 		shouldRefreshData = (
 			not self._latestAddonCache
@@ -296,7 +295,7 @@ class _DataManager:
 
 	def _do_displayError(
 		self,
-		onDisplayableError: "DisplayableError.OnDisplayableErrorT | None",
+		onDisplayableError: DisplayableError.OnDisplayableErrorT | None,
 		displayMessage: str,
 		titleMessage: str | None = None,
 	):
@@ -351,8 +350,8 @@ class _DataManager:
 
 	def _addonsPendingUpdate(
 		self,
-		onDisplayableError: "DisplayableError.OnDisplayableErrorT | None" = None,
-	) -> list["_AddonGUIModel"]:
+		onDisplayableError: DisplayableError.OnDisplayableErrorT | None = None,
+	) -> list[_AddonGUIModel]:
 		updatableAddonStatuses = {AvailableAddonStatus.UPDATE}
 		addonsPendingUpdate: dict[str, _AddonGUIModel] = {}
 		if config.conf["addonStore"]["allowIncompatibleUpdates"]:
@@ -389,10 +388,10 @@ class _DataManager:
 class _InstalledAddonsCache(AutoPropertyObject):
 	cachePropertiesByDefault = True
 
-	installedAddons: CaseInsensitiveDict["AddonHandlerModel"]
-	installedAddonGUICollection: "AddonGUICollectionT"
+	installedAddons: CaseInsensitiveDict[AddonHandlerModel]
+	installedAddonGUICollection: AddonGUICollectionT
 
-	def _get_installedAddons(self) -> CaseInsensitiveDict["AddonHandlerModel"]:
+	def _get_installedAddons(self) -> CaseInsensitiveDict[AddonHandlerModel]:
 		"""
 		Add-ons that have the same ID except differ in casing cause a path collision,
 		as add-on IDs are installed to a case insensitive path.
@@ -402,7 +401,7 @@ class _InstalledAddonsCache(AutoPropertyObject):
 
 		return CaseInsensitiveDict({a.name: a for a in getAvailableAddons()})
 
-	def _get_installedAddonGUICollection(self) -> "AddonGUICollectionT":
+	def _get_installedAddonGUICollection(self) -> AddonGUICollectionT:
 		addons = _createAddonGUICollection()
 		for addonId in self.installedAddons:
 			addonStoreData = self.installedAddons[addonId]._addonStoreData

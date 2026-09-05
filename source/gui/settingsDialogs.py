@@ -140,9 +140,9 @@ class SettingsDialog(
 		pass
 
 	class MultiInstanceErrorWithDialog(MultiInstanceError):
-		dialog: "SettingsDialog"
+		dialog: SettingsDialog
 
-		def __init__(self, dialog: "SettingsDialog", *args: object) -> None:
+		def __init__(self, dialog: SettingsDialog, *args: object) -> None:
 			self.dialog = dialog
 			super().__init__(*args)
 
@@ -1064,7 +1064,7 @@ class GeneralSettingsPanel(SettingsPanel):
 		if self.startOnLogonScreenCheckBox.IsEnabled():
 			try:
 				config.setStartOnLogonScreen(self.startOnLogonScreenCheckBox.GetValue())
-			except (OSError, RuntimeError):
+			except OSError, RuntimeError:
 				gui.messageBox(
 					_("This change requires administrator privileges."),
 					_("Insufficient Privileges"),
@@ -2764,7 +2764,7 @@ class MathSettingsPanel(SettingsPanel):
 		"""
 		try:
 			return list(enumClass).index(enumClass(configValue))
-		except (ValueError, KeyError):
+		except ValueError, KeyError:
 			# If the config value is not found, default to the first option
 			return 0
 
@@ -2781,7 +2781,7 @@ class MathSettingsPanel(SettingsPanel):
 		"""
 		try:
 			return list(enumClass)[selectionIndex].value
-		except (IndexError, AttributeError):
+		except IndexError, AttributeError:
 			# If the selection is invalid, return the first option's value
 			return list(enumClass)[0].value  # noqa: RUF015
 
@@ -5206,7 +5206,7 @@ class BrailleDisplaySelectionDialog(SettingsDialog):
 				selectedPort = config.conf["braille"][displayName].get("port")
 				portNames = [p[0] for p in self.possiblePorts]
 				selection = portNames.index(selectedPort)
-			except (KeyError, ValueError):
+			except KeyError, ValueError:
 				# Display name not in config or port not valid
 				selection = 0
 			self.portsList.SetSelection(selection)

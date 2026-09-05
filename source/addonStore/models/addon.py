@@ -11,7 +11,6 @@ from datetime import datetime
 from typing import (
 	TYPE_CHECKING,
 	Any,
-	Optional,
 	Protocol,
 )
 
@@ -77,7 +76,7 @@ class _AddonGUIModel(SupportsAddonState, SupportsVersionCheck, Protocol):
 		return self.lastTestedVersion
 
 	@property
-	def _addonHandlerModel(self) -> Optional["AddonHandlerModel"]:
+	def _addonHandlerModel(self) -> AddonHandlerModel | None:
 		"""Returns the Addon model tracked in addonHandler, if it exists."""
 		from ..dataManager import addonDataManager
 
@@ -208,7 +207,7 @@ class _AddonManifestModel(_AddonGUIModel):
 	homepage: str | None
 	minNVDAVersion: MajorMinorPatch
 	lastTestedVersion: MajorMinorPatch
-	manifest: "AddonManifest"
+	manifest: AddonManifest
 	legacy: bool = False
 	"""
 	Legacy add-ons contain invalid metadata
@@ -256,7 +255,7 @@ class AddonManifestModel(_AddonManifestModel):
 	homepage: str | None
 	minNVDAVersion: MajorMinorPatch
 	lastTestedVersion: MajorMinorPatch
-	manifest: "AddonManifest"
+	manifest: AddonManifest
 	legacy: bool = False
 	"""
 	Legacy add-ons contain invalid metadata
@@ -293,7 +292,7 @@ class InstalledAddonStoreModel(_AddonManifestModel, _AddonStoreModel):
 	"""
 
 	@property
-	def manifest(self) -> "AddonManifest":
+	def manifest(self) -> AddonManifest:
 		from ..dataManager import addonDataManager
 
 		assert addonDataManager
@@ -334,7 +333,7 @@ class AddonStoreModel(_AddonStoreModel):
 
 @dataclasses.dataclass
 class CachedAddonsModel:
-	cachedAddonData: "AddonGUICollectionT"
+	cachedAddonData: AddonGUICollectionT
 	cacheHash: str | None
 	cachedLanguage: str
 	# AddonApiVersionT or the string .network._LATEST_API_VER
@@ -388,7 +387,7 @@ def _createStoreModelFromData(addon: dict[str, Any]) -> AddonStoreModel:
 	)
 
 
-def _createGUIModelFromManifest(addon: "AddonHandlerBaseModel") -> AddonManifestModel:
+def _createGUIModelFromManifest(addon: AddonHandlerBaseModel) -> AddonManifestModel:
 	homepage: str | None = addon.manifest.get("url")
 	if homepage == "None":
 		# Manifest strings can be set to "None"
@@ -404,7 +403,7 @@ def _createGUIModelFromManifest(addon: "AddonHandlerBaseModel") -> AddonManifest
 	)
 
 
-def _createAddonGUICollection() -> "AddonGUICollectionT":
+def _createAddonGUICollection() -> AddonGUICollectionT:
 	"""
 	Add-ons that have the same ID except differ in casing cause a path collision,
 	as add-on IDs are installed to a case insensitive path.
@@ -413,7 +412,7 @@ def _createAddonGUICollection() -> "AddonGUICollectionT":
 	return {channel: CaseInsensitiveDict() for channel in Channel if channel != Channel.ALL}
 
 
-def _createStoreCollectionFromJson(jsonData: str) -> "AddonGUICollectionT":
+def _createStoreCollectionFromJson(jsonData: str) -> AddonGUICollectionT:
 	"""Use json string to construct a listing of available addons.
 	See https://github.com/nvaccess/addon-datastore#api-data-generation-details
 	for details of the data.

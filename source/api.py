@@ -305,7 +305,7 @@ def getNavigatorObject() -> NVDAObjects.NVDAObject:
 	else:
 		try:
 			obj = globalVars.reviewPosition.NVDAObjectAtStart
-		except (NotImplementedError, LookupError):
+		except NotImplementedError, LookupError:
 			obj = globalVars.reviewPosition.obj
 	nextObj = getattr(obj, "rootNVDAObject", None) or obj
 	if objectBelowLockScreenAndWindowsIsLocked(nextObj):
@@ -537,7 +537,7 @@ def isObjectInActiveTreeInterceptor(obj: NVDAObjects.NVDAObject) -> bool:
 	)
 
 
-def getCaretPosition() -> "textInfos.TextInfo":
+def getCaretPosition() -> textInfos.TextInfo:
 	"""Gets a text info at the position of the caret."""
 	textContainerObj = getCaretObject()
 	if not textContainerObj:
@@ -545,7 +545,7 @@ def getCaretPosition() -> "textInfos.TextInfo":
 	return textContainerObj.makeTextInfo("caret")
 
 
-def getCaretObject() -> "documentBase.TextContainerObject":
+def getCaretObject() -> documentBase.TextContainerObject:
 	"""Gets the object which contains the caret.
 	This is normally the NVDAObject with focus, unless it has a browse mode tree interceptor to return instead.
 	@return: The object containing the caret.

@@ -260,7 +260,7 @@ class AddonListItemVM(Generic[_AddonModelT]):  # noqa: UP046
 
 
 class AddonDetailsVM:
-	def __init__(self, listVM: "AddonListVM"):
+	def __init__(self, listVM: AddonListVM):
 		self._listVM = listVM
 		self._listItem: AddonListItemVM | None = listVM.getSelection()
 		self.updated = extensionPoints.Action()  # triggered by setting L{self._listItem}
@@ -282,7 +282,7 @@ class AddonListVM:
 	def __init__(
 		self,
 		addons: list[AddonListItemVM],
-		storeVM: "AddonStoreVM",
+		storeVM: AddonStoreVM,
 	):
 		self._isLoading: bool = False
 		self._addons: CaseInsensitiveDict[AddonListItemVM[_AddonGUIModel]] = CaseInsensitiveDict()
@@ -472,7 +472,7 @@ class AddonListVM:
 	MINIMUM_SEARCH_RANK_THRESHOLD = 0.7
 
 	def _getFilteredSortedIds(self) -> list[str]:
-		def _getSortFieldData(listItemVM: AddonListItemVM[_AddonGUIModel]) -> "_SupportsLessThan":
+		def _getSortFieldData(listItemVM: AddonListItemVM[_AddonGUIModel]) -> _SupportsLessThan:
 			if self._sortByModelField == AddonListField.publicationDate:
 				if getattr(listItemVM.model, "submissionTime", None):
 					addonStoreListItemVM = cast(AddonListItemVM[_AddonStoreModel], listItemVM)

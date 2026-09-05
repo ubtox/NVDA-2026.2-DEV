@@ -96,7 +96,7 @@ class ChromeVBuf(GeckoVBuf):
 
 
 class Document(ia2Web.Document):
-	def _get_treeInterceptorClass(self) -> type["TreeInterceptor"]:
+	def _get_treeInterceptorClass(self) -> type[TreeInterceptor]:
 		shouldLoadVBufOnBusyFeatureFlag = bool(
 			config.conf["virtualBuffers"]["loadChromiumVBufOnBusyState"],
 		)

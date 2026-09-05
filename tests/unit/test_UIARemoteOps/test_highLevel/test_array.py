@@ -13,7 +13,6 @@ from UIAHandler._remoteOps import remoteAPI
 
 
 class Test_array(TestCase):
-
 	def test_newArray(self):
 		op = operation.Operation(localMode=True)
 

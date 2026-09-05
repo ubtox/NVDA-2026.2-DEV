@@ -45,7 +45,7 @@ class CrashEvent:
 		return json.dumps(asdict(self), separators=(",", ":"))
 
 	@staticmethod
-	def from_line(line: str) -> "CrashEvent | None":
+	def from_line(line: str) -> CrashEvent | None:
 		if not line:
 			return None
 		try:
@@ -58,7 +58,7 @@ class CrashEvent:
 			timestamp = float(data["timestamp"])
 			version = data["version"]
 			installType = data["installType"]
-		except (KeyError, TypeError, ValueError):
+		except KeyError, TypeError, ValueError:
 			return None
 		if not isinstance(version, str) or not version:
 			return None

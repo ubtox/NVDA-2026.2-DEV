@@ -73,7 +73,7 @@ class AppModule(appModuleHandler.AppModule):
 			element = walker.getFirstChildElement(notepadWindow)
 			# Is status bar even showing?
 			element = element.buildUpdatedCache(UIAHandler.handler.baseCacheRequest)
-		except (ValueError, COMError):
+		except ValueError, COMError:
 			raise NotImplementedError
 		statusBar = UIA(UIAElement=element).parent
 		return statusBar

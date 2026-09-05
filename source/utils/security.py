@@ -68,7 +68,7 @@ post_sessionLockStateChanged.unregister(onSessionLockStateChange)
 """
 
 
-def getSafeScripts() -> set["scriptHandler._ScriptFunctionT"]:
+def getSafeScripts() -> set[scriptHandler._ScriptFunctionT]:
 	"""
 	Returns scripts which are safe to use on the Windows lockscreen.
 	Not to be confused with the Windows sign-in screen, a secure screen.
@@ -153,7 +153,7 @@ def getSafeScripts() -> set["scriptHandler._ScriptFunctionT"]:
 
 
 def objectBelowLockScreenAndWindowsIsLocked(
-	obj: "NVDAObjects.NVDAObject | treeInterceptorHandler.TreeInterceptor",
+	obj: NVDAObjects.NVDAObject | treeInterceptorHandler.TreeInterceptor,
 	shouldLog: bool = True,
 ) -> bool:
 	"""
@@ -201,14 +201,14 @@ def objectBelowLockScreenAndWindowsIsLocked(
 	return False
 
 
-def _isObjectAboveLockScreen(obj: "NVDAObjects.NVDAObject") -> bool:
+def _isObjectAboveLockScreen(obj: NVDAObjects.NVDAObject) -> bool:
 	log.error(
 		"This function is deprecated. Instead use obj.isBelowLockScreen. ",
 	)
 	return not obj.isBelowLockScreen
 
 
-def _isObjectBelowLockScreen(obj: "NVDAObjects.NVDAObject") -> bool:
+def _isObjectBelowLockScreen(obj: NVDAObjects.NVDAObject) -> bool:
 	"""
 	While Windows is locked, the current user session is still running, and below the lockscreen
 	exists the current user's desktop.

@@ -104,7 +104,7 @@ def getDictionaryDefinition(source: DictionaryType | str) -> SpeechDictDefinitio
 	raise KeyError(f"No speech dictionary definition found for source {source!r}")
 
 
-def loadVoiceDict(synth: "synthDriverHandler.SynthDriver") -> None:
+def loadVoiceDict(synth: synthDriverHandler.SynthDriver) -> None:
 	"""Loads appropriate dictionary for the given synthesizer.
 	It handles case when the synthesizer doesn't support voice setting.
 	"""

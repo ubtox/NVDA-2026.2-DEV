@@ -7,18 +7,12 @@ from __future__ import annotations
 import re
 from ctypes import (
 	oledll,
-	byref,
-	c_void_p,
 	c_long,
 	c_ulong,
-	c_bool,
 )
-from comtypes.automation import VARIANT
 import enum
 import NVDAState
 from UIAHandler import UIA
-from ._lowLevel import RemoteOperation
-from . import _lowLevel
 
 """
 This module contains classes and constants for the low-level Windows UI Automation Remote Operations API,
@@ -30,16 +24,20 @@ via one cross-process call.
 """
 
 
-_re_COMMethodVtableOffset = re.compile("^<COM method offset (\d+):")
+_re_COMMethodVtableOffset = re.compile(r"^<COM method offset (\d+):")
+
+
 def _getCOMMethodVtableOffset(COMMethod):
 	m = _re_COMMethodVtableOffset.match(str(COMMethod))
 	if not m:
 		raise ValueError(f"Invalid COM method: {COMMethod}")
 	return int(m.group(1))
 
+
 def _makeUIAPatternInstructionId(patternId, COMMethod) -> int:
 	vtableOffset = _getCOMMethodVtableOffset(COMMethod)
 	return (patternId << 10) | vtableOffset
+
 
 class OperandId(c_ulong):
 	"""
@@ -223,7 +221,10 @@ class InstructionType(enum.IntEnum):
 
 	# Text pattern
 	ElementGetTextPattern = UIA.UIA_TextPatternId
-	TextPatternRangeFromChild = _makeUIAPatternInstructionId(UIA.UIA_TextPatternId, UIA.IUIAutomationTextPattern.RangeFromChild)
+	TextPatternRangeFromChild = _makeUIAPatternInstructionId(
+		UIA.UIA_TextPatternId,
+		UIA.IUIAutomationTextPattern.RangeFromChild,
+	)
 
 
 class ComparisonType(enum.IntEnum):
@@ -268,6 +269,7 @@ class AutomationIdentifierType(enum.IntEnum):
 	Annotation = 6
 	Changes = 7
 	Style = 8
+
 
 PropertyId = enum.IntEnum(
 	"PropertyId",

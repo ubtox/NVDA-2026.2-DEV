@@ -381,7 +381,7 @@ class UIATextInfo(textInfos.TextInfo):
 		)
 		try:
 			textRange = textRange.QueryInterface(UIAHandler.IUIAutomationTextRange3)
-		except (COMError, AttributeError):
+		except COMError, AttributeError:
 			fetcher = UIATextRangeAttributeValueFetcher(textRange)
 		else:
 			# Precalculate all the IDs we could possibly need so that they can be fetched in one cross-process call where supported
@@ -2762,7 +2762,7 @@ class ComboBoxWithoutValuePattern(UIA):
 	def _get_value(self):
 		try:
 			return self.UIASelectionPattern.GetCurrentSelection().GetElement(0).CurrentName
-		except (COMError, AttributeError):
+		except COMError, AttributeError:
 			return None
 
 

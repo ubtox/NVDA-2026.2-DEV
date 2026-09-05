@@ -322,7 +322,7 @@ def _getControlFieldForReportStart(
 				text += mathPres.brailleProvider.getBrailleForMathMl(
 					info.getMathMl(field),
 				)
-			except (NotImplementedError, LookupError):
+			except NotImplementedError, LookupError:
 				pass
 	return text
 

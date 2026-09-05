@@ -227,7 +227,7 @@ class DocumentWithTableNavigation(TextContainerObject, ScriptableObject):
 		try:
 			nRows = int(attrs.get("table-rowcount"))
 			nCols = int(attrs.get("table-columncount"))
-		except (TypeError, ValueError):
+		except TypeError, ValueError:
 			raise LookupError("Not in a table cell")
 		return (nRows, nCols)
 

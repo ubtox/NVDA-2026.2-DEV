@@ -533,7 +533,7 @@ class BrowseModeTreeInterceptor(treeInterceptorHandler.TreeInterceptor):
 			def paragraphFunc(info: textInfos.TextInfo) -> int | None:
 				try:
 					return info.location[0]
-				except (AttributeError, TypeError):
+				except AttributeError, TypeError:
 					return None
 
 			def iterFactory(
@@ -713,7 +713,7 @@ class BrowseModeTreeInterceptor(treeInterceptorHandler.TreeInterceptor):
 
 			try:
 				return mathPres.interactWithMathMl(obj.mathMl, sourceObj=obj)
-			except (NotImplementedError, LookupError):
+			except NotImplementedError, LookupError:
 				pass
 			return
 		if self.shouldPassThrough(obj):
@@ -2359,7 +2359,7 @@ class BrowseModeDocumentTreeInterceptor(
 		if isinstance(obj, NVDAObject):
 			try:
 				scrollInfo = self.makeTextInfo(obj)
-			except (NotImplementedError, RuntimeError):
+			except NotImplementedError, RuntimeError:
 				return False
 		elif isinstance(obj, textInfos.TextInfo):
 			scrollInfo = obj.copy()
@@ -2504,10 +2504,10 @@ class BrowseModeDocumentTreeInterceptor(
 		textRange.collapse()
 		try:
 			item = next(self._iterNodesByType("container", "up", textRange))
-		except (NotImplementedError, StopIteration):
+		except NotImplementedError, StopIteration:
 			try:
 				item = next(self._iterNodesByType("landmark", "up", textRange))
-			except (NotImplementedError, StopIteration):
+			except NotImplementedError, StopIteration:
 				return
 		return item.textInfo
 
@@ -2604,7 +2604,7 @@ class BrowseModeDocumentTreeInterceptor(
 	def _extractStyles(
 		self,
 		info: textInfos.TextInfo,
-	) -> "textInfos.TextInfo.TextWithFieldsT":
+	) -> textInfos.TextInfo.TextWithFieldsT:
 		"""
 		This function calls TextInfo.getTextWithFields(), and then processes fields in the following way:
 		1. Highlighted (marked) text is currently reported as Role.MARKED_CONTENT, and not formatChange.
@@ -2662,8 +2662,8 @@ class BrowseModeDocumentTreeInterceptor(
 
 	def _mergeIdenticalStyles(
 		self,
-		sequence: "textInfos.TextInfo.TextWithFieldsT",
-	) -> "textInfos.TextInfo.TextWithFieldsT":
+		sequence: textInfos.TextInfo.TextWithFieldsT,
+	) -> textInfos.TextInfo.TextWithFieldsT:
 		"""
 		This function is used to postprocess styles output of _extractStyles function.
 		Raw output of _extractStyles function might contain identical styles,
@@ -2921,7 +2921,7 @@ class BrowseModeDocumentTreeInterceptor(
 		if syncAppSelection:
 			try:
 				self.updateAppSelection()
-			except (NotImplementedError, COMError):
+			except NotImplementedError, COMError:
 				log.debugWarning("Synchronising the native selection with focus mode failed", exc_info=True)
 
 	@script(
@@ -2945,7 +2945,7 @@ class BrowseModeDocumentTreeInterceptor(
 				# as the app must be able to support clearing / setting empty selections.
 				self.clearAppSelection()
 				self.updateAppSelection()
-			except (NotImplementedError, COMError):
+			except NotImplementedError, COMError:
 				log.debugWarning("updateAppSelection failed", exc_info=True)
 				# Translators: the message when native selection mode is not available in this browse mode document.
 				ui.message(_("Native selection mode unsupported in this document"))
@@ -2956,7 +2956,7 @@ class BrowseModeDocumentTreeInterceptor(
 		else:
 			try:
 				self.collapseAppSelection()
-			except (NotImplementedError, COMError):
+			except NotImplementedError, COMError:
 				log.debugWarning("collapseAppSelection failed", exc_info=True)
 			self._nativeAppSelectionMode = False
 			# Translators: reported when native selection mode is toggled off.

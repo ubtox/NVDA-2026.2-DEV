@@ -294,13 +294,13 @@ class _RectMixin:
 			return RectLTWH(left, top, self.width, self.height)
 		return RectLTRB(left, top, left + self.width, top + self.height)
 
-	def toLTRB(self) -> "RectLTRB":
+	def toLTRB(self) -> RectLTRB:
 		if isinstance(self, RectLTWH):
 			return RectLTRB(self.left, self.top, self.right, self.bottom)
 		assert isinstance(self, RectLTRB)
 		return self
 
-	def toLTWH(self) -> "RectLTWH":
+	def toLTWH(self) -> RectLTWH:
 		if isinstance(self, RectLTRB):
 			return RectLTWH(self.left, self.top, self.width, self.height)
 		assert isinstance(self, RectLTWH)
@@ -400,7 +400,7 @@ class _RectMixin:
 			return RectLTWH(left, top, right - left, bottom - top)
 		return RectLTRB(left, top, right, bottom)
 
-	def union(self, other: "RECT_TYPE") -> "RectLTWH | RectLTRB":
+	def union(self, other: RECT_TYPE) -> RectLTWH | RectLTRB:
 		"""Returns the smallest rectangle that contains both self and other.
 		For example, if self = Rect(left=10,top=10,right=25,bottom=25) and other = Rect(left=20,top=5,right=35,bottom=30),
 		this results in Rect(left=10,top=5,right=35,bottom=30).

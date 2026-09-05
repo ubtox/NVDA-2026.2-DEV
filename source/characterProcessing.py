@@ -417,7 +417,7 @@ def _getSpeechSymbolsForLocale(locale: str) -> tuple[SpeechSymbols, SpeechSymbol
 			continue
 		try:
 			symbols.append(definition.getSymbols(locale))
-		except (LookupError, FileNotFoundError):
+		except LookupError, FileNotFoundError:
 			log.debugWarning(
 				f"Error loading {definition.name!r} symbols for locale {locale!r}",
 				exc_info=True,

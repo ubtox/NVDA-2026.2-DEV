@@ -20,7 +20,7 @@ class MajorMinorPatch(NamedTuple):
 		return f"{self.major}.{self.minor}.{self.patch}"
 
 	@classmethod
-	def _parseVersionFromVersionStr(cls, version: str) -> "MajorMinorPatch":
+	def _parseVersionFromVersionStr(cls, version: str) -> MajorMinorPatch:
 		versionParts = version.split(".")
 		versionLen = len(versionParts)
 		if versionLen < 2 or versionLen > 3:

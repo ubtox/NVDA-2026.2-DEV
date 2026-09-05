@@ -286,8 +286,13 @@ class RemoteTextRangeLogicalAdapter(builder._RemoteBase):
 	def clone(self):
 		return self.textRange.clone().getLogicalAdapter(self.isReversed)
 
-	def move(self, unit: RemoteIntEnum[lowLevel.TextUnit] | lowLevel.TextUnit, count: RemoteInt | int) -> RemoteInt:
+	def move(
+		self,
+		unit: RemoteIntEnum[lowLevel.TextUnit] | lowLevel.TextUnit,
+		count: RemoteInt | int,
+	) -> RemoteInt:
 		realCount = (count * -1) if self.isReversed else count
 		return self.textRange.move(unit, realCount)
+
 
 from .element import RemoteElement

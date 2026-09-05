@@ -19,7 +19,7 @@ from .connectionInfo import ConnectionMode
 class RemoteMenu(wx.Menu):
 	"""Menu for the NVDA Remote functionality that appears in the NVDA Tools menu"""
 
-	def __init__(self, client: "RemoteClient") -> None:
+	def __init__(self, client: RemoteClient) -> None:
 		super().__init__()
 		self.client = client
 		sysTrayIcon = gui.mainFrame.sysTrayIcon
@@ -108,7 +108,7 @@ class RemoteMenu(wx.Menu):
 		self.remoteItem = None
 		try:
 			self.Destroy()
-		except (RuntimeError, AttributeError):
+		except RuntimeError, AttributeError:
 			pass
 
 	def doDisconnect(self, evt: wx.CommandEvent) -> None:

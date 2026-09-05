@@ -115,21 +115,21 @@ class EditableText(TextContainerObject, ScriptableObject):
 				# retrieved might be stale.
 				try:
 					newInfo = self.makeTextInfo(textInfos.POSITION_CARET)
-				except (RuntimeError, NotImplementedError):
+				except RuntimeError, NotImplementedError:
 					newInfo = None
 				return (True, newInfo)
 			# If the focus changes after this point, fetching the caret may fail,
 			# but we still want to stay in this loop.
 			try:
 				newInfo = self.makeTextInfo(textInfos.POSITION_CARET)
-			except (RuntimeError, NotImplementedError):
+			except RuntimeError, NotImplementedError:
 				newInfo = None
 			# Try to detect with bookmarks.
 			newBookmark = None
 			if newInfo:
 				try:
 					newBookmark = newInfo.bookmark
-				except (RuntimeError, NotImplementedError):
+				except RuntimeError, NotImplementedError:
 					pass
 			if newBookmark and newBookmark != bookmark:
 				log.debug(
@@ -219,7 +219,7 @@ class EditableText(TextContainerObject, ScriptableObject):
 		# newInfo.copy should be good enough here, but in MS Word we get strange results.
 		try:
 			lineInfo = self.makeTextInfo(textInfos.POSITION_CARET)
-		except (RuntimeError, NotImplementedError):
+		except RuntimeError, NotImplementedError:
 			return
 		lineInfo.expand(textInfos.UNIT_LINE)
 		if not self.announceEntireNewLine:

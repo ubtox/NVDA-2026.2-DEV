@@ -205,7 +205,7 @@ class BrailleDisplayDriver(braille.display.driver.BrailleDisplayDriver):
 
 			try:
 				self._processPacket(packet[4:])
-			except (RuntimeError, ValueError, struct.error):
+			except RuntimeError, ValueError, struct.error:
 				log.exception("Error processing packet")
 
 	def _processPacket(self, packetBody: bytes) -> None:
@@ -306,7 +306,7 @@ class BrailleDisplayDriver(braille.display.driver.BrailleDisplayDriver):
 					gesture = DPInputGesture(self.model, self._keysPressed.copy())
 					if inputCore.manager is not None:
 						inputCore.manager.executeGesture(gesture)
-				except (ValueError, inputCore.NoInputGestureAction):
+				except ValueError, inputCore.NoInputGestureAction:
 					pass
 
 				# Reset state for next gesture

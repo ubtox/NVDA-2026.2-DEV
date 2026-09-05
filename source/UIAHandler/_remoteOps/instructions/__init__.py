@@ -41,7 +41,7 @@ from .stringMap import (
 	StringMapHasKey,
 	StringMapLookup,
 	StringMapRemove,
-	StringMapSize
+	StringMapSize,
 )
 from .bool import (
 	NewBool,

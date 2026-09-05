@@ -85,7 +85,7 @@ def _getNoVBuf_AriaDetails_sample() -> str:
 		"""
 
 
-def _doTestAriaDetails_NoVBufNoTextInterface(nvdaConfValues: "NVDASpyLib.NVDAConfMods"):
+def _doTestAriaDetails_NoVBufNoTextInterface(nvdaConfValues: NVDASpyLib.NVDAConfMods):
 	_chrome.prepareChrome(_getNoVBuf_AriaDetails_sample())
 	spy: NVDASpyLib = _NvdaLib.getSpyLib()
 	spy.modifyNVDAConfig(nvdaConfValues)
@@ -344,7 +344,7 @@ def test_mark_aria_details_role():
 	)
 
 
-def exercise_mark_aria_details(nvdaConfValues: "NVDASpyLib.NVDAConfMods"):
+def exercise_mark_aria_details(nvdaConfValues: NVDASpyLib.NVDAConfMods):
 	_chrome.prepareChrome(
 		"""
 		<div class="editor" contenteditable spellcheck="false" role="textbox" aria-multiline="true">
@@ -2894,7 +2894,7 @@ def test_ariaErrorMessage():
 	)
 
 
-def _doTestReportLanguage(nvdaConfValues: "NVDASpyLib.NVDAConfMods"):
+def _doTestReportLanguage(nvdaConfValues: NVDASpyLib.NVDAConfMods):
 	_chrome.prepareChrome(
 		"""
 		<p><span lang="fr">Cyrille</span> created this <span lang="unknown">test:</span> Let's mention <span lang="es-ES">Noelia</span> and <span lang="la">Leonem</span> in the same sentence.</p>

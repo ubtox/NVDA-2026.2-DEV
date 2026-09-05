@@ -119,7 +119,7 @@ class ReadThread(Thread):
 			# Considering situation where "albatross_read" thread is about to read
 			# but writing to display fails during it - or vice versa - AttributeError
 			# or TypeError might raise.
-			except (OSError, AttributeError, TypeError):
+			except OSError, AttributeError, TypeError:
 				if self._event.is_set():
 					break
 				else:

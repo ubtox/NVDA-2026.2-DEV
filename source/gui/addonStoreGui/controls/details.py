@@ -53,7 +53,7 @@ class AddonDetails(
 	# In the add-on store dialog.
 	_actionsLabelText: str = pgettext("addonStore", "A&ctions")
 
-	Parent: "AddonStoreDialog"
+	Parent: AddonStoreDialog
 
 	_REFRESH_DELAY_MS: int = 100
 	"""
@@ -65,7 +65,7 @@ class AddonDetails(
 
 	def __init__(
 		self,
-		parent: "AddonStoreDialog",
+		parent: AddonStoreDialog,
 		detailsVM: AddonDetailsVM,
 		actionsContextMenu: _MonoActionsContextMenu,
 	):

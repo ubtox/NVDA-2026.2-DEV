@@ -71,13 +71,13 @@ _TempDownloadPathT = str
 
 
 class _PendingDownload(NamedTuple):
-	addonData: "AddonListItemVM[_AddonStoreModel]"
+	addonData: AddonListItemVM[_AddonStoreModel]
 	tempDownloadPath: _TempDownloadPathT
 	onComplete: Callable[
-		["AddonListItemVM[_AddonStoreModel]", os.PathLike | None],
+		[AddonListItemVM[_AddonStoreModel], os.PathLike | None],
 		None,
 	]
-	onDisplayableError: "DisplayableError.OnDisplayableErrorT"
+	onDisplayableError: DisplayableError.OnDisplayableErrorT
 
 
 class AddonFileDownloader:
@@ -152,14 +152,14 @@ class AddonFileDownloader:
 
 	def _createTempDownloadPath(
 		self,
-		addonData: "AddonListItemVM[_AddonStoreModel]",
+		addonData: AddonListItemVM[_AddonStoreModel],
 	) -> _TempDownloadPathT:
 		self._downloadAttemptCount += 1
 		return f"{addonData.model.tempDownloadPath}.{self._downloadAttemptCount}"
 
 	def _isDownloadActive(
 		self,
-		addonData: "AddonListItemVM[_AddonStoreModel]",
+		addonData: AddonListItemVM[_AddonStoreModel],
 		tempDownloadPath: _TempDownloadPathT,
 	) -> bool:
 		return addonData in self.progress and self._activeDownloadPaths.get(addonData) == tempDownloadPath
@@ -180,9 +180,9 @@ class AddonFileDownloader:
 
 	def download(
 		self,
-		addonData: "AddonListItemVM[_AddonStoreModel]",
+		addonData: AddonListItemVM[_AddonStoreModel],
 		onComplete: OnCompleteT,
-		onDisplayableError: "DisplayableError.OnDisplayableErrorT",
+		onDisplayableError: DisplayableError.OnDisplayableErrorT,
 	):
 		with self.DOWNLOAD_LOCK:
 			self._ensureDownloadResources()
@@ -286,7 +286,7 @@ class AddonFileDownloader:
 
 	def _downloadAddonToPath(
 		self,
-		addonData: "AddonListItemVM[_AddonStoreModel]",
+		addonData: AddonListItemVM[_AddonStoreModel],
 		tempDownloadPath: _TempDownloadPathT,
 	) -> bool:
 		"""
@@ -321,7 +321,7 @@ class AddonFileDownloader:
 
 	def _download(
 		self,
-		listItem: "AddonListItemVM[_AddonStoreModel]",
+		listItem: AddonListItemVM[_AddonStoreModel],
 		tempDownloadPath: _TempDownloadPathT,
 	) -> os.PathLike | None:
 		from gui.message import DisplayableError

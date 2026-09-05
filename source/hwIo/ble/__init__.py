@@ -72,7 +72,7 @@ def findDeviceByAddress(address: str, timeout: float = 5.0, pollInterval: float 
 	if not scanner.isScanning:
 		try:
 			scanner.start()  # Start in background mode
-		except (BleakError, OSError):
+		except BleakError, OSError:
 			log.error(f"Failed to start BLE scanner while searching for device {address}", exc_info=True)  # noqa: G201
 			return None
 

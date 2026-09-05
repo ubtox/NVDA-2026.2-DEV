@@ -1666,12 +1666,12 @@ class AppModule(appModuleHandler.AppModule):
 				return None
 		try:
 			pres = self._ppApplicationFromROT.activePresentation
-		except (comtypes.COMError, NameError, AttributeError):
+		except comtypes.COMError, NameError, AttributeError:
 			log.debugWarning("No active presentation")
 			return None
 		try:
 			ppSlideShowWindow = pres.slideShowWindow
-		except (comtypes.COMError, NameError, AttributeError):
+		except comtypes.COMError, NameError, AttributeError:
 			log.debugWarning("Could not get slideShowWindow")
 			ppSlideShowWindow = None
 		isActiveSlideShow = False
@@ -1684,7 +1684,7 @@ class AppModule(appModuleHandler.AppModule):
 			return ppSlideShowWindow
 		try:
 			window = pres.windows.item(1)
-		except (comtypes.COMError, NameError, AttributeError):
+		except comtypes.COMError, NameError, AttributeError:
 			window = None
 		return window
 

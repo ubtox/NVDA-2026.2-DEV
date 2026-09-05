@@ -98,7 +98,7 @@ class RevisionUIATextInfoQuickNavItem(TextAttribUIATextInfoQuickNavItem):
 			return _("track change: {text}").format(text=text)
 
 
-def getReferenceFromPosition(position: "WordDocumentTextInfo") -> UIA | None:
+def getReferenceFromPosition(position: WordDocumentTextInfo) -> UIA | None:
 	"""
 	Fetches reference (footnote/endnote) for the reference located at the given position in a word document.
 	:param position: a TextInfo representing the span of the reference in the word document.
@@ -250,7 +250,7 @@ class WordDocumentTextInfo(UIATextInfo):
 			return super().locationText
 		try:
 			r = om.rangeFromPoint(point.x, point.y)
-		except (COMError, NameError):
+		except COMError, NameError:
 			log.debugWarning("MS Word object model does not support rangeFromPoint")
 			return super().locationText
 		from NVDAObjects.window.winword import WordDocumentTextInfo as WordObjectModelTextInfo
@@ -273,7 +273,7 @@ class WordDocumentTextInfo(UIATextInfo):
 
 	def _getControlFieldForUIAObject(
 		self,
-		obj: "WordDocumentNode",
+		obj: WordDocumentNode,
 		isEmbedded=False,
 		startOfNode=False,
 		endOfNode=False,
@@ -556,7 +556,7 @@ class WordDocumentTextInfo(UIATextInfo):
 			if page is not None:
 				try:
 					page = int(page)
-				except (ValueError, TypeError):
+				except ValueError, TypeError:
 					page = None
 		if page is not None:
 			# Propagate control field page number to format fields that don't already have one.
@@ -884,7 +884,7 @@ class WordDocument(UIADocumentWithTableNavigation, WordDocumentNode, WordDocumen
 		category=SCRCAT_SYSTEMCARET,
 		speakOnDemand=True,
 	)
-	def script_reportCurrentComment(self, gesture: "inputCore.InputGesture") -> None:
+	def script_reportCurrentComment(self, gesture: inputCore.InputGesture) -> None:
 		caretInfo = self.makeTextInfo(textInfos.POSITION_CARET)
 		commentInfo = getCommentInfoFromPosition(caretInfo)
 		if commentInfo is not None:
