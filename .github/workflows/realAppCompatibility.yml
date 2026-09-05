@@ -40,20 +40,20 @@ jobs:
       - name: Install Python x64
         uses: actions/setup-python@v6
         with:
-          python-version: "3.13.15"
+          python-version: "3.14.7"
           architecture: x64
 
       - name: Install Python x86 for synth driver host
         uses: actions/setup-python@v6
         with:
-          python-version: "3.13.15"
+          python-version: "3.14.7"
           architecture: x86
           update-environment: false
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
-          python-version: cpython-3.13.15-windows-x86_64-none
+          python-version: cpython-3.14.7-windows-x86_64-none
 
       - name: Install Visual Studio Code
         shell: pwsh
