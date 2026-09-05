@@ -1,4 +1,4 @@
-name: Port NVDA upstream 20698 to Evolution
+name: Verify NVDA upstream 20698 on Evolution
 
 on:
   push:
@@ -6,15 +6,15 @@ on:
       - automation/port-20698
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: evolution-port-20698
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
-  port-and-validate:
-    name: Port and validate upstream 20698
+  verify:
+    name: Verify validated upstream 20698 port
     runs-on: windows-2025-vs2026
     timeout-minutes: 30
     env:
@@ -25,14 +25,8 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: evolution/2026.2-nextgen
-          fetch-depth: 1
+          fetch-depth: 2
           submodules: true
-
-      - name: Configure Git identity
-        shell: bash
-        run: |
-          git config user.name "NVDA Evolution Automation"
-          git config user.email "actions@users.noreply.github.com"
 
       - name: Install Python 3.13.13 x64
         uses: actions/setup-python@v6
@@ -45,113 +39,16 @@ jobs:
         with:
           python-version: cpython-3.13.13-windows-x86_64-none
 
-      - name: Fetch, port and resolve bounded upstream 20698 conflicts
-        shell: bash
-        run: |
-          git remote add upstream https://github.com/nvaccess/nvda.git
-          git fetch --no-tags --depth=2 upstream acb904f88ebdbfb7415cddc2188a38f36a675243
-          set +e
-          git cherry-pick -x acb904f88ebdbfb7415cddc2188a38f36a675243
-          cherryPickStatus=$?
-          set -e
-          if [ "$cherryPickStatus" -ne 0 ]; then
-            mapfile -t conflicts < <(git diff --name-only --diff-filter=U | sort)
-            expected=(
-              "source/NVDAObjects/IAccessible/__init__.py"
-              "user_docs/en/changes.md"
-            )
-            if [ "${conflicts[*]}" != "${expected[*]}" ]; then
-              printf 'Unexpected conflicts:\n%s\n' "${conflicts[*]}"
-              exit 1
-            fi
-            python - <<'PY'
-          from pathlib import Path
-
-          def keep_ours_conflict_chunks(path: Path) -> str:
-              text = path.read_text(encoding="utf-8")
-              output: list[str] = []
-              state = "normal"
-              for line in text.splitlines(keepends=True):
-                  if line.startswith("<<<<<<< "):
-                      if state != "normal":
-                          raise RuntimeError(f"Nested conflict marker in {path}")
-                      state = "ours"
-                      continue
-                  if line.startswith("=======") and state == "ours":
-                      state = "theirs"
-                      continue
-                  if line.startswith(">>>>>>> ") and state == "theirs":
-                      state = "normal"
-                      continue
-                  if state in {"normal", "ours"}:
-                      output.append(line)
-              if state != "normal":
-                  raise RuntimeError(f"Unterminated conflict marker in {path}")
-              return "".join(output)
-
-          ia_path = Path("source/NVDAObjects/IAccessible/__init__.py")
-          ia = keep_ours_conflict_chunks(ia_path)
-          old_copyright = "# Copyright (C) 2006-2025 NV Access Limited, Babbage B.V., Cyrille Bougot\n"
-          new_copyright = "# Copyright (C) 2006-2026 NV Access Limited, Babbage B.V., Cyrille Bougot, Leonard de Ruijter, Christopher Proß\n"
-          if old_copyright in ia:
-              ia = ia.replace(old_copyright, new_copyright, 1)
-          if "import ctypes.wintypes\n" not in ia:
-              if "import ctypes\n" not in ia:
-                  raise RuntimeError("ctypes import anchor missing")
-              ia = ia.replace("import ctypes\n", "import ctypes\nimport ctypes.wintypes\n", 1)
-          if "import windowUtils\n" not in ia:
-              if "import displayModel\n" not in ia:
-                  raise RuntimeError("displayModel import anchor missing")
-              ia = ia.replace("import displayModel\n", "import displayModel\nimport windowUtils\n", 1)
-          if "import locationHelper\n" not in ia or "from locationHelper import RectLTRB, RectLTWH\n" not in ia:
-              old_location_import = "from locationHelper import RectLTWH\n"
-              if old_location_import not in ia:
-                  raise RuntimeError("locationHelper import anchor missing")
-              ia = ia.replace(
-                  old_location_import,
-                  "import locationHelper\nfrom locationHelper import RectLTRB, RectLTWH\n",
-                  1,
-              )
-          required_ia = (
-              "_MN_GETHMENU = 0x01E1",
-              "def _getPopupMenuHandle(",
-              "def _getMenuItemRectsInWindowDpiContext(",
-              "def _physicalLocationFromMenuLocation(",
-              "def _get_location(self) -> RectLTWH | None:",
-          )
-          missing = [token for token in required_ia if token not in ia]
-          if missing:
-              raise RuntimeError(f"Upstream 20698 core block was not preserved: {missing}")
-          ia_path.write_text(ia, encoding="utf-8", newline="\n")
-
-          changes_path = Path("user_docs/en/changes.md")
-          changes = keep_ours_conflict_chunks(changes_path)
-          if "(#20698" not in changes:
-              release_index = changes.find("## 2026.2 Future RC")
-              if release_index < 0:
-                  raise RuntimeError("2026.2 Future RC section missing")
-              bug_index = changes.find("### Bug Fixes", release_index)
-              if bug_index < 0:
-                  raise RuntimeError("Future RC Bug Fixes section missing")
-              insert_at = changes.find("\n", bug_index) + 1
-              bullet = (
-                  "\n* Win32 menu item locations and labels are corrected for 32-bit applications "
-                  "under 64-bit NVDA at display scaling above 100%. (#20698, @christopherpross)\n"
-              )
-              changes = changes[:insert_at] + bullet + changes[insert_at:]
-          changes_path.write_text(changes, encoding="utf-8", newline="\n")
-          PY
-            if git grep -n -E '^(<<<<<<< |>>>>>>> )' -- source/NVDAObjects/IAccessible/__init__.py user_docs/en/changes.md; then
-              echo "Conflict markers remain"
-              exit 1
-            fi
-            git add source/NVDAObjects/IAccessible/__init__.py user_docs/en/changes.md
-            GIT_EDITOR=true git cherry-pick --continue
-          fi
-
-      - name: Verify exact change scope and required implementation
+      - name: Verify integrated commit, exact scope and implementation
         shell: pwsh
         run: |
+          $head = (git rev-parse HEAD).Trim()
+          $message = git show -s --format=%B HEAD
+          if (-not ($message -match 'cherry picked from commit acb904f88ebdbfb7415cddc2188a38f36a675243')) {
+            Write-Error "Evolution HEAD $head is not the validated upstream #20698 port."
+            exit 1
+          }
+
           $expected = @(
             'source/NVDAObjects/IAccessible/__init__.py',
             'source/locationHelper.py',
@@ -166,6 +63,7 @@ jobs:
             Compare-Object $expected $actual | Format-Table
             exit 1
           }
+
           $ia = Get-Content source/NVDAObjects/IAccessible/__init__.py -Raw
           $required = @(
             '_MN_GETHMENU = 0x01E1',
@@ -176,7 +74,7 @@ jobs:
           )
           foreach ($token in $required) {
             if (-not $ia.Contains($token)) {
-              Write-Error "Missing required 20698 implementation token: $token"
+              Write-Error "Missing required #20698 implementation token: $token"
               exit 1
             }
           }
@@ -206,18 +104,3 @@ jobs:
       - name: Run locationHelper unit tests
         shell: cmd
         run: rununittests.bat -p test_locationHelper.py
-
-      - name: Ensure target branch did not move
-        shell: bash
-        run: |
-          candidate_parent="$(git rev-parse HEAD^)"
-          git fetch origin evolution/2026.2-nextgen
-          remote_head="$(git rev-parse FETCH_HEAD)"
-          if [ "$candidate_parent" != "$remote_head" ]; then
-            echo "Evolution branch moved from $candidate_parent to $remote_head; refusing non-reviewed push."
-            exit 1
-          fi
-
-      - name: Push validated port to Evolution
-        shell: bash
-        run: git push origin HEAD:evolution/2026.2-nextgen
