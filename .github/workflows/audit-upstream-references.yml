@@ -98,10 +98,10 @@ jobs:
                   b = upstream_tree.get(path)
                   if a is None:
                       only_upstream.append(path)
-                      tsv.append(f"{label}\tonly-official\t{path}\t\t{b[1]}")
+                      tsv.append(f"{label}\tonly-official\t{path}\t-\t{b[1]}")
                   elif b is None:
                       only_target.append(path)
-                      tsv.append(f"{label}\tonly-evolution\t{path}\t{a[1]}\t")
+                      tsv.append(f"{label}\tonly-evolution\t{path}\t{a[1]}\t-")
                   elif a == b:
                       same.append(path)
                   else:
