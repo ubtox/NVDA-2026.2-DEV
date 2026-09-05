@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "primary": {
+    "repository": "nvaccess/nvda",
+    "developmentRef": "master",
+    "maintenanceRef": "beta",
+    "releaseTagPrefix": "release-"
+  },
+  "nvAccessRepositories": [
+    {
+      "repository": "nvaccess/nvda",
+      "role": "core",
+      "integration": "direct-reference"
+    },
+    {
+      "repository": "nvaccess/nvda-misc-deps",
+      "role": "build-dependency",
+      "integration": "gitlink-only"
+    },
+    {
+      "repository": "nvaccess/javaAccessBridge32-bin",
+      "role": "build-dependency",
+      "integration": "gitlink-only"
+    },
+    {
+      "repository": "nvaccess/NSIS-build",
+      "role": "installer-dependency",
+      "integration": "gitlink-only"
+    },
+    {
+      "repository": "nvaccess/nvda-cldr",
+      "role": "locale-data",
+      "integration": "gitlink-only"
+    },
+    {
+      "repository": "nvaccess/vscode-nvda",
+      "role": "developer-workspace",
+      "integration": "gitlink-only"
+    },
+    {
+      "repository": "nvaccess/nvda-mathcat",
+      "role": "math-accessibility",
+      "integration": "gitlink-only"
+    },
+    {
+      "repository": "nvaccess/remote-server",
+      "role": "remote-service",
+      "integration": "reference-unless-core-upstream-adopts"
+    },
+    {
+      "repository": "nvaccess/nvdaL10n",
+      "role": "localization-tooling",
+      "integration": "reference-workflow"
+    },
+    {
+      "repository": "nvaccess/addon-datastore",
+      "role": "addon-ecosystem",
+      "integration": "reference-api"
+    },
+    {
+      "repository": "nvaccess/addonstore-api",
+      "role": "addon-ecosystem",
+      "integration": "reference-api"
+    },
+    {
+      "repository": "nvaccess/AddonTemplate",
+      "role": "addon-development",
+      "integration": "reference-only"
+    }
+  ],
+  "thirdPartyGitlinks": [
+    "liblouis/liblouis",
+    "espeak-ng/espeak-ng",
+    "waywardgeek/sonic",
+    "LinuxA11y/IAccessible2",
+    "w3c/aria-practices",
+    "microsoft/Detours",
+    "microsoft/wil",
+    "yanyiwu/cppjieba"
+  ],
+  "archivedReferenceRepositories": [
+    "nvaccess/nvda-community",
+    "nvaccess/nvda-ocr",
+    "nvaccess/NVSpeechPlayer",
+    "nvaccess/espeak",
+    "nvaccess/audioScreen",
+    "nvaccess/mrconfig",
+    "nvaccess/dotPadNVDAAddon",
+    "nvaccess/addon-datastore-validation",
+    "nvaccess/nvda-microsoft-ui-uiautomation",
+    "nvaccess/testDisplayModel",
+    "nvaccess/nvda-l10n",
+    "nvaccess/MathCATForPython"
+  ],
+  "rules": {
+    "neverMergeAllOfficialBranchesBlindly": true,
+    "masterIsAuthoritativeForNextDevelopmentCycle": true,
+    "betaIsMaintenanceAndLocalizationLine": true,
+    "releaseTagsAreImmutableReferenceSnapshots": true,
+    "gitlinkUpdatesRequireUpstreamCommitEvidence": true,
+    "unmergedOfficialBranchesRequireDiffReview": true,
+    "protectedCoreChangesRequireFullCiAndRealApps": true
+  }
+}
