@@ -1,9 +1,13 @@
 # Intentional Evolution differences from nvaccess/nvda.
 # Entries classify known deltas; they never hide them from the generated report.
 .github/workflows/durableValidation.yml
+.github/workflows/officialSourceInventory.yml
 .github/workflows/realAppCompatibility.yml
 .github/workflows/upstreamAudit.yml
+ci/OFFICIAL_SOURCE_INVENTORY.md
 ci/UPSTREAM_AUDIT.md
+ci/official-source-policy.json
+ci/scripts/officialSourceInventory.py
 ci/scripts/setBuildVersionVars.ps1
 ci/scripts/upstreamAudit.py
 ci/upstream-audit-allowlist.txt
