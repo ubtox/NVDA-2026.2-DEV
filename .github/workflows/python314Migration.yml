@@ -1,0 +1,101 @@
+name: Temporary Python 3.14.7 migration
+
+on:
+  push:
+    branches:
+      - 'try-evolution/2027.1-major-python-3.14.7'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: python314-migration-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  migrate:
+    if: ${{ !contains(github.event.head_commit.message, '[py314-lockregen]') }}
+    runs-on: windows-2025-vs2026
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Install Python 3.14.7 x64
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.14.7'
+          architecture: x64
+          update-environment: true
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Migrate project pins to Python 3.14.7
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Set-Content -Path '.python-versions' -Value 'cpython-3.14.7-windows-x86_64-none'
+          Set-Content -Path 'runtime-builders/synthDriverHost32/.python-version' -Value 'cpython-3.14.7-windows-x86-none'
+
+          foreach ($path in @('pyproject.toml', 'runtime-builders/synthDriverHost32/pyproject.toml')) {
+            $text = Get-Content -Raw $path
+            $text = $text.Replace('requires-python = ">=3.13,<3.14"', 'requires-python = ">=3.14,<3.15"')
+            Set-Content -NoNewline -Path $path -Value $text
+          }
+
+          Get-ChildItem '.github/workflows' -Filter '*.yml' -File | ForEach-Object {
+            $text = Get-Content -Raw $_.FullName
+            if ($text.Contains('3.13.15')) {
+              $text = $text.Replace('3.13.15', '3.14.7')
+              Set-Content -NoNewline -Path $_.FullName -Value $text
+            }
+          }
+
+          $devDoc = 'projectDocs/dev/createDevEnvironment.md'
+          if (Test-Path $devDoc) {
+            $text = Get-Content -Raw $devDoc
+            $text = $text.Replace('3.13.15', '3.14.7')
+            Set-Content -NoNewline -Path $devDoc -Value $text
+          }
+
+          Write-Host 'Remaining explicit 3.13.15 references in build/config paths:'
+          git grep -n '3\.13\.15' -- '.github/workflows' '.python-versions' 'runtime-builders/synthDriverHost32' 'projectDocs/dev/createDevEnvironment.md' 2>$null
+          if ($LASTEXITCODE -gt 1) { exit $LASTEXITCODE }
+
+      - name: Resolve root lock with Python 3.14.7
+        shell: pwsh
+        run: uv lock --python 3.14.7 --no-python-downloads
+
+      - name: Install Python 3.14.7 x86
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.14.7'
+          architecture: x86
+          update-environment: true
+
+      - name: Resolve synthDriverHost32 lock with Python 3.14.7 x86
+        shell: pwsh
+        run: uv lock --project runtime-builders/synthDriverHost32 --python 3.14.7 --no-python-downloads
+
+      - name: Verify locks
+        shell: pwsh
+        run: |
+          uv lock --check --project . --python 3.14.7 --no-python-downloads
+          uv lock --check --project runtime-builders/synthDriverHost32 --python 3.14.7 --no-python-downloads
+
+      - name: Commit migration and remove temporary workflow
+        shell: pwsh
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git rm '.github/workflows/python314Migration.yml'
+          git status --short
+          git config user.name 'github-actions'
+          git config user.email 'github-actions@github.com'
+          git add -A
+          git commit -m 'build: migrate NVDA to Python 3.14.7 [py314-lockregen]'
+          git push origin HEAD:"$env:REF_NAME"
