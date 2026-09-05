@@ -1,0 +1,84 @@
+name: Temporary port UIA Remote Ops 20760
+
+on:
+  push:
+    branches:
+      - 'try-evolution/2027.1-major-python314-uia-remoteops-20760'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: port-uia-remoteops-20760-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  port:
+    if: ${{ !contains(github.event.head_commit.message, '[uia20760-port]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Evolution branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Fetch exact NV Access PR head
+        shell: bash
+        run: |
+          set -euo pipefail
+          git remote add nvaccess-upstream https://github.com/nvaccess/nvda.git
+          git fetch --depth=1 nvaccess-upstream 217eaf2b42db11f90a96703e8774427f92f99922
+
+      - name: Port exact PR 20760 files
+        shell: bash
+        run: |
+          set -euo pipefail
+          upstream=217eaf2b42db11f90a96703e8774427f92f99922
+          files=(
+            '.gitignore'
+            '.gitmodules'
+            'include/pybind11'
+            'nvdaHelper/UIARemote/lowLevel.cpp'
+            'nvdaHelper/UIARemote/sconscript'
+            'nvdaHelper/archBuild_sconscript'
+            'source/UIAHandler/_remoteOps/instructions/__init__.py'
+            'source/UIAHandler/_remoteOps/instructions/_base.py'
+            'source/UIAHandler/_remoteOps/instructions/controlFlow.py'
+            'source/UIAHandler/_remoteOps/instructions/element.py'
+            'source/UIAHandler/_remoteOps/instructions/guid.py'
+            'source/UIAHandler/_remoteOps/instructions/stringMap.py'
+            'source/UIAHandler/_remoteOps/instructions/textPattern.py'
+            'source/UIAHandler/_remoteOps/lowLevel.py'
+            'source/UIAHandler/_remoteOps/operation.py'
+            'source/UIAHandler/_remoteOps/readme.md'
+            'source/UIAHandler/_remoteOps/remoteAPI.py'
+            'source/UIAHandler/_remoteOps/remoteTypes/__init__.py'
+            'source/UIAHandler/_remoteOps/remoteTypes/cacheRequest.py'
+            'source/UIAHandler/_remoteOps/remoteTypes/element.py'
+            'source/UIAHandler/_remoteOps/remoteTypes/textPattern.py'
+            'source/UIAHandler/_remoteOps/remoteTypes/textRange.py'
+            'tests/unit/test_UIARemoteOps/test_highLevel/test_array.py'
+            'tests/unit/test_UIARemoteOps/test_highLevel/test_if.py'
+            'tests/unit/test_UIARemoteOps/test_highLevel/test_stringMap.py'
+          )
+          git checkout "$upstream" -- "${files[@]}"
+
+          # Every selected path must now be byte/tree-identical to the PR head.
+          git diff --exit-code "$upstream" -- "${files[@]}"
+
+          # Ensure the staged change surface is exactly the intended upstream file set.
+          git diff --cached --name-only | sort > /tmp/actual.txt
+          printf '%s\n' "${files[@]}" | sort > /tmp/expected.txt
+          diff -u /tmp/expected.txt /tmp/actual.txt
+
+      - name: Commit exact UIA Remote Ops port
+        shell: bash
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions'
+          git config user.email 'github-actions@github.com'
+          git commit -m 'feat: port NV Access UIA Remote Ops 20760 [uia20760-port]'
+          git push origin HEAD:"$REF_NAME"
