@@ -20,6 +20,11 @@ on:
         required: false
         default: false
         type: boolean
+      fail_on_upstream_advance:
+        description: Fail when upstream is newer than the integrated baseline
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   contents: read
@@ -36,6 +41,7 @@ jobs:
     env:
       TARGET_REF: ${{ github.event.inputs.target_ref || 'final/2027.1-nextgen' }}
       UPSTREAM_REF: ${{ github.event.inputs.upstream_ref || 'master' }}
+      FAIL_ON_UPSTREAM_ADVANCE: ${{ github.event.inputs.fail_on_upstream_advance || 'true' }}
     steps:
       - name: Checkout Evolution target
         uses: actions/checkout@v7
@@ -61,6 +67,39 @@ jobs:
         with:
           python-version: '3.13'
 
+      - name: Check integrated upstream baseline
+        id: baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          from pathlib import Path
+
+          baseline = json.loads(Path("current/ci/upstream-baseline.json").read_text(encoding="utf-8"))
+          expected = baseline["commit"]
+          actual = subprocess.check_output(
+              ["git", "-C", "upstream", "rev-parse", "HEAD"],
+              text=True,
+              encoding="utf-8",
+          ).strip()
+          advanced = actual != expected
+          status = "advanced" if advanced else "integrated"
+          Path("upstream-baseline-status.md").write_text(
+              "# Upstream baseline status\n\n"
+              f"- Expected integrated upstream: `{expected}`\n"
+              f"- Current upstream: `{actual}`\n"
+              f"- Status: **{status}**\n",
+              encoding="utf-8",
+          )
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"advanced={'true' if advanced else 'false'}\n")
+              output.write(f"expected={expected}\n")
+              output.write(f"actual={actual}\n")
+          PY
+
       - name: Audit protected core and intentional deltas
         shell: bash
         run: |
@@ -82,6 +121,9 @@ jobs:
         if: ${{ always() }}
         shell: bash
         run: |
+          if [[ -f upstream-baseline-status.md ]]; then
+            cat upstream-baseline-status.md >> "$GITHUB_STEP_SUMMARY"
+          fi
           if [[ -f upstream-audit.md ]]; then
             cat upstream-audit.md >> "$GITHUB_STEP_SUMMARY"
           fi
@@ -94,4 +136,14 @@ jobs:
           path: |
             upstream-audit.json
             upstream-audit.md
+            upstream-baseline-status.md
           if-no-files-found: warn
+
+      - name: Enforce integrated upstream baseline
+        if: ${{ always() && steps.baseline.outputs.advanced == 'true' }}
+        shell: bash
+        run: |
+          if [[ "$FAIL_ON_UPSTREAM_ADVANCE" == "true" ]]; then
+            echo "NV Access upstream advanced from ${{ steps.baseline.outputs.expected }} to ${{ steps.baseline.outputs.actual }}."
+            exit 4
+          fi
