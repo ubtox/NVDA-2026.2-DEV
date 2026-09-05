@@ -365,7 +365,9 @@ class Bulk(IoBase):
 		if writeHandle == INVALID_HANDLE_VALUE:
 			if _isDebug():
 				log.debug("Open write handle failed: %s" % ctypes.WinError())
-			raise ctypes.WinError()
+			err = ctypes.WinError()
+			winKernel.closeHandle(readHandle)
+			raise err
 		super().__init__(
 			readHandle,
 			onReceive,
