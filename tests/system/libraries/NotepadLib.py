@@ -54,6 +54,12 @@ class NotepadLib:
 		return _pJoin(NotepadLib._testFileStagingPath, filename)
 
 	def exit_notepad(self):
+		if NotepadLib.notepadWindow is None:
+			builtIn.log(
+				"Unable to close Notepad because its window was not initialised.",
+				level="WARN",
+			)
+			return
 		builtIn.log(
 			# True is expected due to /wait argument.
 			"Is Start process still running (True expected): "
@@ -94,7 +100,9 @@ class NotepadLib:
 				expectedTitlePattern,
 				lambda message: builtIn.log(message, "DEBUG"),
 			),
-			giveUpAfterSeconds=5,
+			# Hosted runners can take noticeably longer to start packaged Notepad
+			# while several system-test jobs are competing for resources.
+			giveUpAfterSeconds=30,
 			shouldStopEvaluator=lambda _window: _window is not None,
 			intervalBetweenSeconds=0.5,
 			errorMessage="Unable to get notepad window",

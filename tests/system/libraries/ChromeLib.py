@@ -126,7 +126,7 @@ class ChromeLib:
 			# Hosted Windows runners can be substantially slower while many system-test
 			# jobs start concurrently. Keep polling rather than failing a healthy Chrome
 			# launch during a short period of runner contention.
-			giveUpAfterSeconds=30,
+			giveUpAfterSeconds=60,
 			shouldStopEvaluator=lambda _window: _window is not None,
 			intervalBetweenSeconds=0.5,
 			errorMessage="Unable to get chrome window",
