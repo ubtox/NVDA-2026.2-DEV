@@ -7,6 +7,7 @@ ci/UPSTREAM_AUDIT.md
 ci/scripts/setBuildVersionVars.ps1
 ci/scripts/upstreamAudit.py
 ci/upstream-audit-allowlist.txt
+ci/upstream-baseline.json
 tests/system/libraries/ChromeLib.py
 tests/system/libraries/NotepadLib.py
 tests/system/libraries/NvdaLib.py
