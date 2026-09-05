@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - try-evolution/2027.1-real-app-compat
+      - 'try-evolution/**'
   schedule:
     - cron: "17 3 * * 1"
 
