@@ -68,6 +68,7 @@ jobs:
           & git grep -n '3\.13\.15' -- '.github/workflows' '.python-versions' 'runtime-builders/synthDriverHost32' 'projectDocs/dev/createDevEnvironment.md' 2>$null
           $grepExit = $LASTEXITCODE
           if ($grepExit -gt 1) { exit $grepExit }
+          $global:LASTEXITCODE = 0
           Write-Host 'Python pin scan complete.'
 
       - name: Resolve root lock for Python 3.14.7 / Windows markers
