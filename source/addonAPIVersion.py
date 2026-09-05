@@ -21,12 +21,13 @@ CURRENT: AddonApiVersionT = (
 	buildVersion.version_minor,
 )
 
-BACK_COMPAT_TO: AddonApiVersionT = (2026, 1, 0)
+BACK_COMPAT_TO: AddonApiVersionT = (2027, 1, 0)
 """
 As BACK_COMPAT_TO is incremented, the changed / removed parts / or reasoning should be added below.
 These only serve to act as a reminder, the changelog should be consulted for a comprehensive listing.
 EG: (x, y, z): Large changes to speech.py
 ---
+(2027, 1, 0): Upgrade to python 3.14.
 (2026, 1, 0): Upgrade to python 3.13 and migration to 64bit from 32bit
 (2025, 1, 0): HTML passed to browsableMessage is now sanitised, and various changes to the settings schema
 (2024, 1, 0): upgrade to python 3.11
