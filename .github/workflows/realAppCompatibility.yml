@@ -1,0 +1,96 @@
+name: Real application compatibility
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: real-app-compatibility-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  vscode:
+    name: VS Code (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - windows-2022
+          - windows-2025-vs2026
+
+    steps:
+      - name: Checkout NVDA
+        uses: actions/checkout@v6
+        with:
+          submodules: true
+
+      - name: Install Python x64
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13.15"
+          architecture: x64
+
+      - name: Install Python x86 for synth driver host
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13.15"
+          architecture: x86
+          update-environment: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: cpython-3.13.15-windows-x86_64-none
+
+      - name: Install Visual Studio Code
+        shell: pwsh
+        run: choco install vscode --yes --no-progress
+
+      - name: Set build variables
+        shell: pwsh
+        run: |
+          ci/scripts/setBuildVersionVars.ps1
+          ci/scripts/setSconsArgs.ps1
+
+      - name: Build NVDA source
+        shell: cmd
+        run: scons source %sconsArgs% %sconsCores%
+
+      - name: Build launcher
+        shell: pwsh
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          Install-Module -Name SignPath -Force
+          cmd /c "scons launcher client moduleList %sconsArgs% %sconsCores%"
+
+      - name: Install NVDA for system tests
+        shell: pwsh
+        env:
+          nvdaLauncherDir: ${{ github.workspace }}\output
+        run: ci/scripts/installNVDA.ps1
+
+      - name: Run VS Code system tests
+        shell: pwsh
+        env:
+          nvdaLauncherDir: ${{ github.workspace }}\output
+          INCLUDE_SYSTEM_TEST_TAGS: vscode
+        run: ci/scripts/tests/systemTests.ps1
+
+      - name: Upload VS Code test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: vscode-${{ matrix.runner }}
+          if-no-files-found: warn
+          path: |
+            testOutput/system
+            testOutput/install
+            *.log
+            nvda.log
