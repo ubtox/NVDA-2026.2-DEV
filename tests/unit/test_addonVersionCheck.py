@@ -103,6 +103,10 @@ class TestGetAPIVersionTupleFromString(unittest.TestCase):
 		"""
 		self.assertEqual((2019, 1, 0), addonAPIVersion.getAPIVersionTupleFromString("2019.1.0"))
 
+	def test_getAPIVersionTupleFromString_futureYear_succeeds(self):
+		"""Future NVDA release years remain valid in add-on API version strings."""
+		self.assertEqual((2027, 1, 0), addonAPIVersion.getAPIVersionTupleFromString("2027.1.0"))
+
 	def test_getAPIVersionTupleFromString_2_succeeds(self):
 		"""Tests trying to get the API version tuple from an API version where the Minor part is omitted and therefore defaults to 0.
 		This will succeed.
