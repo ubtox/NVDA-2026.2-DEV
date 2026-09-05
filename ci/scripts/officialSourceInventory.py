@@ -74,11 +74,14 @@ def _git(repo: Path, *args: str, check: bool = True) -> str:
 
 
 def _ref_exists(repo: Path, ref: str) -> bool:
-	return subprocess.run(
-		["git", "-C", str(repo), "rev-parse", "--verify", "--quiet", ref],
-		stdout=subprocess.DEVNULL,
-		stderr=subprocess.DEVNULL,
-	).returncode == 0
+	return (
+		subprocess.run(
+			["git", "-C", str(repo), "rev-parse", "--verify", "--quiet", ref],
+			stdout=subprocess.DEVNULL,
+			stderr=subprocess.DEVNULL,
+		).returncode
+		== 0
+	)
 
 
 def _ahead_behind(repo: Path, base: str, head: str) -> tuple[int, int]:
@@ -231,7 +234,9 @@ def build_inventory(
 		sha, commitDate, subject = _commit_info(repo, f"{ref}^{{}}")
 		tags.append(TagRecord(name=name, sha=sha, commitDate=commitDate, subject=subject))
 
-	branches.sort(key=lambda item: (item.priority != "critical", item.priority != "review", item.name.lower()))
+	branches.sort(
+		key=lambda item: (item.priority != "critical", item.priority != "review", item.name.lower()),
+	)
 	tags.sort(key=lambda item: item.commitDate, reverse=True)
 	return branches, tags
 
@@ -286,7 +291,9 @@ def render_markdown(branches: list[BranchRecord], tags: list[TagRecord], remote:
 
 
 def main() -> int:
-	parser = argparse.ArgumentParser(description="Inventory every official NVDA branch and tag fetched locally.")
+	parser = argparse.ArgumentParser(
+		description="Inventory every official NVDA branch and tag fetched locally.",
+	)
 	parser.add_argument("--repo", type=Path, default=Path("."))
 	parser.add_argument("--remote", default="nvaccess")
 	parser.add_argument("--candidate-window-days", type=int, default=730)

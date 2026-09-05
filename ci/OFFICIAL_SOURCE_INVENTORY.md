@@ -25,11 +25,11 @@ python ci/scripts/officialSourceInventory.py --repo . --remote $remote --json te
 
 The generated JSON contains every fetched official branch and tag. For every branch it records:
 
-- exact tip SHA and commit date;
-- commits ahead of and behind `master`;
-- whether the branch has already been absorbed by `master` and `beta`;
-- branch age and classification;
-- for active unmerged candidates, changed-path count and whether the diff touches protected NVDA core, only validation infrastructure, or only documentation.
+* exact tip SHA and commit date;
+* commits ahead of and behind `master`;
+* whether the branch has already been absorbed by `master` and `beta`;
+* branch age and classification;
+* for active unmerged candidates, changed-path count and whether the diff touches protected NVDA core, only validation infrastructure, or only documentation.
 
 The generated Markdown promotes only current unmerged candidates to the review table. Historical, merged, test, revert, abandoned, and release-workflow branches remain in JSON so that the inventory is complete without encouraging unsafe integration.
 
@@ -37,9 +37,9 @@ The generated Markdown promotes only current unmerged candidates to the review t
 
 At the recorded baseline:
 
-- `master`: `4dd8aec18f27b4c583180fda235fd596cef74de0`, start of the compatibility-breaking 2027.1 cycle.
-- `beta`: `0db3b245037a0bf2ac173e1de5297016f5cdadd6`, a diverged 2026.3 maintenance/localization line. It is four commits ahead of the common base and one commit behind current `master`; its unique commits include tracked translation updates and generated XLIFF updates.
-- latest immutable final release: `release-2026.2`.
+* `master`: `4dd8aec18f27b4c583180fda235fd596cef74de0`, start of the compatibility-breaking 2027.1 cycle.
+* `beta`: `0db3b245037a0bf2ac173e1de5297016f5cdadd6`, a diverged 2026.3 maintenance/localization line. It is four commits ahead of the common base and one commit behind current `master`; its unique commits include tracked translation updates and generated XLIFF updates.
+* latest immutable final release: `release-2026.2`.
 
 The beta-only localization commits are intentionally not cherry-picked into Evolution. NV Access controls when maintenance/localization work is merged back to the next development line, and bypassing that process can overwrite 2027.1 documentation state.
 
