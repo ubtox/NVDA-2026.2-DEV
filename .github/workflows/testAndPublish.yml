@@ -59,7 +59,9 @@ jobs:
     name: Build NVDA
     needs: matrix
     runs-on: ${{ needs.matrix.outputs.defaultRunner }}
-    timeout-minutes: 15
+    # Fresh hosted runners can need more than 15 minutes to compile both the
+    # native x64 components and the bundled x86 helpers before caching applies.
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
