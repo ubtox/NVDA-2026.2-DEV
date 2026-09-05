@@ -9,7 +9,7 @@ description = "NonVisual Desktop Access (NVDA)"
 maintainers = [
 	{name = "NV Access", email = "info@nvaccess.org"},
 ]
-requires-python = ">=3.13,<3.14"
+requires-python = ">=3.14,<3.15"
 classifiers = [
 	"Development Status :: 5 - Production/Stable",
 	"Intended Audience :: End Users/Desktop",
@@ -394,15 +394,10 @@ required-version = ">=0.9"
 package-dir = {"" = "source"}
 
 [tool.uv.sources]
-nvda-misc-deps = { workspace = true }
+nvda-misc-deps = { path = "miscDeps" }
 configobj = { git = "https://github.com/DiffSK/configobj", rev = "9c8a0a80c767bf8a3d6493ed01df6c351bddca42" }
-nvda-mathcat = { workspace = true }
+nvda-mathcat = { path = "include/nvda-mathcat" }
 
-[tool.uv.workspace]
-members = [
-	"miscDeps",
-	"include/nvda-mathcat",
-]
 
 [dependency-groups]
 dev = [
