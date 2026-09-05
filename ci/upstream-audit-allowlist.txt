@@ -1,0 +1,10 @@
+# Intentional Evolution differences from nvaccess/nvda.
+# Entries classify known deltas; they never hide them from the generated report.
+.github/workflows/realAppCompatibility.yml
+ci/scripts/setBuildVersionVars.ps1
+tests/system/libraries/ChromeLib.py
+tests/system/libraries/NotepadLib.py
+tests/system/libraries/NvdaLib.py
+tests/system/libraries/VSCodeLib.py
+tests/unit/test_addonVersionCheck.py
+tests/unit/test_braille/test_secureDesktop.py
