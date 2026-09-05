@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   dispatch:
-    name: Dispatch CI and Real Apps
+    name: Dispatch CI, Real Apps and upstream audit
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -28,3 +28,7 @@ jobs:
           set -euo pipefail
           gh workflow run testAndPublish.yml --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME"
           gh workflow run realAppCompatibility.yml --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME"
+          gh workflow run upstreamAudit.yml --repo "$GITHUB_REPOSITORY" --ref nvda-2026.2-dev \
+            -f target_ref="$GITHUB_REF_NAME" \
+            -f upstream_ref=master \
+            -f fail_on_unexpected=false
