@@ -328,7 +328,7 @@ class DictionaryDialog(
 
 class DefaultDictionaryDialog(DictionaryDialog):
 	def __init__(self, parent: wx.Window | None):
-		definition = speechDictHandler.definitions._getDictionaryDefinition(DictionaryType.DEFAULT)
+		definition = speechDictHandler.definitions.getDictionaryDefinition(DictionaryType.DEFAULT)
 		super().__init__(
 			parent,
 			title=definition.displayName,
@@ -338,7 +338,7 @@ class DefaultDictionaryDialog(DictionaryDialog):
 
 class VoiceDictionaryDialog(DictionaryDialog):
 	def __init__(self, parent: wx.Window | None):
-		definition = speechDictHandler.definitions._getDictionaryDefinition(DictionaryType.VOICE)
+		definition = speechDictHandler.definitions.getDictionaryDefinition(DictionaryType.VOICE)
 		super().__init__(
 			parent,
 			title=definition.displayName,
@@ -348,7 +348,7 @@ class VoiceDictionaryDialog(DictionaryDialog):
 
 class TemporaryDictionaryDialog(DictionaryDialog):
 	def __init__(self, parent: wx.Window | None):
-		definition = speechDictHandler.definitions._getDictionaryDefinition(DictionaryType.TEMP)
+		definition = speechDictHandler.definitions.getDictionaryDefinition(DictionaryType.TEMP)
 		super().__init__(
 			parent,
 			title=definition.displayName,
