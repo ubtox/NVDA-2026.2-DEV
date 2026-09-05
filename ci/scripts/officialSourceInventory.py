@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import argparse
-import json
-import subprocess
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
+import json
 from pathlib import Path
+import subprocess
 
 
 PROTECTED_PREFIXES = (
@@ -64,8 +64,7 @@ def _git(repo: Path, *args: str, check: bool = True) -> str:
 	result = subprocess.run(
 		["git", "-C", str(repo), *args],
 		check=check,
-		stdout=subprocess.PIPE,
-		stderr=subprocess.PIPE,
+		capture_output=True,
 		text=True,
 		encoding="utf-8",
 		errors="replace",
@@ -77,6 +76,7 @@ def _ref_exists(repo: Path, ref: str) -> bool:
 	return (
 		subprocess.run(
 			["git", "-C", str(repo), "rev-parse", "--verify", "--quiet", ref],
+			check=False,
 			stdout=subprocess.DEVNULL,
 			stderr=subprocess.DEVNULL,
 		).returncode
@@ -96,7 +96,7 @@ def _commit_info(repo: Path, ref: str) -> tuple[str, str, str]:
 
 
 def _age_days(commitDate: str) -> int:
-	committed = datetime.fromisoformat(commitDate.replace("Z", "+00:00"))
+	committed = datetime.fromisoformat(commitDate)
 	return max(0, (datetime.now(UTC) - committed.astimezone(UTC)).days)
 
 
