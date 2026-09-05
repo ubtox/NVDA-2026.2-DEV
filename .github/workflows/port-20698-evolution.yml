@@ -1,0 +1,112 @@
+name: Port NVDA upstream 20698 to Evolution
+
+on:
+  push:
+    branches:
+      - automation/port-20698
+
+permissions:
+  contents: write
+
+concurrency:
+  group: evolution-port-20698
+  cancel-in-progress: false
+
+jobs:
+  port-and-validate:
+    name: Port and validate upstream 20698
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 30
+    env:
+      VSCMD_SKIP_SENDTELEMETRY: 1
+      SCONS_CACHE_MSVC_CONFIG: .scons_msvc_cache.json
+    steps:
+      - name: Checkout Evolution target
+        uses: actions/checkout@v6
+        with:
+          ref: evolution/2026.2-nextgen
+          fetch-depth: 0
+          submodules: true
+
+      - name: Configure Git identity
+        shell: bash
+        run: |
+          git config user.name "NVDA Evolution Automation"
+          git config user.email "actions@users.noreply.github.com"
+
+      - name: Fetch and cherry-pick upstream 20698
+        shell: bash
+        run: |
+          git remote add upstream https://github.com/nvaccess/nvda.git
+          git fetch --no-tags --depth=2 upstream db1768ac342ea9030ec7ac1970f8cd72b095aee4
+          git cherry-pick -x db1768ac342ea9030ec7ac1970f8cd72b095aee4
+
+      - name: Verify exact change scope
+        shell: pwsh
+        run: |
+          $expected = @(
+            'source/NVDAObjects/IAccessible/__init__.py',
+            'source/locationHelper.py',
+            'source/winBindings/user32.py',
+            'source/windowUtils.py',
+            'tests/unit/test_locationHelper.py',
+            'user_docs/en/changes.md'
+          ) | Sort-Object
+          $actual = @(git diff-tree --no-commit-id --name-only -r HEAD) | Sort-Object
+          if (Compare-Object $expected $actual) {
+            Write-Host 'Unexpected file scope:'
+            Compare-Object $expected $actual | Format-Table
+            exit 1
+          }
+
+      - name: Install Python 3.13.13 x64
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13.13'
+          architecture: x64
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: cpython-3.13.13-windows-x86_64-none
+
+      - name: Ruff check changed Python files
+        shell: pwsh
+        run: |
+          uv run ruff check source/NVDAObjects/IAccessible/__init__.py source/locationHelper.py source/winBindings/user32.py source/windowUtils.py tests/unit/test_locationHelper.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          uv run ruff format --check source/NVDAObjects/IAccessible/__init__.py source/locationHelper.py source/winBindings/user32.py source/windowUtils.py tests/unit/test_locationHelper.py
+          exit $LASTEXITCODE
+
+      - name: Set build variables
+        shell: pwsh
+        run: |
+          ci/scripts/setBuildVersionVars.ps1
+          ci/scripts/setSconsArgs.ps1
+
+      - name: Prepare source code
+        shell: cmd
+        run: scons source %sconsArgs% %sconsCores%
+
+      - name: Prepare test environment
+        shell: pwsh
+        run: ci/scripts/tests/beforeTests.ps1
+
+      - name: Run locationHelper unit tests
+        shell: cmd
+        run: rununittests.bat -p test_locationHelper.py
+
+      - name: Ensure target branch did not move
+        shell: bash
+        run: |
+          candidate_parent="$(git rev-parse HEAD^)"
+          git fetch origin evolution/2026.2-nextgen
+          remote_head="$(git rev-parse FETCH_HEAD)"
+          if [ "$candidate_parent" != "$remote_head" ]; then
+            echo "Evolution branch moved from $candidate_parent to $remote_head; refusing non-reviewed push."
+            exit 1
+          fi
+
+      - name: Push validated port to Evolution
+        shell: bash
+        run: git push origin HEAD:evolution/2026.2-nextgen
