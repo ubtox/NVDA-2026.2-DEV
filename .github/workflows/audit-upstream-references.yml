@@ -1,0 +1,162 @@
+name: Audit official NVDA references
+
+on:
+  push:
+    branches:
+      - audit/upstream-2026.2-references
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout audit branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Fetch official NVDA source references and compare
+        shell: bash
+        run: |
+          set -euo pipefail
+          TARGET=9b9cfa090b96cc34df9629be911742670d7a6045
+          git fetch --no-tags --depth=1 origin "$TARGET"
+          git remote add nvaccess https://github.com/nvaccess/nvda.git
+          git fetch --no-tags --depth=1 nvaccess master
+          git fetch --no-tags nvaccess '+refs/tags/release-2026.2*:refs/tags/release-2026.2*'
+
+          python - <<'PY'
+          from __future__ import annotations
+          from pathlib import Path
+          import subprocess
+
+          TARGET = "9b9cfa090b96cc34df9629be911742670d7a6045"
+          refs = [
+              ("2026.2 beta1", "release-2026.2beta1"),
+              ("2026.2 beta2", "release-2026.2beta2"),
+              ("2026.2 beta3", "release-2026.2beta3"),
+              ("2026.2 beta4", "release-2026.2beta4"),
+              ("2026.2 beta5", "release-2026.2beta5"),
+              ("2026.2 beta6", "release-2026.2beta6"),
+              ("2026.2 beta7", "release-2026.2beta7"),
+              ("2026.2 beta8", "release-2026.2beta8"),
+              ("2026.2 beta9", "release-2026.2beta9"),
+              ("2026.2 beta10", "release-2026.2beta10"),
+              ("2026.2 beta11", "release-2026.2beta11"),
+              ("2026.2 rc1", "release-2026.2rc1"),
+              ("2026.2 rc2", "release-2026.2rc2"),
+              ("2026.2 final", "release-2026.2"),
+              ("master (alpha/development 2027.1)", "nvaccess/master"),
+          ]
+
+          def run(*args: str) -> str:
+              return subprocess.check_output(args, text=True, encoding="utf-8").strip()
+
+          def peel(ref: str) -> str:
+              if ref == "nvaccess/master":
+                  return run("git", "rev-parse", ref)
+              return run("git", "rev-list", "-n", "1", f"refs/tags/{ref}")
+
+          def tree_map(commit: str) -> dict[str, tuple[str, str]]:
+              out = run("git", "ls-tree", "-r", commit)
+              result = {}
+              if not out:
+                  return result
+              for line in out.splitlines():
+                  meta, path = line.split("\t", 1)
+                  mode, obj_type, sha = meta.split(" ", 2)
+                  result[path] = (mode, sha)
+              return result
+
+          target_tree = tree_map(TARGET)
+          report = [
+              "# Official NVDA source comparison",
+              "",
+              f"Target Evolution commit: `{TARGET}`",
+              "",
+              "The official 2026.2 beta/RC/final Git trees and current `nvaccess/master` were fetched directly from NV Access for this audit. NV Access does not publish separate Git tags named `alpha`; the current development/alpha source is represented by `master`.",
+              "",
+              "| Reference | Official commit | Files official | Identical paths | Modified | Only Evolution | Only official | +lines | -lines |",
+              "|---|---|---:|---:|---:|---:|---:|---:|---:|",
+          ]
+          details = []
+          tsv = ["reference\tstatus\tpath\tevolution_object\tofficial_object"]
+
+          for label, ref in refs:
+              commit = peel(ref)
+              upstream_tree = tree_map(commit)
+              paths = sorted(set(target_tree) | set(upstream_tree))
+              same = []
+              modified = []
+              only_target = []
+              only_upstream = []
+              for path in paths:
+                  a = target_tree.get(path)
+                  b = upstream_tree.get(path)
+                  if a is None:
+                      only_upstream.append(path)
+                      tsv.append(f"{label}\tonly-official\t{path}\t\t{b[1]}")
+                  elif b is None:
+                      only_target.append(path)
+                      tsv.append(f"{label}\tonly-evolution\t{path}\t{a[1]}\t")
+                  elif a == b:
+                      same.append(path)
+                  else:
+                      modified.append(path)
+                      tsv.append(f"{label}\tmodified\t{path}\t{a[1]}\t{b[1]}")
+
+              numstat = run("git", "diff", "--numstat", commit, TARGET)
+              adds = dels = 0
+              if numstat:
+                  for line in numstat.splitlines():
+                      a, d, _ = line.split("\t", 2)
+                      if a.isdigit():
+                          adds += int(a)
+                      if d.isdigit():
+                          dels += int(d)
+
+              report.append(
+                  f"| {label} | `{commit[:12]}` | {len(upstream_tree)} | {len(same)} | {len(modified)} | {len(only_target)} | {len(only_upstream)} | {adds} | {dels} |"
+              )
+
+              changed = modified + only_target + only_upstream
+              buckets: dict[str, int] = {}
+              for path in changed:
+                  top = path.split("/", 1)[0]
+                  buckets[top] = buckets.get(top, 0) + 1
+              top_buckets = sorted(buckets.items(), key=lambda x: (-x[1], x[0]))[:12]
+              subject = run("git", "show", "-s", "--format=%s", commit)
+              date = run("git", "show", "-s", "--format=%cI", commit)
+              details.extend([
+                  "",
+                  f"## {label}",
+                  "",
+                  f"- Commit: `{commit}`",
+                  f"- Date: `{date}`",
+                  f"- Subject: {subject}",
+                  f"- Changed paths versus Evolution: **{len(changed)}**",
+                  f"- Top-level concentration: " + (", ".join(f"`{k}` {v}" for k, v in top_buckets) if top_buckets else "none"),
+              ])
+
+          report.extend(details)
+          report.extend([
+              "",
+              "## Raw path-level data",
+              "",
+              "See `upstream-comparison-files.tsv` on this audit branch for every modified/added/removed path across every official reference.",
+              "",
+          ])
+          Path("UPSTREAM-REFERENCE-COMPARISON.md").write_text("\n".join(report), encoding="utf-8")
+          Path("upstream-comparison-files.tsv").write_text("\n".join(tsv) + "\n", encoding="utf-8")
+          PY
+
+          git add UPSTREAM-REFERENCE-COMPARISON.md upstream-comparison-files.tsv
+          git rm .github/workflows/audit-upstream-references.yml
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "audit: compare Evolution with official NVDA 2026.2 and master"
+          git push origin HEAD:audit/upstream-2026.2-references
