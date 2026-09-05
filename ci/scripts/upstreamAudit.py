@@ -9,7 +9,7 @@ import tempfile
 import zipfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Iterable
+from collections.abc import Iterable
 
 
 @dataclass(frozen=True)
@@ -236,7 +236,7 @@ def compare(
 				allowed=is_allowed(path, allowPatterns),
 				current=cur,
 				upstream=up,
-			)
+			),
 		)
 	return identical, differences
 
@@ -247,7 +247,9 @@ def render_markdown(
 	identical: int,
 	differences: list[Difference],
 ) -> str:
-	unexpected = [diff for diff in differences if not diff.allowed and diff.status != "submodule-ref-unverifiable"]
+	unexpected = [
+		diff for diff in differences if not diff.allowed and diff.status != "submodule-ref-unverifiable"
+	]
 	protected = [diff for diff in unexpected if diff.category == "protected-core"]
 	lines = [
 		"# NVDA upstream audit",
@@ -264,7 +266,7 @@ def render_markdown(
 		lines.extend(("| Status | Category | Allowed | Path |", "| --- | --- | --- | --- |"))
 		for diff in differences:
 			lines.append(
-				f"| {diff.status} | {diff.category} | {'yes' if diff.allowed else 'no'} | `{diff.path}` |"
+				f"| {diff.status} | {diff.category} | {'yes' if diff.allowed else 'no'} | `{diff.path}` |",
 			)
 	else:
 		lines.append("No differences detected.")
@@ -273,7 +275,9 @@ def render_markdown(
 
 
 def main() -> int:
-	parser = argparse.ArgumentParser(description="Compare an NVDA tree with an upstream checkout or source ZIP.")
+	parser = argparse.ArgumentParser(
+		description="Compare an NVDA tree with an upstream checkout or source ZIP.",
+	)
 	parser.add_argument("--current", type=Path, required=True)
 	parser.add_argument("--upstream", type=Path, required=True)
 	parser.add_argument("--allowlist", type=Path)
@@ -304,7 +308,9 @@ def main() -> int:
 		args.markdown.parent.mkdir(parents=True, exist_ok=True)
 		args.markdown.write_text(markdown, encoding="utf-8")
 
-	unexpected = [diff for diff in differences if not diff.allowed and diff.status != "submodule-ref-unverifiable"]
+	unexpected = [
+		diff for diff in differences if not diff.allowed and diff.status != "submodule-ref-unverifiable"
+	]
 	unexpectedProtected = [diff for diff in unexpected if diff.category == "protected-core"]
 	if args.fail_on_unexpected and unexpected:
 		return 2

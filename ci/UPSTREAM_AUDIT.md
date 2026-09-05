@@ -14,10 +14,10 @@ The scheduled `Upstream NVDA audit` workflow runs from the repository default br
 
 Differences are classified as:
 
-- `protected-core`: production source, build metadata, submodules and runtime/build infrastructure. Unexpected changes in this class fail the automated audit.
-- `validation`: tests, CI scripts and workflow changes.
-- `documentation`.
-- `other`.
+* `protected-core`: production source, build metadata, submodules and runtime/build infrastructure. Unexpected changes in this class fail the automated audit.
+* `validation`: tests, CI scripts and workflow changes.
+* `documentation`.
+* `other`.
 
 `ci/upstream-audit-allowlist.txt` lists intentional Evolution differences. Allowlisted files are always included in reports; the allowlist only classifies them as expected.
 
