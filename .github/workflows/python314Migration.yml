@@ -15,7 +15,7 @@ concurrency:
 jobs:
   migrate:
     if: ${{ !contains(github.event.head_commit.message, '[py314-lockregen]') }}
-    runs-on: windows-2022
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -27,11 +27,10 @@ jobs:
         shell: pwsh
         run: git submodule update --init --depth 1 miscDeps include/nvda-mathcat
 
-      - name: Install Python 3.14.7 x64
+      - name: Install Python 3.14.7
         uses: actions/setup-python@v6
         with:
           python-version: '3.14.7'
-          architecture: x64
           update-environment: true
 
       - name: Install uv
@@ -69,18 +68,11 @@ jobs:
           git grep -n '3\.13\.15' -- '.github/workflows' '.python-versions' 'runtime-builders/synthDriverHost32' 'projectDocs/dev/createDevEnvironment.md' 2>$null
           if ($LASTEXITCODE -gt 1) { exit $LASTEXITCODE }
 
-      - name: Resolve root lock with Python 3.14.7
+      - name: Resolve root lock for Python 3.14.7 / Windows markers
         shell: pwsh
         run: uv lock --python 3.14.7 --no-python-downloads
 
-      - name: Install Python 3.14.7 x86
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.14.7'
-          architecture: x86
-          update-environment: true
-
-      - name: Resolve synthDriverHost32 lock with Python 3.14.7 x86
+      - name: Resolve synthDriverHost32 lock for Python 3.14.7 / Windows markers
         shell: pwsh
         run: uv lock --project runtime-builders/synthDriverHost32 --python 3.14.7 --no-python-downloads
 
