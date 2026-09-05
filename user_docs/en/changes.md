@@ -2,6 +2,10 @@
 
 ## 2026.2 Future RC
 
+### Changes for Developers
+
+* Python has been updated to 3.13.15 for development, CI, and the 32-bit synth driver runtime. (#20634, @dpy013)
+
 ### Bug Fixes
 
 * Win32 menu item locations and labels are corrected for 32-bit applications under 64-bit NVDA at display scaling above 100%. (#20698, @christopherpross)
