@@ -1,0 +1,67 @@
+name: Official NVDA source inventory
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "try-evolution/**"
+      - "evolution/**"
+      - "final/**"
+    paths:
+      - ".github/workflows/officialSourceInventory.yml"
+      - "ci/OFFICIAL_SOURCE_INVENTORY.md"
+      - "ci/official-source-policy.json"
+      - "ci/scripts/officialSourceInventory.py"
+  schedule:
+    - cron: "17 4 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: official-source-inventory-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  inventory:
+    name: Inventory all NV Access NVDA refs
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout Evolution tree
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: false
+
+      - name: Fetch every official NVDA branch and tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          git remote remove nvaccess 2>/dev/null || true
+          git remote add nvaccess https://github.com/nvaccess/nvda.git
+          git fetch --prune --no-tags nvaccess '+refs/heads/*:refs/remotes/nvaccess/*'
+          git fetch --prune nvaccess '+refs/tags/*:refs/tags/nvaccess/*'
+
+      - name: Build complete official-source inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p testOutput
+          python ci/scripts/officialSourceInventory.py \
+            --repo . \
+            --remote nvaccess \
+            --candidate-window-days 730 \
+            --json testOutput/official-source-inventory.json \
+            --markdown testOutput/official-source-inventory.md
+          cat testOutput/official-source-inventory.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload complete inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: official-nvda-source-inventory
+          path: |
+            testOutput/official-source-inventory.json
+            testOutput/official-source-inventory.md
+          if-no-files-found: error
+          retention-days: 30
