@@ -15,7 +15,7 @@ concurrency:
 jobs:
   migrate:
     if: ${{ !contains(github.event.head_commit.message, '[py314-lockregen]') }}
-    runs-on: windows-2025-vs2026
+    runs-on: windows-2022
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
