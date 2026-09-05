@@ -33,6 +33,10 @@ jobs:
         with:
           submodules: true
 
+      - name: Initialize nested dependencies
+        shell: pwsh
+        run: git submodule update --init --recursive
+
       - name: Install Python x64
         uses: actions/setup-python@v6
         with:
