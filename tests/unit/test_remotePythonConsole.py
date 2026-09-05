@@ -5,8 +5,8 @@
 
 """Unit tests for the remote Python console transport."""
 
-from io import BytesIO
 import unittest
+from io import BytesIO
 
 import remotePythonConsole
 
@@ -25,7 +25,7 @@ class TestRequestHandlerOutput(unittest.TestCase):
 	def test_promptUsesByteTransport(self) -> None:
 		self.handler.setPrompt("»")
 
-		self.assertEqual("» ".encode("utf-8"), self.handler.wfile.getvalue())
+		self.assertEqual("» ".encode(), self.handler.wfile.getvalue())
 
 	def test_promptIsSuppressedAfterExit(self) -> None:
 		self.handler.exit()

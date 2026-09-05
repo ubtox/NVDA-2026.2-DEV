@@ -4,11 +4,12 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-import braille
+import easeOfAccess
+from braille.brailleHandler import BrailleHandler
 
 
 class TestSecureDesktopStateChanged(unittest.TestCase):
-	@patch.object(braille.easeOfAccess, "isRegistered", return_value=True)
+	@patch.object(easeOfAccess, "isRegistered", return_value=True)
 	def test_ordinaryDesktopSwitchDoesNotRestoreCurrentDisplay(self, _isRegistered):
 		displayName = "testDisplay"
 		handler = SimpleNamespace(
@@ -20,7 +21,7 @@ class TestSecureDesktopStateChanged(unittest.TestCase):
 			setDisplayByName=MagicMock(),
 		)
 
-		braille.BrailleHandler._onSecureDesktopStateChanged(handler, isSecureDesktop=False)
+		BrailleHandler._onSecureDesktopStateChanged(handler, isSecureDesktop=False)
 
 		handler.autoScroll.assert_called_once_with(enable=False)
 		handler.mainBuffer.clear.assert_called_once_with()

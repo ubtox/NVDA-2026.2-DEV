@@ -5,7 +5,7 @@
 
 """Unit tests for the locationHelper module."""
 
-import unittest
+import unittest  # noqa: I001
 from locationHelper import Point, RectLTRB, RectLTWH, _remapRectByAnchors
 from ctypes.wintypes import RECT, POINT
 
@@ -23,6 +23,32 @@ class TestRectOperators(unittest.TestCase):
 				RectLTRB(left=5, top=5, right=7, bottom=7),
 			),
 			RectLTRB(left=0, top=0, right=0, bottom=0),
+		)
+
+	def test_union(self):
+		self.assertEqual(
+			RectLTRB(left=2, top=2, right=4, bottom=4).union(
+				RectLTRB(left=3, top=3, right=5, bottom=5),
+			),
+			RectLTRB(left=2, top=2, right=5, bottom=5),
+		)
+		self.assertEqual(
+			RectLTRB(left=2, top=2, right=4, bottom=4).union(
+				RectLTWH(left=3, top=3, width=5, height=5),
+			),
+			RectLTRB(left=2, top=2, right=8, bottom=8),
+		)
+		self.assertEqual(
+			RectLTRB(left=2, top=2, right=4, bottom=4).union(
+				RectLTRB(left=5, top=5, right=7, bottom=7),
+			),
+			RectLTRB(left=2, top=2, right=7, bottom=7),
+		)
+		self.assertEqual(
+			RectLTWH(left=2, top=2, width=2, height=2).union(
+				RectLTRB(left=5, top=5, right=7, bottom=7),
+			),
+			RectLTWH(left=2, top=2, width=5, height=5),
 		)
 
 	def test_superset(self):

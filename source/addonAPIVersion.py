@@ -1,12 +1,11 @@
 # A part of NonVisual Desktop Access (NVDA)
-# Copyright (C) 2018-2025 NV Access Limited
-# This file is covered by the GNU General Public License.
-# See the file COPYING for more details.
+# Copyright (C) 2018-2026 NV Access Limited
+# This file may be used under the terms of the GNU General Public License, version 2 or later, as modified by the NVDA license.
+# For full terms and any additional permissions, see the NVDA license file: https://github.com/nvaccess/nvda/blob/master/copying.txt
 
-
-import buildVersion
 import re
 
+import buildVersion
 
 """
 This module contains add-on API version information for this build of NVDA. This file provides information on
@@ -86,5 +85,5 @@ def formatForGUI(versionTuple: AddonApiVersionT) -> str:
 		default = _("unknown")
 		from logHandler import log
 
-		log.error("Unable to format versionTuple: {}".format(repr(versionTuple)), exc_info=True)
+		log.error(f"Unable to format versionTuple: {versionTuple!r}", exc_info=True)  # noqa: G201
 		return default

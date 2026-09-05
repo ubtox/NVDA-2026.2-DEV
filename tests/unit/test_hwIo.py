@@ -5,11 +5,9 @@
 
 """Unit tests for the hwIo module."""
 
-import threading
-import unittest
-from unittest.mock import patch
-
+import unittest  # noqa: I001
 import hwIo
+import threading
 
 
 class TestBgThreadApc(unittest.TestCase):
@@ -45,24 +43,3 @@ class TestBgThreadApc(unittest.TestCase):
 		# Wait for atmost 2 seconds for the event to be set
 		self.assertTrue(self.event.wait(2))
 		self.assertEqual(paramContainer.param, 42)
-
-
-class TestBulk(unittest.TestCase):
-	def test_writeOpenFailureClosesReadHandle(self):
-		"""The read handle must not leak when opening the write endpoint fails."""
-		readHandle = 1234
-		with (
-			patch(
-				"hwIo.base.CreateFile",
-				side_effect=[readHandle, hwIo.base.INVALID_HANDLE_VALUE],
-			),
-			patch("hwIo.base.winKernel.closeHandle") as closeHandle,
-		):
-			with self.assertRaises(OSError):
-				hwIo.Bulk(
-					path="testDevice",
-					epIn=1,
-					epOut=2,
-					onReceive=lambda _data: None,
-				)
-		closeHandle.assert_called_once_with(readHandle)

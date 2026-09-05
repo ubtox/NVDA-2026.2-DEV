@@ -5,7 +5,7 @@
 
 """Classes and helper functions for working with rectangles and coordinates."""
 
-import math
+import math  # noqa: I001
 from typing import NamedTuple
 import windowUtils
 import winUser
@@ -39,7 +39,7 @@ class Point(_Point):
 		if isinstance(point, POINT_CLASSES):
 			return cls(point.x, point.y)
 		raise TypeError(
-			"point should be one of %s"
+			"point should be one of %s"  # noqa: UP031
 			% ", ".join(cls.__module__ + "." + cls.__name__ for cls in POINT_CLASSES),
 		)
 
@@ -216,7 +216,7 @@ class _RectMixin:
 			elif cls is RectLTRB:
 				return cls(rect.left, rect.top, rect.right, rect.bottom)
 		raise TypeError(
-			"rect should be one of %s"
+			"rect should be one of %s"  # noqa: UP031
 			% ", ".join(cls.__module__ + "." + cls.__name__ for cls in RECT_CLASSES),
 		)
 
@@ -229,9 +229,9 @@ class _RectMixin:
 			elif cls is RectLTRB:
 				return cls(point.x, point.y, point.x, point.y)
 			else:
-				raise RuntimeError("%s is not known as a valid subclass of _RectMixin" % cls.__name__)
+				raise RuntimeError("%s is not known as a valid subclass of _RectMixin" % cls.__name__)  # noqa: UP031
 		raise TypeError(
-			"point should be one of %s"
+			"point should be one of %s"  # noqa: UP031
 			% ", ".join(cls.__module__ + "." + cls.__name__ for cls in POINT_CLASSES),
 		)
 
@@ -255,7 +255,7 @@ class _RectMixin:
 				xs.add(item.x)
 				ys.add(item.y)
 			else:
-				raise ValueError("Unexpected parameter %s" % str(item))
+				raise ValueError("Unexpected parameter %s" % str(item))  # noqa: TRY004, UP031
 		left = min(xs)
 		top = min(ys)
 		right = max(xs)
@@ -324,7 +324,7 @@ class _RectMixin:
 
 	@property
 	def center(self):
-		return Point(int(round(self.left + self.width / 2.0)), int(round(self.top + self.height / 2.0)))
+		return Point(int(round(self.left + self.width / 2.0)), int(round(self.top + self.height / 2.0)))  # noqa: RUF046
 
 	def __contains__(self, other):
 		"""Returns whether other is a part of this rectangle."""
@@ -347,7 +347,7 @@ class _RectMixin:
 		"""Returns whether this rectangle is a superset of other (i.e. whether all points of other are contained by this rectangle)."""
 		if not isinstance(other, RECT_CLASSES):
 			raise TypeError(
-				"other should be one of %s"
+				"other should be one of %s"  # noqa: UP031
 				% ", ".join(cls.__module__ + "." + cls.__name__ for cls in RECT_CLASSES),
 			)
 		return (
@@ -387,7 +387,7 @@ class _RectMixin:
 		"""
 		if not isinstance(other, RECT_CLASSES):
 			raise TypeError(
-				"other should be one of %s"
+				"other should be one of %s"  # noqa: UP031
 				% ", ".join(cls.__module__ + "." + cls.__name__ for cls in RECT_CLASSES),
 			)
 		left = max(self.left, other.left)
@@ -396,6 +396,21 @@ class _RectMixin:
 		bottom = min(self.bottom, other.bottom)
 		if left > right or top > bottom:
 			left = top = right = bottom = 0
+		if isinstance(self, RectLTWH):
+			return RectLTWH(left, top, right - left, bottom - top)
+		return RectLTRB(left, top, right, bottom)
+
+	def union(self, other: "RECT_TYPE") -> "RectLTWH | RectLTRB":
+		"""Returns the smallest rectangle that contains both self and other.
+		For example, if self = Rect(left=10,top=10,right=25,bottom=25) and other = Rect(left=20,top=5,right=35,bottom=30),
+		this results in Rect(left=10,top=5,right=35,bottom=30).
+		"""
+		if not isinstance(other, RECT_CLASSES):
+			raise TypeError(f"other should be one of {_RECT_CLASSES_STR}")
+		left = min(self.left, other.left)
+		top = min(self.top, other.top)
+		right = max(self.right, other.right)
+		bottom = max(self.bottom, other.bottom)
 		if isinstance(self, RectLTWH):
 			return RectLTWH(left, top, right - left, bottom - top)
 		return RectLTRB(left, top, right, bottom)
@@ -415,7 +430,7 @@ class _RectMixin:
 		bottom = self.bottom + margin
 		if left > right or top > bottom:
 			raise RuntimeError(
-				"The provided margin of %d would result in a rectangle with a negative width or height, which is not allowed"
+				"The provided margin of %d would result in a rectangle with a negative width or height, which is not allowed"  # noqa: UP031
 				% margin,
 			)
 		if isinstance(self, RectLTWH):
@@ -509,3 +524,5 @@ POINT_CLASSES = (Point, POINT, wx.Point)
 #: Classes which support conversion to locationHelper RectLTRB/LTWH using their left, top, right and bottom properties.
 #: type: tuple
 RECT_CLASSES = (RectLTRB, RectLTWH, RECT)
+type RECT_TYPE = RectLTRB | RectLTWH | RECT
+_RECT_CLASSES_STR = ", ".join(cls.__module__ + "." + cls.__name__ for cls in RECT_CLASSES)

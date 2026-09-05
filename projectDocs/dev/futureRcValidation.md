@@ -6,19 +6,19 @@ an unmeasured comparison must never be reported as a pass.
 
 ## Integrated reliability improvements
 
-- Modal dialogs cache their parent state before `ShowModal`, preventing a deleted
+* Modal dialogs cache their parent state before `ShowModal`, preventing a deleted
   wx object from blocking restart after add-on installation.
-- UIA focus validation reads the current provider focus state instead of a stale
+* UIA focus validation reads the current provider focus state instead of a stale
   event cache value.
-- Add-on module cleanup removes all modules owned by an add-on without retaining
+* Add-on module cleanup removes all modules owned by an add-on without retaining
   stale cache entries.
-- Objects represented by tree interceptors are filtered correctly while Windows
+* Objects represented by tree interceptors are filtered correctly while Windows
   is locked.
-- The remote Python console uses explicit UTF-8 byte transport and closes its
+* The remote Python console uses explicit UTF-8 byte transport and closes its
   server socket cleanly.
-- Rectangle conversion accepts compatible rectangle representations without
+* Rectangle conversion accepts compatible rectangle representations without
   weakening coordinate validation.
-- System tests allow slower Chrome startup on contended hosted runners and avoid
+* System tests allow slower Chrome startup on contended hosted runners and avoid
   masking installer setup failures during teardown.
 
 ## Reproducible comparison matrix (OCR excluded)
@@ -47,16 +47,16 @@ installer path, PE metadata, size, SHA-256, architecture, and signature state.
 
 ## Latest validated RC candidate
 
-- Source commit: `6151a9aeac5ef630aca0f8174ab454f7509c6f37`
-- Unit tests: 1213 passed, 0 failed.
-- Ruff check and format check: passed.
-- Python compileall and Pyright: passed with zero errors.
-- Source, distribution, and launcher build: passed.
-- Product version: `2026.2rc1`.
-- PE machine: `0x014C` (x86 launcher capable of installing the bundled
+* Source commit: `6151a9aeac5ef630aca0f8174ab454f7509c6f37`
+* Unit tests: 1213 passed, 0 failed.
+* Ruff check and format check: passed.
+* Python compileall and Pyright: passed with zero errors.
+* Source, distribution, and launcher build: passed.
+* Product version: `2026.2rc1`.
+* PE machine: `0x014C` (x86 launcher capable of installing the bundled
   multi-architecture distribution).
-- Authenticode: not signed; no signing certificate was supplied.
-- Candidate SHA-256: `767889AC4B6EEFAA33EB87C2D174E706F7757A8449B5F9201ED342D60FC64153`.
+* Authenticode: not signed; no signing certificate was supplied.
+* Candidate SHA-256: `767889AC4B6EEFAA33EB87C2D174E706F7757A8449B5F9201ED342D60FC64153`.
 
 This evidence describes the candidate built before this documentation update.
 Promotion still requires a rebuild and CI run from the final documentation commit.
