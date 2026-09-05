@@ -108,6 +108,7 @@ class VSCodeLib:
 			f"--disable-gpu "
 			f"--disable-extensions "
 			f"--disable-workspace-trust "
+			f"--skip-welcome "
 			f"--skip-add-to-recently-opened "
 			f"-n "
 			f"--wait"
