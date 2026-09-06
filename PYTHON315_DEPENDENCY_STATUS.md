@@ -41,6 +41,13 @@ Isolated tests:
 - freeze of a program importing `_ssl`, `sqlite3`, `zlib` and other modules;
 - execution of the frozen CPython 3.15 EXE and expected runtime marker.
 
+Production packaging scope:
+
+- NVDA `source/setup.py` uses py2exe with `bundle_files=3`.
+- `runtime-builders/synthDriverHost32/setup-runtime.py` also uses `bundle_files=3`.
+- The CP315 probe intentionally uses the same mode so its freeze/execution evidence matches the current NVDA packaging path.
+- The py2exe memimporter path that references the removed private CPython symbol `_PyImport_FixupExtensionObject` is therefore not exercised by the current NVDA production packaging mode. It remains a real py2exe CP315 full-feature compatibility debt, and this probe does not claim compatibility for native-extension in-memory bundle modes.
+
 NVDA integration tests: currently failing at deterministic `uv sync --dry-run --no-install-project` because the project still resolves `py2exe==0.14.2.0` from the release path rather than the source-built CP315 artifact.
 
 Known limitation: source-build proof and NVDA dependency integration are separate stages. Do not mark py2exe CP315 as fully integrated until the deterministic NVDA dependency resolution, build and packaging gates consume the validated source-derived artifact.
@@ -58,6 +65,16 @@ State: `SOURCE_BUILD` for the isolated CPython 3.15 x64 build; NVDA integration 
 Upstream repository: https://github.com/nvaccess/brltty
 
 Pinned source commit: `06e44da90784505fc5d2869f75f02160d6855d03`
+
+License: GNU Lesser General Public License version 2.1 or any later version (`LGPL-2.1-or-later`). At the pinned source revision, BRLTTY's README states that this license applies to all files in the source tree, and the complete license text is provided as `LICENSE-LGPL`.
+
+Release provenance/licensing requirements for source-derived BRLAPI artifacts:
+
+- retain the applicable BRLTTY copyright, warranty and LGPL notices;
+- include the `LICENSE-LGPL` license text with redistributed BRLAPI/BRLTTY artifacts;
+- keep the exact source revision and local changes available in the provenance record;
+- satisfy the LGPL 2.1 corresponding-source/relinkability requirements applicable to the exact binary composition that is distributed;
+- verify those notices and source links as part of the final packaging/release audit rather than treating an isolated build artifact as release-ready.
 
 Local source/build recipe: `.github/workflows/brlapi315Build.yml`.
 
