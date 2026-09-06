@@ -1,0 +1,60 @@
+name: Apply reviewed archive consolidation
+
+on:
+  push:
+    branches:
+      - 'consolidation/all-nvda-useful'
+    paths:
+      - '.github/workflows/apply-archive-consolidation.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: windows-2025-vs2026
+    steps:
+      - name: Checkout consolidation branch
+        uses: actions/checkout@v7
+        with:
+          ref: consolidation/all-nvda-useful
+          fetch-depth: 0
+
+      - name: Set up Python 3.14.7
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.14.7'
+
+      - name: Apply reviewed V8 transformations
+        shell: pwsh
+        run: |
+          python .github/apply_v8_consolidation.py
+          $p = 'runtime-builders/synthDriverHost32/setup-runtime.py'
+          $text = [IO.File]::ReadAllText($p)
+          $text = $text.Replace('https://docs.python.org/3.13/tutorial/modules.html#compiled-python-files', 'https://docs.python.org/3.14/tutorial/modules.html#compiled-python-files')
+          [IO.File]::WriteAllText($p, $text, [Text.UTF8Encoding]::new($false))
+
+      - name: Python 3.14 syntax validation
+        shell: pwsh
+        run: |
+          python -m py_compile `
+            source/NVDAObjects/UIA/__init__.py `
+            source/NVDAObjects/UIA/web.py `
+            source/UIAHandler/utils.py `
+            source/UIAHandler/remote.py `
+            source/speech/speech.py `
+            source/_magnifier/utils/focusManager.py `
+            source/hwIo/base.py `
+            source/queueHandler.py
+
+      - name: Commit reviewed archive changes
+        shell: bash
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git rm .github/apply_v8_consolidation.py
+          git rm .github/workflows/apply-archive-consolidation.yml
+          git add source runtime-builders tests
+          git diff --cached --check
+          git commit -m "Consolidate reviewed V8 archive functionality"
+          git push origin HEAD:consolidation/all-nvda-useful
