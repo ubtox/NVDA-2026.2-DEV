@@ -1,10 +1,10 @@
-name: Apply Python 3.15 dependency migration
+name: Apply Python 3.15 source dependency integration
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - 'try-evolution/2027.1-python315-platform'
+      - 'fix/python315-pinned-source-provenance'
     paths:
       - '.github/workflows/python315MigrationApply.yml'
 
@@ -13,67 +13,118 @@ permissions:
 
 jobs:
   migrate:
-    runs-on: ubuntu-latest
+    name: Pin, lock and install py2exe from source on CPython 3.15
+    runs-on: windows-2025-vs2026
+    env:
+      PY2EXE_REF: '1be98bd71ac737f73aa146631ab902b2b1cc43f7'
+
     steps:
-      - name: Checkout migration branch
+      - name: Checkout active integration branch
         uses: actions/checkout@v7
         with:
-          ref: try-evolution/2027.1-python315-platform
+          ref: ${{ github.ref_name }}
           fetch-depth: 0
+          submodules: recursive
 
-      - name: Move validated py2exe CP315 override into pyproject
+      - name: Guard migration branch
+        shell: pwsh
+        run: |
+          $allowed = @(
+            'fix/python315-pinned-source-provenance',
+            'try-evolution/2027.1-python315-platform'
+          )
+          if ('${{ github.ref_name }}' -notin $allowed) {
+            throw 'This migration workflow may only update the Python 3.15 integration branches.'
+          }
+
+      - name: Install CPython 3.15 x64
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.15.0-rc.2'
+          architecture: x64
+
+      - name: Install pinned uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: '0.12.5'
+          python-version: cpython-3.15.0rc2-windows-x86_64-none
+
+      - name: Pin validated py2exe source revision in project configuration
         shell: python
         run: |
           from pathlib import Path
 
-          path = Path("pyproject.toml")
-          text = path.read_text(encoding="utf-8")
-          old = '''[tool.uv]
-          default-groups = "all"
-          python-preference = "only-system"
-          environments = ["sys_platform == 'win32'"]
-          required-version = ">=0.9"
+          path = Path('pyproject.toml')
+          text = path.read_text(encoding='utf-8')
+          source_line = 'py2exe = { git = "https://github.com/py2exe/py2exe", rev = "${{ env.PY2EXE_REF }}" }\n'
 
-          [tool.setuptools]
-          '''
-          new = '''[tool.uv]
-          default-groups = "all"
-          python-preference = "only-system"
-          environments = ["sys_platform == 'win32'"]
-          required-version = ">=0.9"
-          no-binary-package = ["py2exe"]
+          if source_line not in text:
+              if 'py2exe = { git =' in text:
+                  raise SystemExit('An unexpected py2exe Git source already exists; review it instead of overwriting it.')
+              marker = '[tool.uv.sources]\n'
+              if text.count(marker) != 1:
+                  raise SystemExit('Expected exactly one [tool.uv.sources] table.')
+              text = text.replace(marker, marker + source_line, 1)
+              path.write_text(text, encoding='utf-8', newline='\n')
 
-          [[tool.uv.dependency-metadata]]
-          name = "py2exe"
-          version = "0.14.2.0"
-          requires-python = ">=3.10,<3.16"
-          requires-dist = ["cachetools", "packaging", "pefile"]
+          required_fragments = (
+              'no-binary-package = ["py2exe"]',
+              'name = "py2exe"',
+              'version = "0.14.2.0"',
+              'requires-python = ">=3.10,<3.16"',
+              'requires-dist = ["cachetools", "packaging", "pefile"]',
+              source_line.strip(),
+          )
+          current = path.read_text(encoding='utf-8')
+          missing = [fragment for fragment in required_fragments if fragment not in current]
+          if missing:
+              raise SystemExit(f'Missing required py2exe CP315 configuration: {missing}')
 
-          [tool.setuptools]
-          '''
-          if text.count(old) != 1:
-              raise SystemExit("Expected exactly one unmodified [tool.uv] block")
-          path.write_text(text.replace(old, new, 1), encoding="utf-8", newline="\n")
-
-      - name: Remove invalid standalone uv configuration
-        shell: bash
+      - name: Regenerate lock for CPython 3.15
+        shell: pwsh
         run: |
-          set -euo pipefail
-          test -f uv.toml
-          git rm uv.toml
+          python -c "import sys; assert sys.version_info[:2] == (3, 15), sys.version; print(sys.version)"
+          uv lock --refresh-package py2exe
 
-      - name: Validate and commit dependency migration
-        shell: bash
+      - name: Verify lock provenance
+        shell: python
         run: |
-          set -euo pipefail
+          from pathlib import Path
+          import tomllib
+
+          data = tomllib.loads(Path('uv.lock').read_text(encoding='utf-8'))
+          requires_python = data.get('requires-python', '')
+          if '3.15' not in requires_python or '3.16' not in requires_python:
+              raise SystemExit(f'Unexpected lock Python range: {requires_python!r}')
+
+          matches = [pkg for pkg in data.get('package', []) if pkg.get('name') == 'py2exe']
+          if len(matches) != 1:
+              raise SystemExit(f'Expected exactly one locked py2exe package, found {len(matches)}')
+          source = matches[0].get('source', {})
+          git_source = source.get('git', '')
+          expected = '${{ env.PY2EXE_REF }}'
+          if expected not in git_source:
+              raise SystemExit(f'py2exe lock source is not pinned to {expected}: {source!r}')
+          print('Locked py2exe source:', git_source)
+
+      - name: Build and install the dev-group py2exe source through uv
+        shell: pwsh
+        run: |
+          uv sync --locked --only-group dev --no-install-package nvda-misc-deps --no-install-package nvda-mathcat
+          uv run --locked --no-sync python -c "import sys, py2exe, py2exe.runtime; assert sys.version_info[:2] == (3, 15), sys.version; print('NVDA uv py2exe CP315 source integration OK:', py2exe.__file__)"
+
+      - name: Validate and commit generated project state
+        shell: pwsh
+        run: |
           git diff --check
-          grep -F 'no-binary-package = ["py2exe"]' pyproject.toml
-          grep -F 'requires-python = ">=3.10,<3.16"' pyproject.toml
-          test ! -e uv.toml
-          git diff -- pyproject.toml uv.toml
+          git diff -- pyproject.toml uv.lock
+          if (-not (git status --porcelain)) {
+            Write-Host 'Project source and lock are already current.'
+            exit 0
+          }
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add pyproject.toml
+          git add pyproject.toml uv.lock
           git diff --cached --check
-          git commit -m 'build: resolve validated py2exe source on Python 3.15'
-          git push origin HEAD:try-evolution/2027.1-python315-platform
+          git commit -m 'build: consume pinned py2exe source on Python 3.15'
+          git push origin "HEAD:${{ github.ref_name }}"
