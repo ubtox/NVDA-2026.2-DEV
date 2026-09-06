@@ -71,6 +71,13 @@ jobs:
         shell: cmd
         run: scons source %sconsArgs% %sconsCores%
 
+      - name: Verify MathCAT native module on Python 3.14
+        shell: pwsh
+        run: |
+          $python = Join-Path $env:GITHUB_WORKSPACE ".venv\Scripts\python.exe"
+          & $python -c "import sys; assert sys.version_info[:2] == (3, 14), sys.version; sys.path.insert(0, r'source'); import libmathcat_py; print('MathCAT Python 3.14 import OK')"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Build launcher
         shell: pwsh
         run: |
