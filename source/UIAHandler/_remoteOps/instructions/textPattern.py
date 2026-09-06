@@ -8,11 +8,13 @@ This module contains the instructions that operate on UI Automation text pattern
 """
 
 from __future__ import annotations
-from typing import cast
+
 from dataclasses import dataclass
+from typing import cast
+
 from UIAHandler import UIA
-from .. import lowLevel
-from .. import builder
+
+from .. import builder, lowLevel
 from ._base import _TypedInstruction
 
 

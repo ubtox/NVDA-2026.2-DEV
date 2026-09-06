@@ -4,18 +4,19 @@
 # Copyright (C) 2023-2024 NV Access Limited
 
 from __future__ import annotations
+
 import contextlib
+from collections.abc import Callable, Generator
+from dataclasses import dataclass
 from typing import (
 	Any,
 )
-from collections.abc import Generator, Callable
-from dataclasses import dataclass
+
 from logHandler import log
+
 from UIAHandler import UIA
-from . import lowLevel
-from . import builder
-from . import remoteAPI
-from . import instructions
+
+from . import builder, instructions, lowLevel, remoteAPI
 
 
 @dataclass
@@ -297,7 +298,7 @@ class Operation:
 					f"Remote log for execution {self._executionCount}\n"
 					"--- Begin ---\n"
 					f"{logOutput}"
-					"--- end ---",  # fmt: skip
+					"--- end ---",
 				)
 
 	def _dumpCompiletimeLog(self):
@@ -346,5 +347,4 @@ class Operation:
 		if self._yieldListOperand is None:
 			raise RuntimeError("RemoteOperation has no yield list operand")
 		for executionResult in self._executeUntilSuccess(maxTries):
-			for value in self._yieldListOperand.localValue:
-				yield value
+			yield from self._yieldListOperand.localValue

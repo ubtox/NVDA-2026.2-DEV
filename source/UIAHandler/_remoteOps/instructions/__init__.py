@@ -17,119 +17,119 @@ which provides an implementation of the instruction that can be executed locally
 from ..builder import InstructionBase
 from .arithmetic import (
 	BinaryAdd,
-	BinarySubtract,
-	BinaryMultiply,
 	BinaryDivide,
+	BinaryMultiply,
+	BinarySubtract,
 	InplaceAdd,
-	InplaceSubtract,
-	InplaceMultiply,
 	InplaceDivide,
+	InplaceMultiply,
+	InplaceSubtract,
 )
 from .array import (
-	NewArray,
-	IsArray,
 	ArrayAppend,
 	ArrayGetAt,
 	ArrayRemoveAt,
 	ArraySetAt,
 	ArraySize,
+	IsArray,
+	NewArray,
+)
+from .bool import (
+	BoolAnd,
+	BoolNot,
+	BoolOr,
+	IsBool,
+	NewBool,
+)
+from .cacheRequest import (
+	CacheRequestAddPattern,
+	CacheRequestAddProperty,
+	IsCacheRequest,
+	NewCacheRequest,
+	PopulateCache,
+)
+from .controlFlow import (
+	BreakLoop,
+	ContinueLoop,
+	EndLoopBlock,
+	EndTryBlock,
+	Fork,
+	ForkIfFalse,
+	Halt,
+	JumpCatch,
+	JumpElse,
+	NewLoopBlock,
+	NewTryBlock,
+)
+from .element import (
+	ElementGetPropertyValue,
+	ElementGetTextPattern,
+	ElementNavigate,
+	IsElement,
+)
+from .extension import (
+	CallExtension,
+	IsExtensionSupported,
+)
+from .float import (
+	IsFloat,
+	NewFloat,
+)
+from .general import (
+	Compare,
+	IsNotSupported,
+	Set,
+)
+from .guid import (
+	GuidLookupId,
+	IsGuid,
+	LookupGuid,
+	NewGuid,
+)
+from .int import (
+	IsInt,
+	IsUint,
+	NewInt,
+	NewUint,
+)
+from .null import (
+	IsNull,
+	NewNull,
+)
+from .status import (
+	GetOperationStatus,
+	SetOperationStatus,
+)
+from .string import (
+	IsString,
+	NewString,
+	StringConcat,
+	Stringify,
 )
 from .stringMap import (
-	NewStringMap,
 	IsStringmap,
-	StringMapInsert,
+	NewStringMap,
 	StringMapHasKey,
+	StringMapInsert,
 	StringMapLookup,
 	StringMapRemove,
 	StringMapSize,
 )
-from .bool import (
-	NewBool,
-	IsBool,
-	BoolNot,
-	BoolAnd,
-	BoolOr,
-)
-from .cacheRequest import (
-	NewCacheRequest,
-	IsCacheRequest,
-	CacheRequestAddProperty,
-	CacheRequestAddPattern,
-	PopulateCache,
-)
-from .controlFlow import (
-	Halt,
-	Fork,
-	ForkIfFalse,
-	NewLoopBlock,
-	EndLoopBlock,
-	NewTryBlock,
-	EndTryBlock,
-	BreakLoop,
-	ContinueLoop,
-	JumpElse,
-	JumpCatch,
-)
-from .element import (
-	IsElement,
-	ElementGetPropertyValue,
-	ElementNavigate,
-	ElementGetTextPattern,
-)
-from .extension import (
-	IsExtensionSupported,
-	CallExtension,
-)
-from .float import (
-	NewFloat,
-	IsFloat,
-)
-from .general import (
-	Set,
-	IsNotSupported,
-	Compare,
-)
-from .guid import (
-	NewGuid,
-	IsGuid,
-	GuidLookupId,
-	LookupGuid,
-)
-from .int import (
-	NewInt,
-	IsInt,
-	NewUint,
-	IsUint,
-)
-from .null import (
-	NewNull,
-	IsNull,
-)
-from .status import (
-	SetOperationStatus,
-	GetOperationStatus,
-)
-from .string import (
-	NewString,
-	IsString,
-	StringConcat,
-	Stringify,
+from .textPattern import (
+	TextPatternRangeFromChild,
 )
 from .textRange import (
-	TextRangeGetText,
-	TextRangeMove,
-	TextRangeMoveEndpointByUnit,
-	TextRangeCompare,
 	TextRangeClone,
+	TextRangeCompare,
+	TextRangeCompareEndpoints,
+	TextRangeExpandToEnclosingUnit,
 	TextRangeFindAttribute,
 	TextRangeFindText,
 	TextRangeGetAttributeValue,
 	TextRangeGetBoundingRectangles,
 	TextRangeGetEnclosingElement,
-	TextRangeExpandToEnclosingUnit,
+	TextRangeGetText,
+	TextRangeMove,
 	TextRangeMoveEndpointByRange,
-	TextRangeCompareEndpoints,
-)
-from .textPattern import (
-	TextPatternRangeFromChild,
+	TextRangeMoveEndpointByUnit,
 )

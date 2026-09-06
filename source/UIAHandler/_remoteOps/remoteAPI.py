@@ -5,39 +5,41 @@
 
 
 from __future__ import annotations
+
+import contextlib
+from collections.abc import Callable, Generator
 from typing import (
 	Any,
 	TypeVar,
 	cast,
 )
-from collections.abc import Callable, Generator
-import contextlib
+
 from comtypes import (
 	GUID,
 )
+
 from UIAHandler import UIA
-from .lowLevel import RelativeOffset, AutomationIdentifierType
-from . import instructions
-from . import builder
+
+from . import builder, instructions, operation
+from .lowLevel import AutomationIdentifierType, RelativeOffset
 from .remoteFuncWrapper import (
 	remoteContextManager,
 )
-from . import operation
 from .remoteTypes import (
-	RemoteBaseObject,
-	RemoteVariant,
-	RemoteBool,
-	RemoteIntBase,
-	RemoteInt,
-	RemoteUint,
-	RemoteFloat,
-	RemoteString,
-	RemoteGuid,
 	RemoteArray,
-	RemoteStringMap,
-	RemoteElement,
-	RemoteTextRange,
+	RemoteBaseObject,
+	RemoteBool,
 	RemoteCacheRequest,
+	RemoteElement,
+	RemoteFloat,
+	RemoteGuid,
+	RemoteInt,
+	RemoteIntBase,
+	RemoteString,
+	RemoteStringMap,
+	RemoteTextRange,
+	RemoteUint,
+	RemoteVariant,
 )
 
 

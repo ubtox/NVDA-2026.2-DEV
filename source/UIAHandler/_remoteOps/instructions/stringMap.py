@@ -9,10 +9,11 @@ Including to create new string mapss, inserting elements, looking up elements, c
 """
 
 from __future__ import annotations
-from typing import cast, Any
+
 from dataclasses import dataclass
-from .. import lowLevel
-from .. import builder
+from typing import Any, cast
+
+from .. import builder, lowLevel
 from ._base import _TypedInstruction
 
 

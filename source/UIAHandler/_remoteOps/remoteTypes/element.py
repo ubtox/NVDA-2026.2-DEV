@@ -5,28 +5,31 @@
 
 
 from __future__ import annotations
-from typing import (
-	cast,
-)
+
 from ctypes import (
 	POINTER,
 )
+from typing import (
+	cast,
+)
+
 from comtypes import (
 	GUID,
 )
+
 from UIAHandler import UIA
-from .. import lowLevel
-from .. import instructions
+
+from .. import instructions, lowLevel
 from ..remoteFuncWrapper import (
 	remoteMethod,
 	remoteMethod_mutable,
 )
 from . import (
-	RemoteExtensionTarget,
-	RemoteIntEnum,
 	RemoteBool,
-	RemoteVariant,
+	RemoteExtensionTarget,
 	RemoteGuid,
+	RemoteIntEnum,
+	RemoteVariant,
 )
 from .cacheRequest import RemoteCacheRequest
 

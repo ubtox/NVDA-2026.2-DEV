@@ -5,10 +5,12 @@
 
 
 from __future__ import annotations
+
 from collections.abc import Iterable
+
 from comtypes import GUID
-from .. import lowLevel
-from .. import instructions
+
+from .. import instructions, lowLevel
 from ..remoteFuncWrapper import (
 	remoteMethod_mutable,
 )

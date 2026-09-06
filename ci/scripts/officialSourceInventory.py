@@ -7,7 +7,6 @@ from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
-
 PROTECTED_PREFIXES = (
 	"source/",
 	"nvdaHelper/",

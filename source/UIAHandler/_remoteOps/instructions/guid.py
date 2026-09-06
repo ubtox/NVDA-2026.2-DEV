@@ -9,11 +9,13 @@ Including to create new GUID values, and check if an object is a GUID.
 """
 
 from __future__ import annotations
+
+from ctypes import byref, windll
 from dataclasses import dataclass
+
 from comtypes import GUID
-from ctypes import windll, byref
-from .. import lowLevel
-from .. import builder
+
+from .. import builder, lowLevel
 from ._base import _TypedInstruction
 
 

@@ -11,13 +11,15 @@ and navigate the UI Automation tree.
 """
 
 from __future__ import annotations
-from typing import cast
-from dataclasses import dataclass
+
 from ctypes import POINTER
+from dataclasses import dataclass
+from typing import cast
+
 import UIAHandler
 from UIAHandler import UIA
-from .. import lowLevel
-from .. import builder
+
+from .. import builder, lowLevel
 from ._base import _TypedInstruction
 
 

@@ -5,39 +5,39 @@
 
 
 from __future__ import annotations
+
+import ctypes
+import enum
+from collections.abc import Iterable
+from ctypes import (
+	_SimpleCData,
+	c_bool,
+	c_long,
+	c_ulong,
+)
+from types import NoneType
 from typing import (
-	Type,
-	Self,
 	Generic,
+	Self,
+	Type,
 	TypeVar,
 	cast,
 )
-from collections.abc import Iterable
-from types import NoneType
-import ctypes
-from ctypes import (
-	_SimpleCData,
-	c_long,
-	c_ulong,
-	c_bool,
-)
+
+import comtypes.client.lazybind
 from comtypes import (
 	GUID,
-	IUnknown,
 	COMError,
+	IUnknown,
 )
-import comtypes.client.lazybind
-import enum
+
 from UIAHandler import UIA
-from .. import lowLevel
-from .. import instructions
-from .. import builder
+
+from .. import builder, instructions, lowLevel, operation
 from ..remoteFuncWrapper import (
 	remoteMethod,
 	remoteMethod_mutable,
 )
-from .. import operation
-
 
 LocalTypeVar = TypeVar("LocalTypeVar")
 
@@ -805,9 +805,9 @@ def getRemoteTypeForLocalType(LocalType: type[object]) -> type[RemoteBaseObject]
 
 # Import some more complex types after defining the base classes to avoid circular imports
 # flake8: noqa: F401
-from .intEnum import RemoteIntEnum
-from .extensionTarget import RemoteExtensionTarget
 from .cacheRequest import RemoteCacheRequest
 from .element import RemoteElement
+from .extensionTarget import RemoteExtensionTarget
+from .intEnum import RemoteIntEnum
 from .textPattern import RemoteTextPattern
 from .textRange import RemoteTextRange

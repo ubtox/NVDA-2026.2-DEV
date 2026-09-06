@@ -5,13 +5,16 @@
 
 
 from __future__ import annotations
-from typing import (
-	cast,
-)
+
 from ctypes import (
 	POINTER,
 )
+from typing import (
+	cast,
+)
+
 from UIAHandler import UIA
+
 from .. import instructions
 from ..remoteFuncWrapper import (
 	remoteMethod,

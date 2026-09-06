@@ -9,9 +9,10 @@ Including to halt execution, fork execution, and manage loops and try blocks.
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass
-from .. import lowLevel
-from .. import builder
+
+from .. import builder, lowLevel
 from ._base import _TypedInstruction
 
 

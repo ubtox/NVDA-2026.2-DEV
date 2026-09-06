@@ -18,7 +18,6 @@ import speech
 from config.configFlags import TypingEcho
 from speech import speech as speechModule
 
-
 CTRL_C = "\x03"
 """The character produced by control+c, as delivered to speakTypedCharacters."""
 

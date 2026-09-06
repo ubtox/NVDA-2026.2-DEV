@@ -8,8 +8,8 @@ High-level UIA remote ops Unit tests for arrays.
 """
 
 from unittest import TestCase
-from UIAHandler._remoteOps import operation
-from UIAHandler._remoteOps import remoteAPI
+
+from UIAHandler._remoteOps import operation, remoteAPI
 
 
 class Test_array(TestCase):

@@ -4,14 +4,17 @@
 # Copyright (C) 2023-2025 NV Access Limited
 
 from __future__ import annotations
+
+import enum
 import re
 from ctypes import (
-	oledll,
 	c_long,
 	c_ulong,
+	oledll,
 )
-import enum
+
 import NVDAState
+
 from UIAHandler import UIA
 
 """

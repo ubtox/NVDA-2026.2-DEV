@@ -3,26 +3,28 @@
 # See the file COPYING for more details.
 # Copyright (C) 2015-2020 NV Access Limited, Babbage B.V., Accessolutions, Julien Cochuyt
 
+import array
 from ctypes import byref
+
+import browseMode
+import documentBase
+import textInfos
+import treeInterceptorHandler
+import winUser
 from comtypes import COMError
 from comtypes.automation import VARIANT, VT_EMPTY
+from logHandler import log
+from NVDAObjects.UIA import UIA, UIATextInfo
 
-import array
-import winUser
 import UIAHandler
 import UIAHandler.remote
+
 from .utils import (
 	createUIAMultiPropertyCondition,
 	getDeepestLastChildUIAElementInWalker,
 	isUIAElementInWalker,
 	iterUIARangeByUnit,
 )
-import documentBase
-import treeInterceptorHandler
-import textInfos
-import browseMode
-from logHandler import log
-from NVDAObjects.UIA import UIA, UIATextInfo
 
 
 class UIADocumentWithTableNavigation(documentBase.DocumentWithTableNavigation):
