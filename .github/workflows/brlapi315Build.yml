@@ -171,7 +171,8 @@ jobs:
           $pythonDir = (Resolve-Path 'cp315\python').Path
           $binDir = (Resolve-Path 'cp315\bin').Path
           $env:PATH = "$binDir;$env:PATH"
-          python -c "import pathlib, sys; assert sys.version_info[:2] == (3, 15), sys.version; sys.path.insert(0, str(pathlib.Path(r'cp315/python').resolve())); import brlapi; assert 'cp315' in brlapi.__file__.lower(), brlapi.__file__; print('BRLAPI Python 3.15 import OK:', brlapi.__file__)"
+          $env:BRLAPI_DLL_DIR = $binDir
+          python -c "import os, pathlib, sys; assert sys.version_info[:2] == (3, 15), sys.version; dll_dir = os.add_dll_directory(os.environ['BRLAPI_DLL_DIR']); sys.path.insert(0, str(pathlib.Path(r'cp315/python').resolve())); import brlapi; assert 'cp315' in brlapi.__file__.lower(), brlapi.__file__; print('BRLAPI Python 3.15 import OK:', brlapi.__file__)"
 
       - name: Checkout NVDA integration branch for miscDeps overlay test
         uses: actions/checkout@v7
@@ -205,7 +206,8 @@ jobs:
           }
 
           $env:PATH = "$target;$env:PATH"
-          python -c "import pathlib, sys; assert sys.version_info[:2] == (3, 15), sys.version; p = pathlib.Path(r'nvda/miscDeps/python').resolve(); sys.path.insert(0, str(p)); import brlapi; assert pathlib.Path(brlapi.__file__).parent == p, brlapi.__file__; print('NVDA miscDeps BRLAPI CP315 overlay import OK:', brlapi.__file__)"
+          $env:BRLAPI_DLL_DIR = $target
+          python -c "import os, pathlib, sys; assert sys.version_info[:2] == (3, 15), sys.version; p = pathlib.Path(r'nvda/miscDeps/python').resolve(); dll_dir = os.add_dll_directory(os.environ['BRLAPI_DLL_DIR']); sys.path.insert(0, str(p)); import brlapi; assert pathlib.Path(brlapi.__file__).parent == p, brlapi.__file__; print('NVDA miscDeps BRLAPI CP315 overlay import OK:', brlapi.__file__)"
 
       - name: Upload BRLAPI CP315 source-derived artifacts
         uses: actions/upload-artifact@v7
