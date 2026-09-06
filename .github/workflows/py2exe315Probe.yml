@@ -1,0 +1,70 @@
+name: Probe py2exe on Python 3.15
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'try-evolution/2027.1-python315-platform'
+    paths:
+      - '.github/workflows/py2exe315Probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: py2exe source build CP315 ${{ matrix.arch }}
+    runs-on: windows-2025-vs2026
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64, x86]
+
+    steps:
+      - name: Checkout py2exe upstream
+        uses: actions/checkout@v7
+        with:
+          repository: py2exe/py2exe
+          ref: master
+
+      - name: Install Python 3.15
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.15.0-rc.2'
+          architecture: ${{ matrix.arch }}
+
+      - name: Install build tools
+        shell: pwsh
+        run: python -m pip install --upgrade pip setuptools wheel build
+
+      - name: Open metadata gate only for the probe
+        shell: pwsh
+        run: |
+          $path = 'setup.py'
+          $text = Get-Content $path -Raw
+          if ($text -notmatch "python_requires='>=3\.10, <3\.15'") {
+            throw 'Expected py2exe Python upper bound was not found; inspect upstream before changing the probe.'
+          }
+          $text = $text.Replace("python_requires='>=3.10, <3.15'", "python_requires='>=3.10, <3.16'")
+          Set-Content -Path $path -Value $text -Encoding utf8
+
+      - name: Build py2exe wheel from source
+        shell: pwsh
+        run: python -m build --wheel
+
+      - name: Install generated py2exe wheel
+        shell: pwsh
+        run: python -m pip install --no-index --find-links dist py2exe
+
+      - name: Smoke-test py2exe imports
+        shell: pwsh
+        run: |
+          python -c "import sys, py2exe; assert sys.version_info[:2] == (3, 15), sys.version; import py2exe.runtime; print('py2exe CP315 import OK:', py2exe.__file__)"
+
+      - name: Upload CP315 wheel
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: py2exe-cp315-${{ matrix.arch }}
+          path: dist/*.whl
+          if-no-files-found: error
