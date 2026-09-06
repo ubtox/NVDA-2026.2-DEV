@@ -116,9 +116,17 @@ jobs:
     name: Build source-derived BRLAPI CP315
     uses: ./.github/workflows/brlapi315Build.yml
 
+  wxpython315:
+    name: Build wxPython CP315 wheel
+    uses: ./.github/workflows/wxpython315Build.yml
+
+  nativeRuntimeWheels315:
+    name: Build remaining CP315 runtime wheels
+    uses: ./.github/workflows/nativeRuntimeWheels315Build.yml
+
   dependencyResolution:
     name: Resolve NVDA dependencies on CPython 3.15
-    needs: brlapi315
+    needs: [brlapi315, wxpython315, nativeRuntimeWheels315]
     runs-on: windows-2025-vs2026
     steps:
       - name: Checkout NVDA
@@ -133,9 +141,28 @@ jobs:
         with:
           name: brlapi-cp315-win-amd64
           path: .artifacts/brlapi-cp315
+      - name: Download project-built CP315 runtime wheels
+        uses: actions/download-artifact@v5
+        with:
+          pattern: '*cp315-win-amd64'
+          path: .artifacts/runtime-wheels
+          merge-multiple: true
       - name: Stage BRLAPI CP315 into miscDeps
         shell: pwsh
         run: ./ci/scripts/stageBrlapi315.ps1 -ArtifactRoot .artifacts/brlapi-cp315 -MiscDepsRoot miscDeps
+      - name: Verify expected CP315 wheel artifacts
+        shell: pwsh
+        run: |
+          $expected = @(
+            'wxPython-4.2.4-cp315-cp315-win_amd64.whl',
+            'fast_diff_match_patch-2.1.0-cp315-cp315-win_amd64.whl',
+            'fuzzysearch-0.8.1-cp315-cp315-win_amd64.whl'
+          )
+          foreach ($name in $expected) {
+            $path = Join-Path '.artifacts/runtime-wheels' $name
+            if (-not (Test-Path $path)) { throw "Required CP315 wheel artifact missing: $name" }
+            Write-Host "$name SHA256=$((Get-FileHash -Algorithm SHA256 $path).Hash.ToLowerInvariant())"
+          }
       - name: Install Python 3.15 x64
         id: python64
         uses: actions/setup-python@v6
@@ -156,17 +183,31 @@ jobs:
           "UV_PYTHON=$pythonPath" >> $env:GITHUB_ENV
           "UV_PYTHON_DOWNLOADS=never" >> $env:GITHUB_ENV
           & $pythonPath -c "import sys; assert sys.version_info[:2] == (3, 15), sys.version; print('uv CP315 interpreter:', sys.executable)"
-      - name: Resolve and install NVDA application dependencies
+      - name: Resolve locked dependencies except project-built native wheels
         shell: pwsh
         run: |
           uv --version
           uv python find --no-managed-python
-          uv sync --no-default-groups --no-install-project --locked
+          uv sync --no-default-groups --no-install-project --locked `
+            --no-install-package wxpython `
+            --no-install-package fast-diff-match-patch `
+            --no-install-package fuzzysearch
+      - name: Install project-built CP315 runtime wheels
+        shell: pwsh
+        run: |
+          $wheelRoot = (Resolve-Path '.artifacts/runtime-wheels').Path
+          $wheels = @(
+            (Join-Path $wheelRoot 'wxPython-4.2.4-cp315-cp315-win_amd64.whl'),
+            (Join-Path $wheelRoot 'fast_diff_match_patch-2.1.0-cp315-cp315-win_amd64.whl'),
+            (Join-Path $wheelRoot 'fuzzysearch-0.8.1-cp315-cp315-win_amd64.whl')
+          )
+          uv pip install --no-deps @wheels
           uv pip check
+          uv run --no-sync python -c "import pathlib, sys, wx, fast_diff_match_patch, fuzzysearch, fuzzysearch._common as fc, fuzzysearch._substitutions_only as fs; assert sys.version_info[:2] == (3, 15); assert wx.version().startswith('4.2.4'); assert pathlib.Path(fast_diff_match_patch.__file__).suffix.lower() == '.pyd'; assert pathlib.Path(fc.__file__).suffix.lower() == '.pyd'; assert pathlib.Path(fs.__file__).suffix.lower() == '.pyd'; print('project-built CP315 runtime wheels imported OK')"
 
   sourceBuildSmoke:
     name: Prepare NVDA source on CPython 3.15
-    needs: brlapi315
+    needs: [brlapi315, wxpython315, nativeRuntimeWheels315]
     runs-on: windows-2025-vs2026
     steps:
       - name: Checkout NVDA
@@ -179,6 +220,12 @@ jobs:
         with:
           name: brlapi-cp315-win-amd64
           path: .artifacts/brlapi-cp315
+      - name: Download project-built CP315 runtime wheels
+        uses: actions/download-artifact@v5
+        with:
+          pattern: '*cp315-win-amd64'
+          path: .artifacts/runtime-wheels
+          merge-multiple: true
       - name: Stage BRLAPI CP315 into miscDeps
         shell: pwsh
         run: ./ci/scripts/stageBrlapi315.ps1 -ArtifactRoot .artifacts/brlapi-cp315 -MiscDepsRoot miscDeps
@@ -215,8 +262,28 @@ jobs:
           "UV_PYTHON=$pythonPath" >> $env:GITHUB_ENV
           "UV_PYTHON_DOWNLOADS=never" >> $env:GITHUB_ENV
           uv python find --no-managed-python $pythonPath
-      - name: Prepare NVDA source
+      - name: Resolve build environment with project-built CP315 wheels
+        shell: pwsh
+        run: |
+          uv sync --no-default-groups --group dev --no-install-project --locked `
+            --no-install-package wxpython `
+            --no-install-package fast-diff-match-patch `
+            --no-install-package fuzzysearch
+          $wheelRoot = (Resolve-Path '.artifacts/runtime-wheels').Path
+          $wheels = @(
+            (Join-Path $wheelRoot 'wxPython-4.2.4-cp315-cp315-win_amd64.whl'),
+            (Join-Path $wheelRoot 'fast_diff_match_patch-2.1.0-cp315-cp315-win_amd64.whl'),
+            (Join-Path $wheelRoot 'fuzzysearch-0.8.1-cp315-cp315-win_amd64.whl')
+          )
+          foreach ($wheel in $wheels) {
+            if (-not (Test-Path $wheel)) { throw "Required CP315 wheel artifact missing: $wheel" }
+          }
+          uv pip install --no-deps @wheels
+          uv pip check
+      - name: Prepare NVDA source without re-syncing the validated environment
         shell: cmd
+        env:
+          UV_NO_SYNC: "1"
         run: scons source --all-cores
 
   nativeAbiAudit:
