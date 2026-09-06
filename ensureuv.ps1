@@ -36,7 +36,7 @@ function Install-PinnedUv {
 		Invoke-Expression $installer
 	}
 	catch {
-		throw "Failed to install project-pinned uv $versionText: $_"
+		throw "Failed to install project-pinned uv ${versionText}: $_"
 	}
 
 	# The official Windows installer normally uses the user executable directory.
