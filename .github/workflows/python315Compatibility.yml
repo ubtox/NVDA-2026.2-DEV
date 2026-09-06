@@ -16,6 +16,12 @@ concurrency:
   group: python315-compatibility-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  PYTHON_VERSION: "3.15.0-rc.2"
+  PIP_VERSION: "26.2.1"
+  UV_VERSION: "0.12.5"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
 jobs:
   interpreters:
     name: CPython 3.15 x64 and x86
@@ -25,13 +31,13 @@ jobs:
         id: python64
         uses: actions/setup-python@v6
         with:
-          python-version: "3.15.0-rc.2"
+          python-version: ${{ env.PYTHON_VERSION }}
           architecture: x64
       - name: Install Python 3.15 x86
         id: python32
         uses: actions/setup-python@v6
         with:
-          python-version: "3.15.0-rc.2"
+          python-version: ${{ env.PYTHON_VERSION }}
           architecture: x86
           update-environment: false
       - name: Verify both interpreters
@@ -48,13 +54,13 @@ jobs:
         id: python64
         uses: actions/setup-python@v6
         with:
-          python-version: "3.15.0-rc.2"
+          python-version: ${{ env.PYTHON_VERSION }}
           architecture: x64
       - name: Install Python 3.15 x86
         id: python32
         uses: actions/setup-python@v6
         with:
-          python-version: "3.15.0-rc.2"
+          python-version: ${{ env.PYTHON_VERSION }}
           architecture: x86
           update-environment: false
       - name: Bootstrap pip with ensurepip on both interpreters
@@ -62,23 +68,28 @@ jobs:
         run: |
           $venv64 = Join-Path $env:RUNNER_TEMP 'ensurepip-cp315-x64'
           $venv32 = Join-Path $env:RUNNER_TEMP 'ensurepip-cp315-x86'
+          $python32 = '${{ steps.python32.outputs.python-path }}'
+          python -c "import ensurepip; assert ensurepip.version() == '$env:PIP_VERSION', ensurepip.version(); print('ensurepip bundled pip x64:', ensurepip.version())"
+          & $python32 -c "import ensurepip; assert ensurepip.version() == '$env:PIP_VERSION', ensurepip.version(); print('ensurepip bundled pip x86:', ensurepip.version())"
           python -m venv --without-pip $venv64
-          & '${{ steps.python32.outputs.python-path }}' -m venv --without-pip $venv32
-          & (Join-Path $venv64 'Scripts\python.exe') -m ensurepip --upgrade
-          & (Join-Path $venv32 'Scripts\python.exe') -m ensurepip --upgrade
-          & (Join-Path $venv64 'Scripts\python.exe') -m pip --version
-          & (Join-Path $venv64 'Scripts\python.exe') -m pip check
-          & (Join-Path $venv32 'Scripts\python.exe') -m pip --version
-          & (Join-Path $venv32 'Scripts\python.exe') -m pip check
+          & $python32 -m venv --without-pip $venv32
+          $venvPython64 = Join-Path $venv64 'Scripts\python.exe'
+          $venvPython32 = Join-Path $venv32 'Scripts\python.exe'
+          & $venvPython64 -m ensurepip --upgrade
+          & $venvPython32 -m ensurepip --upgrade
+          & $venvPython64 -c "import pip; assert pip.__version__ == '$env:PIP_VERSION', pip.__version__; print('bootstrapped pip x64:', pip.__version__)"
+          & $venvPython64 -m pip check
+          & $venvPython32 -c "import pip; assert pip.__version__ == '$env:PIP_VERSION', pip.__version__; print('bootstrapped pip x86:', pip.__version__)"
+          & $venvPython32 -m pip check
       - name: Verify runner pip on both interpreters
         shell: pwsh
         run: |
           python -m pip --version
           python -m pip check
-          python -c "import pip, platform, sys; assert sys.version_info[:2] == (3, 15), sys.version; assert platform.architecture()[0] == '64bit'; print('pip CP315 x64 OK:', pip.__version__)"
+          python -c "import pip, platform, sys; assert sys.version_info[:2] == (3, 15), sys.version; assert platform.architecture()[0] == '64bit'; assert pip.__version__ == '$env:PIP_VERSION', pip.__version__; print('pip CP315 x64 OK:', pip.__version__)"
           & '${{ steps.python32.outputs.python-path }}' -m pip --version
           & '${{ steps.python32.outputs.python-path }}' -m pip check
-          & '${{ steps.python32.outputs.python-path }}' -c "import pip, platform, sys; assert sys.version_info[:2] == (3, 15), sys.version; assert platform.architecture()[0] == '32bit'; print('pip CP315 x86 OK:', pip.__version__)"
+          & '${{ steps.python32.outputs.python-path }}' -c "import pip, platform, sys; assert sys.version_info[:2] == (3, 15), sys.version; assert platform.architecture()[0] == '32bit'; assert pip.__version__ == '$env:PIP_VERSION', pip.__version__; print('pip CP315 x86 OK:', pip.__version__)"
 
   mathcat:
     name: MathCAT abi3 import on CPython 3.15
@@ -94,7 +105,7 @@ jobs:
       - name: Install Python 3.15 x64
         uses: actions/setup-python@v6
         with:
-          python-version: "3.15.0-rc.2"
+          python-version: ${{ env.PYTHON_VERSION }}
           architecture: x64
       - name: Import MathCAT native extension
         shell: pwsh
@@ -129,12 +140,12 @@ jobs:
         id: python64
         uses: actions/setup-python@v6
         with:
-          python-version: "3.15.0-rc.2"
+          python-version: ${{ env.PYTHON_VERSION }}
           architecture: x64
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
-          version: "0.12.5"
+          version: ${{ env.UV_VERSION }}
       - name: Bind uv to the setup-python interpreter
         shell: pwsh
         run: |
@@ -148,8 +159,9 @@ jobs:
       - name: Resolve and install NVDA application dependencies
         shell: pwsh
         run: |
+          uv --version
           uv python find --no-managed-python
-          uv sync --no-dev --no-install-project --locked
+          uv sync --no-default-groups --no-install-project --locked
           uv pip check
 
   sourceBuildSmoke:
@@ -174,12 +186,12 @@ jobs:
         id: python64
         uses: actions/setup-python@v6
         with:
-          python-version: "3.15.0-rc.2"
+          python-version: ${{ env.PYTHON_VERSION }}
           architecture: x64
       - name: Install Python 3.15 x86
         uses: actions/setup-python@v6
         with:
-          python-version: "3.15.0-rc.2"
+          python-version: ${{ env.PYTHON_VERSION }}
           architecture: x86
           update-environment: false
       - name: Verify staged BRLAPI CP315 import
@@ -192,7 +204,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
-          version: "0.12.5"
+          version: ${{ env.UV_VERSION }}
       - name: Bind uv to the setup-python interpreter
         shell: pwsh
         run: |
