@@ -68,6 +68,7 @@ jobs:
         # Only mechanical Ruff transformations are allowed here. Rules that can
         # change API/branching semantics (TRY004, SIM102, UP046) stay manual.
         if [[ "$REF_NAME" == "fix/python315-lint-and-uv-pin" ]]; then
+          set +e
           uvx --from ruff==0.16.3 ruff check \
             --fix --unsafe-fixes \
             --select I001,F401,UP031,RUF028,UP028,SIM117,UP035 \
@@ -96,6 +97,8 @@ jobs:
             tests/unit/test_UIARemoteOps/test_highLevel/test_if.py \
             tests/unit/test_UIARemoteOps/test_highLevel/test_stringMap.py \
             tests/unit/test_speechTypedCharacters.py
+          set -e
+          git diff --check
         fi
 
         if ! git diff --quiet; then
