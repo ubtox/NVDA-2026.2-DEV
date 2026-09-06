@@ -35,7 +35,7 @@ jobs:
           repository: wxWidgets/Phoenix
           ref: ${{ env.WXPYTHON_REF }}
           submodules: recursive
-          fetch-depth: 1
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Verify exact Phoenix source revision
