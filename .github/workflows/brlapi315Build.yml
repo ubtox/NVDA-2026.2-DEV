@@ -4,9 +4,15 @@ on:
   workflow_dispatch:
   push:
     branches:
+      - 'fix/python315-pinned-source-provenance'
+    paths:
+      - '.github/workflows/brlapi315Build.yml'
+  pull_request:
+    branches:
       - 'try-evolution/2027.1-python315-platform'
     paths:
       - '.github/workflows/brlapi315Build.yml'
+      - 'PYTHON315_DEPENDENCY_STATUS.md'
 
 permissions:
   contents: read
@@ -35,6 +41,12 @@ jobs:
         with:
           repository: nvaccess/brltty
           ref: ${{ env.BRLTTY_REF }}
+
+      - name: Verify exact BRLTTY source revision
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = "$BRLTTY_REF"
+          echo "BRLTTY source: $(git rev-parse HEAD)"
 
       - name: Install Python 3.15 x64
         uses: actions/setup-python@v6
@@ -125,16 +137,23 @@ jobs:
           make -C Programs api brlapi_constants.h
           make -C Bindings/Python all
 
-      - name: Stage BRLAPI Python 3.15 artifacts
+      - name: Stage BRLAPI Python 3.15 artifacts with license and provenance
         run: |
           mkdir -p cp315/{bin,python}
           egg="$(find Bindings/Python/dist -maxdepth 1 -name 'Brlapi-*-py3.15-win-amd64.egg' -print -quit)"
           test -n "$egg"
           python -m zipfile -e "$egg" cp315/python
           cp Programs/brlapi-*.dll cp315/bin/
-          # BRLAPI links dynamically against MSYS2 libiconv. Package it next to BRLAPI so
-          # consumers do not depend on a CI runner's PATH or an external MSYS2 installation.
           cp /ucrt64/bin/libiconv-2.dll cp315/bin/
+          cp LICENSE-LGPL cp315/LICENSE-LGPL
+          cat > cp315/SOURCE-PROVENANCE.txt <<EOF
+          Component: BRLAPI / BRLTTY
+          Upstream: https://github.com/nvaccess/brltty
+          Source commit: $BRLTTY_REF
+          Target: CPython $PYTHON_VERSION x64 Windows
+          Local compatibility changes: .github/workflows/brlapi315Build.yml in ubtox/NVDA-2026.2-DEV
+          License: LGPL-2.1-or-later; see LICENSE-LGPL
+          EOF
           echo 'BRLAPI native DLL dependencies:'
           objdump -p Programs/brlapi-0.8.dll | grep 'DLL Name:' || true
           echo 'BRLAPI CP315 extension dependencies:'
@@ -143,8 +162,10 @@ jobs:
           ls -la cp315/bin
           test -n "$(find cp315/python -name 'brlapi.cp315-win_amd64.pyd' -print -quit)"
           test -f cp315/bin/libiconv-2.dll
+          test -f cp315/LICENSE-LGPL
+          test -f cp315/SOURCE-PROVENANCE.txt
 
-      - name: Verify BRLAPI CP315 import
+      - name: Verify isolated BRLAPI CP315 import
         shell: pwsh
         run: |
           $pythonDir = (Resolve-Path 'cp315\python').Path
@@ -152,7 +173,41 @@ jobs:
           $env:PATH = "$binDir;$env:PATH"
           python -c "import pathlib, sys; assert sys.version_info[:2] == (3, 15), sys.version; sys.path.insert(0, str(pathlib.Path(r'cp315/python').resolve())); import brlapi; assert 'cp315' in brlapi.__file__.lower(), brlapi.__file__; print('BRLAPI Python 3.15 import OK:', brlapi.__file__)"
 
-      - name: Upload BRLAPI CP315 artifacts
+      - name: Checkout NVDA integration branch for miscDeps overlay test
+        uses: actions/checkout@v7
+        with:
+          repository: ubtox/NVDA-2026.2-DEV
+          ref: ${{ github.head_ref || github.ref_name }}
+          path: nvda
+          submodules: false
+          fetch-depth: 1
+
+      - name: Checkout only miscDeps
+        shell: pwsh
+        run: git -C nvda submodule update --init --depth 1 miscDeps
+
+      - name: Overlay CP315 BRLAPI into miscDeps and verify NVDA dependency path
+        shell: pwsh
+        run: |
+          $target = (Resolve-Path 'nvda\miscDeps\python').Path
+          Get-ChildItem -Path $target -File -Filter 'brlapi.cp31*-win_amd64.pyd' | Remove-Item -Force
+          Copy-Item -Path 'cp315\python\*' -Destination $target -Recurse -Force
+          Copy-Item -Path 'cp315\bin\*.dll' -Destination $target -Force
+
+          $legacy = Get-ChildItem -Path 'nvda\miscDeps' -Recurse -File -Filter '*.pyd' | Where-Object { $_.Name -match 'cp31[34]' }
+          if ($legacy) {
+            throw "Legacy CPython native modules remain after BRLAPI overlay: $($legacy.FullName -join ', ')"
+          }
+
+          $cp315 = Get-ChildItem -Path $target -File -Filter 'brlapi.cp315-win_amd64.pyd'
+          if (-not $cp315) {
+            throw 'CPython 3.15 BRLAPI extension was not staged into miscDeps/python.'
+          }
+
+          $env:PATH = "$target;$env:PATH"
+          python -c "import pathlib, sys; assert sys.version_info[:2] == (3, 15), sys.version; p = pathlib.Path(r'nvda/miscDeps/python').resolve(); sys.path.insert(0, str(p)); import brlapi; assert pathlib.Path(brlapi.__file__).parent == p, brlapi.__file__; print('NVDA miscDeps BRLAPI CP315 overlay import OK:', brlapi.__file__)"
+
+      - name: Upload BRLAPI CP315 source-derived artifacts
         uses: actions/upload-artifact@v7
         with:
           name: brlapi-cp315-win-amd64
