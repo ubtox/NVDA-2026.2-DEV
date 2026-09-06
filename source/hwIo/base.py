@@ -194,8 +194,13 @@ class IoBase:
 			winBindings.kernel32.CancelIoEx(self._file, byref(self._readOl))
 		if hasattr(self, "_writeFile") and self._writeFile not in (self._file, INVALID_HANDLE_VALUE):
 			# CancelIoEx's lpOverlapped parameter must point to the OVERLAPPED structure that
-			# was used to issue the I/O being cancelled. Writes on _writeFile are issued
-			# with self._writeOl (see write()), so cancel the matching request here.
+			# was used to issue the I/O being cancelled (Microsoft docs: "only those specific
+			# I/O requests that were issued for the file with the specified lpOverlapped
+			# overlapped structure are marked as canceled"). Writes on _writeFile are issued
+			# with self._writeOl (see write()); passing self._readOl here targeted the wrong
+			# (or no) pending request, so a pending write could be left uncancelled while
+			# close() proceeded to close the handles, and the OS could later complete that
+			# write into freed/reused memory.
 			winBindings.kernel32.CancelIoEx(self._writeFile, byref(self._writeOl))
 		winKernel.closeHandle(self._recvEvt)
 
@@ -253,7 +258,7 @@ class IoBase:
 
 
 class Serial(IoBase):
-	"""Raw input/output for braille displays via serial and HID.
+	"""Raw I/O for serial devices.
 	This extends pyserial to call a callback when data is received.
 	"""
 
