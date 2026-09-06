@@ -40,6 +40,32 @@ jobs:
           python -c "import platform, sys; assert sys.version_info[:2] == (3, 15), sys.version; assert platform.architecture()[0] == '64bit'; print(sys.version, platform.architecture())"
           & '${{ steps.python32.outputs.python-path }}' -c "import platform, sys; assert sys.version_info[:2] == (3, 15), sys.version; assert platform.architecture()[0] == '32bit'; print(sys.version, platform.architecture())"
 
+  pipBootstrap:
+    name: pip on CPython 3.15 x64 and x86
+    runs-on: windows-2025-vs2026
+    steps:
+      - name: Install Python 3.15 x64
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.15.0-rc.2"
+          architecture: x64
+      - name: Install Python 3.15 x86
+        id: python32
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.15.0-rc.2"
+          architecture: x86
+          update-environment: false
+      - name: Verify pip on both interpreters
+        shell: pwsh
+        run: |
+          python -m pip --version
+          python -m pip check
+          python -c "import pip, platform, sys; assert sys.version_info[:2] == (3, 15), sys.version; assert platform.architecture()[0] == '64bit'; print('pip CP315 x64 OK:', pip.__version__)"
+          & '${{ steps.python32.outputs.python-path }}' -m pip --version
+          & '${{ steps.python32.outputs.python-path }}' -m pip check
+          & '${{ steps.python32.outputs.python-path }}' -c "import pip, platform, sys; assert sys.version_info[:2] == (3, 15), sys.version; assert platform.architecture()[0] == '32bit'; print('pip CP315 x86 OK:', pip.__version__)"
+
   mathcat:
     name: MathCAT abi3 import on CPython 3.15
     runs-on: windows-2025-vs2026
