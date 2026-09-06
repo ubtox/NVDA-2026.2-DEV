@@ -132,9 +132,17 @@ jobs:
           test -n "$egg"
           python -m zipfile -e "$egg" cp315/python
           cp Programs/brlapi-*.dll cp315/bin/
+          # BRLAPI links dynamically against MSYS2 libiconv. Package it next to BRLAPI so
+          # consumers do not depend on a CI runner's PATH or an external MSYS2 installation.
+          cp /ucrt64/bin/libiconv-2.dll cp315/bin/
+          echo 'BRLAPI native DLL dependencies:'
+          objdump -p Programs/brlapi-0.8.dll | grep 'DLL Name:' || true
+          echo 'BRLAPI CP315 extension dependencies:'
+          objdump -p "$(find cp315/python -name 'brlapi.cp315-win_amd64.pyd' -print -quit)" | grep 'DLL Name:' || true
           find cp315/python -maxdepth 3 -type f -print
           ls -la cp315/bin
           test -n "$(find cp315/python -name 'brlapi.cp315-win_amd64.pyd' -print -quit)"
+          test -f cp315/bin/libiconv-2.dll
 
       - name: Verify BRLAPI CP315 import
         shell: pwsh
