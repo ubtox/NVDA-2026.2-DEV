@@ -156,16 +156,25 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
+          import re
 
           path = Path('.github/workflows/testAndPublish.yml')
           text = path.read_text(encoding='utf-8')
           token = 'cpython-' + '$' + '{{ matrix.pythonVersion }}-windows-' + '$' + '{{ env.uv-arch }}-none'
-          block = '      with:\n        python-version: ' + token + '\n'
-          count = text.count(block)
-          if count not in (0, 4):
-              raise SystemExit(f'Expected 4 legacy setup-uv interpreter override blocks or none, found {count}.')
-          if count == 4:
-              text = text.replace(block, '')
+          token_count = text.count(token)
+          if token_count not in (0, 4):
+              raise SystemExit(f'Expected 4 legacy setup-uv interpreter overrides or none, found {token_count}.')
+
+          pattern = re.compile(
+              r'(?m)^(?P<indent>[ \t]*)with:\n(?P=indent)  python-version: ' + re.escape(token) + r'\n'
+          )
+          matches = list(pattern.finditer(text))
+          if len(matches) != token_count:
+              raise SystemExit(
+                  f'Found {token_count} legacy interpreter tokens but only {len(matches)} safe standalone with-blocks; refusing to edit.'
+              )
+          if token_count == 4:
+              text = pattern.sub('', text)
               path.write_text(text, encoding='utf-8', newline='\n')
           if token in path.read_text(encoding='utf-8'):
               raise SystemExit('Legacy setup-uv prerelease interpreter override remains after migration.')
