@@ -1,0 +1,102 @@
+name: Build BRLAPI for Python 3.15
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'try-evolution/2027.1-python315-platform'
+    paths:
+      - '.github/workflows/brlapi315Build.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: BRLAPI CPython 3.15 x64
+    runs-on: windows-2025
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - name: Checkout NV Access BRLTTY
+        uses: actions/checkout@v7
+        with:
+          repository: nvaccess/brltty
+          ref: master
+
+      - name: Install Python 3.15 x64
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.15.0-rc.2'
+          architecture: x64
+
+      - name: Install Python build dependencies
+        shell: cmd
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install setuptools cython
+
+      - name: Set up MSYS2 UCRT64
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            autoconf
+            automake
+            make
+            awk
+            bison
+            git
+            groff
+            m4
+            patch
+          pacboy: >-
+            tcl:p
+            pdcurses:p
+            icu:p
+            libiconv:p
+            toolchain:p
+            libusb:p
+
+      - name: Apply Windows patch
+        run: patch -p0 <"Windows/affinity.patch"
+
+      - name: Configure BRLTTY for Python 3.15
+        run: |
+          export PATH="$(cygpath -u "$pythonLocation")/scripts:$(cygpath -u "$pythonLocation"):$PATH"
+          python --version
+          ./autogen
+          ./cfg-windows --prefix=/ --enable-relocatable-install --with-usb-package=winusb
+
+      - name: Build BRLTTY and Python binding
+        run: |
+          export PATH="$(cygpath -u "$pythonLocation")/scripts:$(cygpath -u "$pythonLocation"):$PATH"
+          make
+          make -C Documents
+
+      - name: Stage BRLAPI Python 3.15 artifacts
+        run: |
+          mkdir -p cp315/{bin,python}
+          cp Bindings/Python/dist/* cp315/python/
+          cp Programs/brlapi-*.dll cp315/bin/
+          ls -la cp315/python cp315/bin
+          test -n "$(find cp315/python -maxdepth 1 -name 'brlapi.cp315-win_amd64.pyd' -print -quit)"
+
+      - name: Verify BRLAPI CP315 import
+        shell: pwsh
+        run: |
+          $pythonDir = (Resolve-Path 'cp315\python').Path
+          $binDir = (Resolve-Path 'cp315\bin').Path
+          $env:PATH = "$binDir;$env:PATH"
+          python -c "import pathlib, sys; assert sys.version_info[:2] == (3, 15), sys.version; sys.path.insert(0, str(pathlib.Path(r'cp315/python').resolve())); import brlapi; print('BRLAPI Python 3.15 import OK:', brlapi.__file__)"
+
+      - name: Upload BRLAPI CP315 artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: brlapi-cp315-win-amd64
+          path: cp315
+          if-no-files-found: error
