@@ -1,4 +1,4 @@
-name: Apply Python 3.15 CI migration
+name: Apply Python 3.15 dependency migration
 
 on:
   workflow_dispatch:
@@ -21,34 +21,58 @@ jobs:
           ref: try-evolution/2027.1-python315-platform
           fetch-depth: 0
 
-      - name: Replace only the verified Python 3.14 CI pins
-        shell: pwsh
+      - name: Move validated py2exe CP315 override into pyproject
+        shell: python
         run: |
-          $path = '.github/workflows/testAndPublish.yml'
-          $text = Get-Content $path -Raw
-          $expectedDefault = "defaultPythonVersion: '3.14.7'"
-          $expectedSupported = "supportedPythonVersions: '[`"3.14.7`"]'"
-          if (($text.Split($expectedDefault).Count - 1) -ne 1) {
-            throw "Expected exactly one default Python 3.14.7 pin in $path"
-          }
-          if (($text.Split($expectedSupported).Count - 1) -ne 1) {
-            throw "Expected exactly one supported Python 3.14.7 pin in $path"
-          }
-          $text = $text.Replace($expectedDefault, "defaultPythonVersion: '3.15.0-rc.2'")
-          $text = $text.Replace($expectedSupported, "supportedPythonVersions: '[`"3.15.0-rc.2`"]'")
-          [System.IO.File]::WriteAllText($path, $text, [System.Text.UTF8Encoding]::new($false))
-          if (Select-String -Path $path -Pattern "3\.14\.7" -Quiet) {
-            throw 'Python 3.14.7 remains in the primary workflow after migration.'
-          }
+          from pathlib import Path
 
-      - name: Commit verified migration
+          path = Path("pyproject.toml")
+          text = path.read_text(encoding="utf-8")
+          old = '''[tool.uv]
+          default-groups = "all"
+          python-preference = "only-system"
+          environments = ["sys_platform == 'win32'"]
+          required-version = ">=0.9"
+
+          [tool.setuptools]
+          '''
+          new = '''[tool.uv]
+          default-groups = "all"
+          python-preference = "only-system"
+          environments = ["sys_platform == 'win32'"]
+          required-version = ">=0.9"
+          no-binary-package = ["py2exe"]
+
+          [[tool.uv.dependency-metadata]]
+          name = "py2exe"
+          version = "0.14.2.0"
+          requires-python = ">=3.10,<3.16"
+          requires-dist = ["cachetools", "packaging", "pefile"]
+
+          [tool.setuptools]
+          '''
+          if text.count(old) != 1:
+              raise SystemExit("Expected exactly one unmodified [tool.uv] block")
+          path.write_text(text.replace(old, new, 1), encoding="utf-8", newline="\n")
+
+      - name: Remove invalid standalone uv configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f uv.toml
+          git rm uv.toml
+
+      - name: Validate and commit dependency migration
         shell: bash
         run: |
           set -euo pipefail
           git diff --check
-          git diff -- .github/workflows/testAndPublish.yml
+          grep -F 'no-binary-package = ["py2exe"]' pyproject.toml
+          grep -F 'requires-python = ">=3.10,<3.16"' pyproject.toml
+          test ! -e uv.toml
+          git diff -- pyproject.toml uv.toml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add .github/workflows/testAndPublish.yml
-          git commit -m 'ci: run primary pipeline on Python 3.15 rc2'
+          git add pyproject.toml uv.toml
+          git commit -m 'build: resolve validated py2exe source on Python 3.15'
           git push origin HEAD:try-evolution/2027.1-python315-platform
