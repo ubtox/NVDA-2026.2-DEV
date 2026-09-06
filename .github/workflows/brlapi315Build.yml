@@ -1,18 +1,8 @@
 name: Build BRLAPI for Python 3.15
 
 on:
+  workflow_call:
   workflow_dispatch:
-  push:
-    branches:
-      - 'fix/python315-pinned-source-provenance'
-    paths:
-      - '.github/workflows/brlapi315Build.yml'
-  pull_request:
-    branches:
-      - 'try-evolution/2027.1-python315-platform'
-    paths:
-      - '.github/workflows/brlapi315Build.yml'
-      - 'PYTHON315_DEPENDENCY_STATUS.md'
 
 permissions:
   contents: read
