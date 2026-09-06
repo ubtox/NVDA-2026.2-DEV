@@ -47,7 +47,10 @@ jobs:
       - name: Checkout NVDA
         uses: actions/checkout@v7
         with:
-          submodules: recursive
+          fetch-depth: 1
+      - name: Checkout only MathCAT
+        shell: pwsh
+        run: git submodule update --init --depth 1 include/nvda-mathcat
       - name: Install Python 3.15 x64
         uses: actions/setup-python@v6
         with:
@@ -65,7 +68,10 @@ jobs:
       - name: Checkout NVDA
         uses: actions/checkout@v7
         with:
-          submodules: recursive
+          fetch-depth: 1
+      - name: Checkout only local Python package submodules
+        shell: pwsh
+        run: git submodule update --init --depth 1 miscDeps include/nvda-mathcat
       - name: Install Python 3.15 x64
         uses: actions/setup-python@v6
         with:
@@ -87,11 +93,18 @@ jobs:
       - name: Checkout NVDA
         uses: actions/checkout@v7
         with:
-          submodules: recursive
+          fetch-depth: 1
+      - name: Checkout Python native artifact submodules
+        shell: pwsh
+        run: git submodule update --init --depth 1 miscDeps include/nvda-mathcat
       - name: Audit bundled native Python modules
         shell: pwsh
         run: |
-          $pyds = Get-ChildItem -Path . -Recurse -File -Filter *.pyd
+          $roots = @('.', 'miscDeps', 'include/nvda-mathcat')
+          $pyds = foreach ($root in $roots) {
+            Get-ChildItem -Path $root -Recurse -File -Filter *.pyd -ErrorAction SilentlyContinue
+          }
+          $pyds = $pyds | Sort-Object -Property FullName -Unique
           $pyds | ForEach-Object { Write-Host $_.FullName }
           $legacy = $pyds | Where-Object { $_.Name -match 'cp31[34]' }
           if ($legacy) {
