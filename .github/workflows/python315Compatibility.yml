@@ -5,6 +5,9 @@ on:
   push:
     branches:
       - 'try-evolution/2027.1-python315-platform'
+  pull_request:
+    branches:
+      - 'try-evolution/2027.1-python315-platform'
 
 permissions:
   contents: read
