@@ -1,4 +1,4 @@
-name: Apply typed-character resilience
+name: Apply bundled liblouis hardening
 
 on:
   workflow_dispatch:
@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: apply-speech-resilience-${{ github.ref }}
+  group: apply-liblouis-hardening-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -26,66 +26,87 @@ jobs:
           ref: ${{ github.ref_name }}
           fetch-depth: 0
 
-      - name: Fetch reviewed upstream experiment
-        shell: pwsh
-        run: |
-          git fetch --no-tags --depth=1 https://github.com/Khalil220/nvda.git pr/lazy-typing-protected-state
-          git show FETCH_HEAD:source/speech/speech.py | Set-Content -Encoding utf8NoBOM "$env:RUNNER_TEMP\donor-speech.py"
-          git show FETCH_HEAD:tests/unit/test_speechTypedCharacters.py | Set-Content -Encoding utf8NoBOM "$env:RUNNER_TEMP\donor-test.py"
-
-      - name: Port only speakTypedCharacters and its tests
+      - name: Pin liblouis loading to NVDA's bundled DLL
         shell: pwsh
         run: |
           @'
           from pathlib import Path
-          import os
 
-          current_path = Path("source/speech/speech.py")
-          donor_path = Path(os.environ["RUNNER_TEMP"]) / "donor-speech.py"
-          current = current_path.read_text(encoding="utf-8-sig")
-          donor = donor_path.read_text(encoding="utf-8-sig")
+          source_path = Path("source/louisHelper.py")
+          source = source_path.read_text(encoding="utf-8-sig")
+          if "_bundledLiblouisPath" in source:
+              raise SystemExit("Bundled liblouis hardening already present")
 
-          start_marker = "def speakTypedCharacters("
-          end_marker = "\n\nclass SpeakTextInfoState"
+          import_anchor = "from ctypes import (\n\tWINFUNCTYPE,"
+          if source.count(import_anchor) != 1:
+              raise SystemExit("Unexpected ctypes import layout in louisHelper.py")
+          source = source.replace(
+              import_anchor,
+              "from ctypes import (\n\tCDLL,\n\tWINFUNCTYPE,",
+              1,
+          )
 
-          def extract(text: str) -> str:
-              start = text.index(start_marker)
-              end = text.index(end_marker, start)
-              return text[start:end]
+          old_loader = "with os.add_dll_directory(globalVars.appDir):\n\timport louis\n"
+          new_loader = '''# Load the bundled liblouis by absolute path before importing the Python binding.
+          # Windows process mitigation PreferSystem32Images can otherwise cause a stale System32
+          # liblouis.dll to win over NVDA's application directory. Keeping this handle alive also
+          # ensures the binding's subsequent basename load reuses this exact module.
+          _BUNDLED_LIBLOUIS_DLL = "liblouis.dll"
+          _bundledLiblouisPath = os.path.abspath(os.path.join(globalVars.appDir, _BUNDLED_LIBLOUIS_DLL))
+          with os.add_dll_directory(globalVars.appDir):
+          \t_bundledLiblouis = CDLL(_bundledLiblouisPath)
+          \tif not hasattr(_bundledLiblouis, "lou_freeTableFile"):
+          \t\traise RuntimeError(
+          \t\t\tf"Bundled liblouis at {_bundledLiblouisPath!r} lacks required export lou_freeTableFile",
+          \t\t)
+          \timport louis
+          '''
+          if source.count(old_loader) != 1:
+              raise SystemExit("Unexpected liblouis import layout in louisHelper.py")
+          source_path.write_text(source.replace(old_loader, new_loader, 1), encoding="utf-8", newline="\n")
 
-          old_block = extract(current)
-          new_block = extract(donor)
-          if "cachedTypingIsProtected" in old_block:
-              raise SystemExit("Typed-character resilience is already present; refusing duplicate patch")
-          if "cachedTypingIsProtected" not in new_block:
-              raise SystemExit("Expected lazy protected-state implementation missing from donor")
-          if "api.isTypingProtected()" not in old_block:
-              raise SystemExit("Current eager protected-state call shape changed; manual review required")
+          test_path = Path("tests/unit/test_louisHelper.py")
+          tests = test_path.read_text(encoding="utf-8-sig")
+          if "TestBundledLiblouisLoading" in tests:
+              raise SystemExit("Bundled liblouis tests already present")
+          if "import globalVars\n" not in tests:
+              tests = tests.replace("import brailleTables\n", "import brailleTables\nimport globalVars\n", 1)
+          tests += '''
 
-          current = current.replace(old_block, new_block, 1)
-          current_path.write_text(current, encoding="utf-8", newline="\n")
+          class TestBundledLiblouisLoading(unittest.TestCase):
+          \t"""Ensures Windows cannot redirect NVDA to a different liblouis DLL."""
 
-          test_target = Path("tests/unit/test_speechTypedCharacters.py")
-          if test_target.exists():
-              raise SystemExit(f"{test_target} already exists; manual merge required")
-          donor_test = (Path(os.environ["RUNNER_TEMP"]) / "donor-test.py").read_text(encoding="utf-8-sig")
-          test_target.write_text(donor_test, encoding="utf-8", newline="\n")
+          \tdef test_bindingUsesBundledAbsoluteDll(self):
+          \t\texpectedPath = os.path.abspath(os.path.join(globalVars.appDir, "liblouis.dll"))
+          \t\tself.assertTrue(os.path.isabs(louisHelper._bundledLiblouisPath))
+          \t\tself.assertEqual(
+          \t\t\tos.path.normcase(os.path.normpath(louisHelper._bundledLiblouisPath)),
+          \t\t\tos.path.normcase(os.path.normpath(expectedPath)),
+          \t\t)
+          \t\tself.assertTrue(hasattr(louisHelper._bundledLiblouis, "lou_freeTableFile"))
+          \t\tself.assertEqual(
+          \t\t\tlouisHelper._bundledLiblouis._handle,
+          \t\t\tlouisHelper.louis.liblouis._handle,
+          \t\t\t"The Python binding must reuse NVDA's preloaded bundled liblouis module",
+          \t\t)
+          '''
+          test_path.write_text(tests, encoding="utf-8", newline="\n")
           '@ | python -
 
       - name: Static safety checks
         shell: pwsh
         run: |
-          python -m compileall -q source/speech/speech.py tests/unit/test_speechTypedCharacters.py
-          python -c "from pathlib import Path; p=Path('source/speech/speech.py').read_text(encoding='utf-8'); assert p.count('cachedTypingIsProtected') >= 4; assert 'loggedWord = PROTECTED_CHAR * len(typedWord) if typingIsProtected() else typedWord' in p"
+          python -m compileall -q source/louisHelper.py tests/unit/test_louisHelper.py
+          python -c "from pathlib import Path; p=Path('source/louisHelper.py').read_text(encoding='utf-8'); assert 'CDLL(_bundledLiblouisPath)' in p; assert 'lou_freeTableFile' in p"
           git diff --check
-          git diff -- source/speech/speech.py tests/unit/test_speechTypedCharacters.py
+          git diff -- source/louisHelper.py tests/unit/test_louisHelper.py
 
-      - name: Commit focused resilience patch
+      - name: Commit focused DLL hardening
         shell: pwsh
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add source/speech/speech.py tests/unit/test_speechTypedCharacters.py
-          if (git diff --cached --quiet) { throw "No resilience changes staged" }
-          git commit -m "perf: avoid unnecessary protected-state calls while typing"
+          git add source/louisHelper.py tests/unit/test_louisHelper.py
+          if (git diff --cached --quiet) { throw "No liblouis hardening changes staged" }
+          git commit -m "security: pin liblouis loading to bundled DLL"
           git push origin HEAD:${{ github.ref_name }}
