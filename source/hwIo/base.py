@@ -179,6 +179,13 @@ class IoBase:
 			)
 
 	def close(self):
+		# Guard against double close: __del__ always calls close(), and callers may also
+		# call it explicitly (e.g. on device removal). Without this guard, a second call
+		# would re-issue CancelIoEx on handles that may already be reused by the OS for a
+		# different device, and would call closeHandle() on an already closed event handle.
+		if getattr(self, "_closed", False):
+			return
+		self._closed = True
 		if _isDebug():
 			log.debug("Closing")
 		self._onReceive = None
@@ -186,7 +193,10 @@ class IoBase:
 		if hasattr(self, "_file") and self._file is not INVALID_HANDLE_VALUE:
 			winBindings.kernel32.CancelIoEx(self._file, byref(self._readOl))
 		if hasattr(self, "_writeFile") and self._writeFile not in (self._file, INVALID_HANDLE_VALUE):
-			winBindings.kernel32.CancelIoEx(self._writeFile, byref(self._readOl))
+			# CancelIoEx's lpOverlapped parameter must point to the OVERLAPPED structure that
+			# was used to issue the I/O being cancelled. Writes on _writeFile are issued
+			# with self._writeOl (see write()), so cancel the matching request here.
+			winBindings.kernel32.CancelIoEx(self._writeFile, byref(self._writeOl))
 		winKernel.closeHandle(self._recvEvt)
 
 	def __del__(self):
@@ -243,7 +253,7 @@ class IoBase:
 
 
 class Serial(IoBase):
-	"""Raw I/O for serial devices.
+	"""Raw input/output for braille displays via serial and HID.
 	This extends pyserial to call a callback when data is received.
 	"""
 
