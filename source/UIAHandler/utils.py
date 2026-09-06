@@ -58,13 +58,57 @@ def createUIAMultiPropertyCondition(*dicts):
 	return condition
 
 
+def normalizeUIAText(text: str) -> str:
+	"""Normalize malformed UTF-16 surrogate data returned by UIA providers.
+
+	Valid surrogate pairs are converted to their Unicode scalar value. Isolated
+	surrogate halves are replaced with U+FFFD so they cannot break UTF-8 logging,
+	speech, or other Python text consumers. Strings without surrogates are returned
+	unchanged and avoid the encode/decode path.
+	"""
+	if not text or not any(0xD800 <= ord(ch) <= 0xDFFF for ch in text):
+		return text
+	return text.encode("utf-16-le", errors="surrogatepass").decode("utf-16-le", errors="replace")
+
+
 def UIATextRangeFromElement(documentTextPattern, element):
-	"""Wraps IUIAutomationTextRange::getEnclosingElement, returning None on  COMError."""
+	"""Return the text range representing ``element`` within ``documentTextPattern``.
+
+	Prefer TextPattern.RangeFromChild, preserving the upstream path. Some modern UIA
+	providers (including custom XAML / WinUI controls and embedded Office objects)
+	advertise the relationship but fail or return NULL. In that case TextChildPattern
+	can expose the equivalent range directly. The fallback is only queried after the
+	standard path fails, so providers with a correct RangeFromChild implementation pay
+	no additional cross-process cost.
+	"""
 	try:
 		childRange = documentTextPattern.rangeFromChild(element)
 	except COMError:
 		childRange = None
-	return childRange
+	if childRange:
+		return childRange
+	try:
+		punk = element.GetCurrentPattern(UIAHandler.UIA_TextChildPatternId)
+		if not punk:
+			return None
+		textChildPattern = punk.QueryInterface(UIAHandler.IUIAutomationTextChildPattern)
+		textChildRange = textChildPattern.TextRange
+		if not textChildRange:
+			return None
+		# UIA requires ranges passed to CompareEndpoints / MoveEndpointByRange to be
+		# peers of the same Text provider. TextChildPattern can otherwise return a
+		# range owned by a nested text control, which is unsafe for callers expecting
+		# the documentTextPattern coordinate space. A cheap compatibility probe is
+		# performed only on this fallback path.
+		documentRange = documentTextPattern.documentRange
+		textChildRange.CompareEndpoints(
+			UIAHandler.TextPatternRangeEndpoint_Start,
+			documentRange,
+			UIAHandler.TextPatternRangeEndpoint_Start,
+		)
+		return textChildRange
+	except (COMError, AttributeError):
+		return None
 
 
 def isUIAElementInWalker(element, walker):
@@ -80,7 +124,7 @@ def isUIAElementInWalker(element, walker):
 
 def getDeepestLastChildUIAElementInWalker(element, walker):
 	"""
-	Starting from the given IUIAutomationElement, walks to the deepest last child of the given IUIAutomationTreeWalker.
+	Starting from the given IUIAutomationElement, walks to the deepest last child of the given UIAutomationTreeWalker.
 	"""
 	descended = False
 	while True:
