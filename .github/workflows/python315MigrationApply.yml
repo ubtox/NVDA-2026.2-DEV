@@ -152,6 +152,24 @@ jobs:
 
           path.write_text(text, encoding='utf-8', newline='\n')
 
+      - name: Remove invalid setup-uv prerelease interpreter overrides from CI
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('.github/workflows/testAndPublish.yml')
+          text = path.read_text(encoding='utf-8')
+          token = 'cpython-' + '$' + '{{ matrix.pythonVersion }}-windows-' + '$' + '{{ env.uv-arch }}-none'
+          block = '      with:\n        python-version: ' + token + '\n'
+          count = text.count(block)
+          if count not in (0, 4):
+              raise SystemExit(f'Expected 4 legacy setup-uv interpreter override blocks or none, found {count}.')
+          if count == 4:
+              text = text.replace(block, '')
+              path.write_text(text, encoding='utf-8', newline='\n')
+          if token in path.read_text(encoding='utf-8'):
+              raise SystemExit('Legacy setup-uv prerelease interpreter override remains after migration.')
+
       - name: Regenerate root lock for CPython 3.15
         shell: pwsh
         run: |
@@ -227,15 +245,15 @@ jobs:
         shell: pwsh
         run: |
           git diff --check
-          git diff -- pyproject.toml uv.lock runtime-builders/synthDriverHost32/pyproject.toml runtime-builders/synthDriverHost32/uv.lock
+          git diff -- .github/workflows/testAndPublish.yml pyproject.toml uv.lock runtime-builders/synthDriverHost32/pyproject.toml runtime-builders/synthDriverHost32/uv.lock
           if (-not (git status --porcelain)) {
-            Write-Host 'Project source and locks are already current.'
+            Write-Host 'Project source, locks and CI routing are already current.'
             exit 0
           }
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add pyproject.toml uv.lock runtime-builders/synthDriverHost32/pyproject.toml runtime-builders/synthDriverHost32/uv.lock
+          git add .github/workflows/testAndPublish.yml pyproject.toml uv.lock runtime-builders/synthDriverHost32/pyproject.toml runtime-builders/synthDriverHost32/uv.lock
           git diff --cached --check
-          git commit -m 'build: align synthDriverHost32 with Python 3.15 source dependencies'
+          git commit -m 'build: align Python 3.15 dependency and CI routing'
           git pull --rebase origin "${{ github.ref_name }}"
           git push origin "HEAD:${{ github.ref_name }}"
