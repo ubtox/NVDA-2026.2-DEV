@@ -80,7 +80,11 @@ jobs:
 
           freeze(
               console=[{"script": "cp315_probe.py"}],
-              options={"bundle_files": 3, "dist_dir": "cp315_dist"},
+              options={
+                  "bundle_files": 3,
+                  "dist_dir": "cp315_dist",
+                  "excludes": ["tkinter"],
+              },
           )
           '@ | Set-Content -Path freeze_cp315_probe.py -Encoding utf8
 
