@@ -12,7 +12,7 @@ Role: freezes the Python application into Windows executable artifacts used by t
 
 State: `SOURCE_INTEGRATED` for the CPython 3.15 project dependency paths; final NVDA build/packaging/runtime validation remains required.
 
-Upstream repository: <https://github.com/py2exe/py2exe>e>e>e>
+Upstream repository: <https://github.com/py2exe/py2exe>
 
 Pinned source commit: `1be98bd71ac737f73aa146631ab902b2b1cc43f7`
 
@@ -68,9 +68,9 @@ Component: BRLAPI Python binding / BRLTTY native API
 
 Role: Python/native bridge used by NVDA braille support.
 
-State: `SOURCE_OVERLAY_VALIDATED` for CPython 3.15 x64: source build, isolated import and temporary overlay/import from NVDA's `miscDeps/python` path pass. Persistent NVDA integration remains blocked by the currently pinned `miscDeps` submodule containing the CPython 3.13-tagged BRLAPI extension.
+State: `SOURCE_STAGING_VALIDATED` for CPython 3.15 x64: source build, isolated import, project-owned staging into `miscDeps/python`, NVDA-path import and strict legacy-ABI audit pass in the Python 3.15 compatibility workflow. Full packaged NVDA braille/runtime validation remains required.
 
-Upstream repository: <https://github.com/nvaccess/brltty>y>y>y>
+Upstream repository: <https://github.com/nvaccess/brltty>
 
 Pinned source commit: `06e44da90784505fc5d2869f75f02160d6855d03`
 
@@ -96,7 +96,7 @@ Produced artifacts:
 * Python package files extracted from the generated BRLAPI distribution;
 * `LICENSE-LGPL` and source provenance record.
 
-Validated source/overlay tests:
+Validated source/staging tests:
 
 * pinned BRLTTY source checkout and exact source revision verification;
 * native BRLAPI build;
@@ -105,26 +105,43 @@ Validated source/overlay tests:
 * native DLL dependency inspection;
 * isolated CPython 3.15 import using an explicit staged runtime DLL directory;
 * checkout of the NVDA integration branch and its pinned `miscDeps` submodule;
-* replacement of the legacy BRLAPI module in a temporary CI overlay;
-* audit that no CPython 3.13/3.14-tagged `.pyd` remains in that overlay;
-* import of BRLAPI from the overlaid NVDA `miscDeps/python` path;
+* project-owned replacement of the legacy BRLAPI module in the CI staging path;
+* strict audit that no CPython 3.13/3.14-tagged `.pyd` remains after staging;
+* import of BRLAPI from the staged NVDA `miscDeps/python` path;
 * upload of the source-derived CP315 artifact set.
 
-GitHub Actions run `34045495534` completed the complete BRLAPI CP315 build/import/overlay job successfully after commit `490be609133dcba1c687903203a8730cbf5a1798` added the explicit Windows DLL search directory required by the source-derived runtime.
+GitHub Actions run `34045495534` completed the original BRLAPI CP315 build/import/overlay job successfully after commit `490be609133dcba1c687903203a8730cbf5a1798` added the explicit Windows DLL search directory required by the source-derived runtime.
 
-Persistent NVDA integration blocker:
+Python 3.15 compatibility run `34053420647` then consumed the source-derived BRLAPI artifact through the project staging path and passed the strict `Reject CPython 3.13/3.14 tagged native modules` gate without weakening it.
 
-* `miscDeps` is still the NV Access `nvda-misc-deps` submodule pinned at `67c2e36deb524eff89d202e807d00c8d98f2a5b3`.
-* That submodule currently exposes `miscDeps/python/brlapi.cp313-win_amd64.pyd` to the Python 3.15 native-module audit.
-* The CP315 artifact must be integrated through a controlled `miscDeps` revision/fork or another reproducible project-owned staging mechanism before the old CP313 module is removed from the persistent validated NVDA dependency chain.
+Persistent dependency context:
+
+* `miscDeps` remains the NV Access `nvda-misc-deps` submodule pinned at `67c2e36deb524eff89d202e807d00c8d98f2a5b3`.
+* That upstream submodule still contains `miscDeps/python/brlapi.cp313-win_amd64.pyd` before project staging.
+* The project staging mechanism replaces that legacy module with the reproducibly built CP315 artifact before the compatibility audit/import path.
 * No maintained upstream `nvda-misc-deps` CPython 3.15 BRLAPI integration has been identified as of this review.
 
-Known limitation: the successful overlay import does not prove braille functionality inside a built/packaged NVDA. Required next evidence includes persistent dependency integration, braille regression coverage, full native DLL closure, packaging and runtime tests.
+Known limitation: the successful staged import does not prove braille functionality inside a built/packaged NVDA. Required next evidence includes full native DLL closure in packaging, braille regression coverage, launcher/installable validation and runtime tests.
 
-Exit strategy: prefer a maintained upstream `nvda-misc-deps`/BRLTTY CP315 integration when available; otherwise maintain a project-controlled source revision with provenance, license notices and regression evidence.
+Exit strategy: prefer a maintained upstream `nvda-misc-deps`/BRLTTY CP315 integration when available; otherwise retain the project-controlled source build/staging path with provenance, license notices and regression evidence.
+
+## Python bootstrap / pip / uv
+
+State: `VALIDATED_FOR_BOOTSTRAP` for CPython 3.15 x64 and x86; full application dependency/build completion remains a separate gate.
+
+Validated evidence from Python 3.15 compatibility run `34053420647`:
+
+* CPython 3.15 x64 and x86 interpreters install and execute;
+* fresh virtual environments created with `--without-pip` can bootstrap pip using `ensurepip --upgrade` on both architectures;
+* pip `26.2.1` is available on both architectures;
+* `python -m pip check` reports no broken requirements in both bootstrap validation environments;
+* `uv` is explicitly bound to the CPython 3.15 interpreter installed by `actions/setup-python`, rather than relying on a synthetic distribution identifier;
+* implicit Python downloads are not used as a substitute for the required system CPython 3.15 interpreter.
+
+Optimization policy: keep `uv` as the deterministic resolver/lock runner, keep pip/ensurepip as explicit runtime/bootstrap gates, avoid redundant package installation paths, and measure/cache expensive source builds only after correctness is preserved.
 
 ## Current gate interpretation
 
-The py2exe source dependency is pinned and committed for the root CPython 3.15 environment and for the synthDriverHost32 CPython 3.15 x86 dependency environment. The BRLAPI CP315 source build and temporary NVDA `miscDeps` overlay are demonstrated. The remaining native ABI gate failure is the persistent upstream-pinned `miscDeps/python/brlapi.cp313-win_amd64.pyd`.
+The py2exe source dependency is pinned and committed for the root CPython 3.15 environment and for the synthDriverHost32 CPython 3.15 x86 dependency environment. BRLAPI CP315 is reproducibly built from pinned source and the compatibility workflow stages it into the NVDA `miscDeps/python` path before import and legacy-ABI auditing. The strict CPython 3.13/3.14 native-module gate is green after that staging. Python 3.15 x64/x86 bootstrap, `ensurepip`, pip and `pip check` are also green.
 
-The next release-level evidence is therefore the persistent BRLAPI/miscDeps replacement plus the real NVDA source build, synthDriverHost32 runtime build, packaging, launcher/installable and runtime validation. Failures remain release blockers. Do not weaken or suppress gates to obtain a green status.
+The next release-level evidence is therefore completion of the real NVDA dependency synchronization/source build, synthDriverHost32 runtime build, packaging, launcher/installable, tests and runtime validation on the same CPython 3.15 chain. Failures remain release blockers. Do not weaken or suppress gates to obtain a green status.
