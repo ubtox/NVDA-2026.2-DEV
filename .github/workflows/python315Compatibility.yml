@@ -1,0 +1,98 @@
+name: Python 3.15 compatibility gates
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'try-evolution/2027.1-python315-platform'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: python315-compatibility-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  interpreters:
+    name: CPython 3.15 x64 and x86
+    runs-on: windows-2025-vs2026
+    steps:
+      - name: Install Python 3.15 x64
+        id: python64
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.15.0-rc.2"
+          architecture: x64
+      - name: Install Python 3.15 x86
+        id: python32
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.15.0-rc.2"
+          architecture: x86
+          update-environment: false
+      - name: Verify both interpreters
+        shell: pwsh
+        run: |
+          python -c "import platform, sys; assert sys.version_info[:2] == (3, 15), sys.version; assert platform.architecture()[0] == '64bit'; print(sys.version, platform.architecture())"
+          & '${{ steps.python32.outputs.python-path }}' -c "import platform, sys; assert sys.version_info[:2] == (3, 15), sys.version; assert platform.architecture()[0] == '32bit'; print(sys.version, platform.architecture())"
+
+  mathcat:
+    name: MathCAT abi3 import on CPython 3.15
+    runs-on: windows-2025-vs2026
+    steps:
+      - name: Checkout NVDA
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - name: Install Python 3.15 x64
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.15.0-rc.2"
+          architecture: x64
+      - name: Import MathCAT native extension
+        shell: pwsh
+        run: |
+          python -c "import pathlib, sys; assert sys.version_info[:2] == (3, 15), sys.version; sys.path.insert(0, str(pathlib.Path('include/nvda-mathcat/assets').resolve())); import libmathcat_py; print('MathCAT Python 3.15 import OK:', libmathcat_py.__file__)"
+
+  dependencyResolution:
+    name: Resolve NVDA dependencies on CPython 3.15
+    runs-on: windows-2025-vs2026
+    steps:
+      - name: Checkout NVDA
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - name: Install Python 3.15 x64
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.15.0-rc.2"
+          architecture: x64
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.12.5"
+          python-version: cpython-3.15.0rc2-windows-x86_64-none
+      - name: Dry-run dependency resolution
+        shell: pwsh
+        run: uv sync --dry-run --no-install-project
+
+  nativeAbiAudit:
+    name: Reject CPython 3.13/3.14 tagged native modules
+    runs-on: windows-2025-vs2026
+    steps:
+      - name: Checkout NVDA
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - name: Audit bundled native Python modules
+        shell: pwsh
+        run: |
+          $pyds = Get-ChildItem -Path . -Recurse -File -Filter *.pyd
+          $pyds | ForEach-Object { Write-Host $_.FullName }
+          $legacy = $pyds | Where-Object { $_.Name -match 'cp31[34]' }
+          if ($legacy) {
+            Write-Error "Python 3.15 migration blocker: CPython 3.13/3.14 tagged .pyd files remain:`n$($legacy.FullName -join "`n")"
+            exit 1
+          }
+          Write-Host "No CPython 3.13/3.14 tagged .pyd files found."
