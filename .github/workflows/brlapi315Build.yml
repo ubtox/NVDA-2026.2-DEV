@@ -11,26 +11,35 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: brlapi315-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: '3.15.0-rc.2'
+  BRLTTY_REF: '06e44da90784505fc5d2869f75f02160d6855d03'
+
 jobs:
   build:
     name: BRLAPI CPython 3.15 x64
     runs-on: windows-2025
+    timeout-minutes: 45
 
     defaults:
       run:
         shell: msys2 {0}
 
     steps:
-      - name: Checkout NV Access BRLTTY
+      - name: Checkout pinned NV Access BRLTTY
         uses: actions/checkout@v7
         with:
           repository: nvaccess/brltty
-          ref: master
+          ref: ${{ env.BRLTTY_REF }}
 
       - name: Install Python 3.15 x64
         uses: actions/setup-python@v6
         with:
-          python-version: '3.15.0-rc.2'
+          python-version: ${{ env.PYTHON_VERSION }}
           architecture: x64
 
       - name: Install Python build dependencies
@@ -106,7 +115,6 @@ jobs:
         run: |
           export PATH="$(cygpath -u "$pythonLocation")/scripts:$(cygpath -u "$pythonLocation"):$PATH"
           make
-          make -C Documents
 
       - name: Stage BRLAPI Python 3.15 artifacts
         run: |
