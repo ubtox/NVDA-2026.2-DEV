@@ -87,7 +87,7 @@ jobs:
             Pop-Location
           }
 
-      - name: Freeze and execute a CP315 native-extension probe
+      - name: Freeze and execute a CP315 NVDA-mode native-extension probe
         shell: pwsh
         run: |
           $probeDir = Join-Path $env:RUNNER_TEMP 'py2exe-cp315-probe'
@@ -110,6 +110,10 @@ jobs:
           freeze(
               console=[{"script": "cp315_probe.py"}],
               options={
+                  # NVDA's production setup.py and synthDriverHost32 runtime both
+                  # use bundle_files=3. This probe intentionally mirrors that
+                  # shipping mode; it does not claim memimporter/native-extension
+                  # in-memory bundle mode compatibility on CPython 3.15.
                   "bundle_files": 3,
                   "dist_dir": "cp315_dist",
                   "excludes": ["tkinter"],
