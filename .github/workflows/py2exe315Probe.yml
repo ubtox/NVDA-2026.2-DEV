@@ -69,11 +69,13 @@ jobs:
             throw "Expected exactly one pinned py2exe Python upper bound; found $occurrences. Inspect upstream before changing the patch."
           }
           $text = $text.Replace($oldRequirement, $newRequirement)
-          # Preserve the upstream file's existing newline bytes instead of using
-          # Set-Content, which converted LF to CRLF and made git diff --check noisy.
+          # Preserve the pinned upstream file byte-for-byte except for the reviewed
+          # requirement change. Upstream setup.py uses CRLF line endings.
           [System.IO.File]::WriteAllText($path, $text, $encoding)
 
-          git diff --check
+          # CR is a legitimate part of the pinned upstream CRLF line ending. Keep
+          # every other whitespace error blocking.
+          git -c core.whitespace=cr-at-eol diff --check
           if ($LASTEXITCODE -ne 0) {
             throw 'The CPython 3.15 py2exe patch introduced a whitespace error.'
           }
