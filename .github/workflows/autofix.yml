@@ -12,6 +12,7 @@ on:
       - master
       - beta
       - rc
+      - 'consolidation/**'
   pull_request:
     branches:
       - master
