@@ -23,7 +23,7 @@ jobs:
   build:
     name: BRLAPI CPython 3.15 x64
     runs-on: windows-2025
-    timeout-minutes: 45
+    timeout-minutes: 30
 
     defaults:
       run:
@@ -74,13 +74,13 @@ jobs:
       - name: Apply Windows patch
         run: patch -p0 <"Windows/affinity.patch"
 
-      - name: Apply current mingw-w64 locale compatibility aliases
+      - name: Apply Python 3.15 and current mingw-w64 compatibility fixes
         run: |
           python - <<'PY'
           from pathlib import Path
 
-          path = Path("Programs/system_windows.c")
-          text = path.read_text(encoding="utf-8")
+          system_path = Path("Programs/system_windows.c")
+          system_text = system_path.read_text(encoding="utf-8")
           anchor = '#include "messages.h"\n'
           compatibility = r'''
 
@@ -98,10 +98,18 @@ jobs:
           #define SUBLANG_TIBETAN_BHUTAN 0X02
           #endif
           '''
-          if anchor not in text:
+          if anchor not in system_text:
               raise SystemExit("Expected BRLTTY include anchor not found")
-          text = text.replace(anchor, anchor + compatibility, 1)
-          path.write_text(text, encoding="utf-8", newline="\n")
+          system_text = system_text.replace(anchor, anchor + compatibility, 1)
+          system_path.write_text(system_text, encoding="utf-8", newline="\n")
+
+          makefile_path = Path("Bindings/Python/Makefile.in")
+          makefile_text = makefile_path.read_text(encoding="utf-8")
+          old = '\t"$(CYTHON)" -$(PYTHON_VERSION) -I. -X embedsignature=True -o $@ $(SRC_DIR)/brlapi.pyx'
+          new = '\t"$(CYTHON)" -3 -I. -X embedsignature=True -o $@ $(SRC_DIR)/brlapi.pyx'
+          if makefile_text.count(old) != 1:
+              raise SystemExit("Expected BRLTTY Cython invocation not found exactly once")
+          makefile_path.write_text(makefile_text.replace(old, new), encoding="utf-8", newline="\n")
           PY
 
       - name: Configure BRLTTY for Python 3.15
@@ -111,10 +119,11 @@ jobs:
           ./autogen
           ./cfg-windows --prefix=/ --enable-relocatable-install --with-usb-package=winusb
 
-      - name: Build BRLTTY and Python binding
+      - name: Build only BRLAPI native API and Python binding
         run: |
           export PATH="$(cygpath -u "$pythonLocation")/scripts:$(cygpath -u "$pythonLocation"):$PATH"
-          make
+          make -C Programs api brlapi_constants.h
+          make -C Bindings/Python all
 
       - name: Stage BRLAPI Python 3.15 artifacts
         run: |
