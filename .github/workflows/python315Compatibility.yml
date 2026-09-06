@@ -101,8 +101,13 @@ jobs:
         run: |
           python -c "import pathlib, sys; assert sys.version_info[:2] == (3, 15), sys.version; sys.path.insert(0, str(pathlib.Path('include/nvda-mathcat/assets').resolve())); import libmathcat_py; print('MathCAT Python 3.15 import OK:', libmathcat_py.__file__)"
 
+  brlapi315:
+    name: Build source-derived BRLAPI CP315
+    uses: ./.github/workflows/brlapi315Build.yml
+
   dependencyResolution:
     name: Resolve NVDA dependencies on CPython 3.15
+    needs: brlapi315
     runs-on: windows-2025-vs2026
     steps:
       - name: Checkout NVDA
@@ -112,6 +117,14 @@ jobs:
       - name: Checkout only local Python package submodules
         shell: pwsh
         run: git submodule update --init --depth 1 miscDeps include/nvda-mathcat
+      - name: Download source-derived BRLAPI CP315
+        uses: actions/download-artifact@v5
+        with:
+          name: brlapi-cp315-win-amd64
+          path: .artifacts/brlapi-cp315
+      - name: Stage BRLAPI CP315 into miscDeps
+        shell: pwsh
+        run: ./ci/scripts/stageBrlapi315.ps1 -ArtifactRoot .artifacts/brlapi-cp315 -MiscDepsRoot miscDeps
       - name: Install Python 3.15 x64
         id: python64
         uses: actions/setup-python@v6
@@ -141,6 +154,7 @@ jobs:
 
   sourceBuildSmoke:
     name: Prepare NVDA source on CPython 3.15
+    needs: brlapi315
     runs-on: windows-2025-vs2026
     steps:
       - name: Checkout NVDA
@@ -148,6 +162,14 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 1
+      - name: Download source-derived BRLAPI CP315
+        uses: actions/download-artifact@v5
+        with:
+          name: brlapi-cp315-win-amd64
+          path: .artifacts/brlapi-cp315
+      - name: Stage BRLAPI CP315 into miscDeps
+        shell: pwsh
+        run: ./ci/scripts/stageBrlapi315.ps1 -ArtifactRoot .artifacts/brlapi-cp315 -MiscDepsRoot miscDeps
       - name: Install Python 3.15 x64
         id: python64
         uses: actions/setup-python@v6
@@ -160,6 +182,13 @@ jobs:
           python-version: "3.15.0-rc.2"
           architecture: x86
           update-environment: false
+      - name: Verify staged BRLAPI CP315 import
+        shell: pwsh
+        run: |
+          $target = (Resolve-Path 'miscDeps\python').Path
+          $env:PATH = "$target;$env:PATH"
+          $env:BRLAPI_DLL_DIR = $target
+          python -c "import os, pathlib, sys; assert sys.version_info[:2] == (3, 15), sys.version; p = pathlib.Path(r'miscDeps/python').resolve(); dll_dir = os.add_dll_directory(os.environ['BRLAPI_DLL_DIR']); sys.path.insert(0, str(p)); import brlapi; assert pathlib.Path(brlapi.__file__).parent == p, brlapi.__file__; print('NVDA staged BRLAPI CP315 import OK:', brlapi.__file__)"
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
@@ -180,6 +209,7 @@ jobs:
 
   nativeAbiAudit:
     name: Reject CPython 3.13/3.14 tagged native modules
+    needs: brlapi315
     runs-on: windows-2025-vs2026
     steps:
       - name: Checkout NVDA
@@ -189,6 +219,14 @@ jobs:
       - name: Checkout Python native artifact submodules
         shell: pwsh
         run: git submodule update --init --depth 1 miscDeps include/nvda-mathcat
+      - name: Download source-derived BRLAPI CP315
+        uses: actions/download-artifact@v5
+        with:
+          name: brlapi-cp315-win-amd64
+          path: .artifacts/brlapi-cp315
+      - name: Stage BRLAPI CP315 into miscDeps
+        shell: pwsh
+        run: ./ci/scripts/stageBrlapi315.ps1 -ArtifactRoot .artifacts/brlapi-cp315 -MiscDepsRoot miscDeps
       - name: Audit bundled native Python modules
         shell: pwsh
         run: |
