@@ -65,6 +65,36 @@ jobs:
       - name: Apply Windows patch
         run: patch -p0 <"Windows/affinity.patch"
 
+      - name: Apply current mingw-w64 locale compatibility aliases
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("Programs/system_windows.c")
+          text = path.read_text(encoding="utf-8")
+          anchor = '#include "messages.h"\n'
+          compatibility = r'''
+
+          /* Compatibility aliases for current mingw-w64 locale constants. */
+          #ifndef SUBLANG_HAUSA_NIGERIA
+          #define SUBLANG_HAUSA_NIGERIA SUBLANG_HAUSA_NIGERIA_LATIN
+          #endif
+          #ifndef SUBLANG_LAO_LAO_PDR
+          #define SUBLANG_LAO_LAO_PDR SUBLANG_LAO_LAO
+          #endif
+          #ifndef SUBLANG_SYRIAC
+          #define SUBLANG_SYRIAC SUBLANG_SYRIAC_SYRIA
+          #endif
+          #ifndef SUBLANG_TIBETAN_BHUTAN
+          #define SUBLANG_TIBETAN_BHUTAN 0X02
+          #endif
+          '''
+          if anchor not in text:
+              raise SystemExit("Expected BRLTTY include anchor not found")
+          text = text.replace(anchor, anchor + compatibility, 1)
+          path.write_text(text, encoding="utf-8", newline="\n")
+          PY
+
       - name: Configure BRLTTY for Python 3.15
         run: |
           export PATH="$(cygpath -u "$pythonLocation")/scripts:$(cygpath -u "$pythonLocation"):$PATH"
