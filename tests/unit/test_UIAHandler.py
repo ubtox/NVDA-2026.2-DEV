@@ -12,11 +12,12 @@ application so it cannot freeze NVDA or flood the log.
 """
 
 from unittest import TestCase  # noqa: I001
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from comtypes import COMError
 
 import textInfos
+import UIAHandler
 from UIAHandler import getUIAUnitFromNVDAUnit, NVDAUnitsToUIAUnits, utils
 import winUser
 
@@ -80,6 +81,79 @@ class Test_getCachedWindowHandleFromEvent(TestCase):
 		self.assertIsNone(utils._getCachedWindowHandleFromEvent(_FakeElement(raiseOnCached=True)))
 
 
+class TestNormalizeUIAText(TestCase):
+	def test_plainTextReturnedUnchanged(self):
+		text = "NVDA WinUI 3"
+		self.assertIs(utils.normalizeUIAText(text), text)
+
+	def test_validSurrogatePairBecomesUnicodeScalar(self):
+		self.assertEqual(utils.normalizeUIAText("\ud83d\ude00"), "😀")
+
+	def test_isolatedHighSurrogateIsReplaced(self):
+		self.assertEqual(utils.normalizeUIAText("A\ud83dB"), "A\ufffdB")
+
+	def test_isolatedLowSurrogateIsReplaced(self):
+		self.assertEqual(utils.normalizeUIAText("A\ude00B"), "A\ufffdB")
+
+
+class TestUIATextRangeFromElement(TestCase):
+	def test_standardRangeFromChildHasPriority(self):
+		textPattern = Mock()
+		standardRange = Mock()
+		textPattern.rangeFromChild.return_value = standardRange
+		element = Mock()
+
+		self.assertIs(utils.UIATextRangeFromElement(textPattern, element), standardRange)
+		element.GetCurrentPattern.assert_not_called()
+
+	def test_textChildPatternFallbackAfterCOMError(self):
+		textPattern = Mock()
+		textPattern.rangeFromChild.side_effect = COMError(-1, "failure", None)
+		documentRange = Mock()
+		textPattern.documentRange = documentRange
+		element = Mock()
+		textChildRange = Mock()
+		textChildPattern = Mock(TextRange=textChildRange)
+		punk = Mock()
+		punk.QueryInterface.return_value = textChildPattern
+		element.GetCurrentPattern.return_value = punk
+
+		self.assertIs(utils.UIATextRangeFromElement(textPattern, element), textChildRange)
+		element.GetCurrentPattern.assert_called_once_with(UIAHandler.UIA_TextChildPatternId)
+		textChildRange.CompareEndpoints.assert_called_once_with(
+			UIAHandler.TextPatternRangeEndpoint_Start,
+			documentRange,
+			UIAHandler.TextPatternRangeEndpoint_Start,
+		)
+
+	def test_textChildPatternFallbackAfterNullRange(self):
+		textPattern = Mock()
+		textPattern.rangeFromChild.return_value = None
+		textPattern.documentRange = Mock()
+		element = Mock()
+		textChildRange = Mock()
+		textChildPattern = Mock(TextRange=textChildRange)
+		punk = Mock()
+		punk.QueryInterface.return_value = textChildPattern
+		element.GetCurrentPattern.return_value = punk
+
+		self.assertIs(utils.UIATextRangeFromElement(textPattern, element), textChildRange)
+
+	def test_textChildPatternFallbackRejectsRangeFromDifferentTextProvider(self):
+		textPattern = Mock()
+		textPattern.rangeFromChild.return_value = None
+		textPattern.documentRange = Mock()
+		element = Mock()
+		textChildRange = Mock()
+		textChildRange.CompareEndpoints.side_effect = COMError(-1, "different provider", None)
+		textChildPattern = Mock(TextRange=textChildRange)
+		punk = Mock()
+		punk.QueryInterface.return_value = textChildPattern
+		element.GetCurrentPattern.return_value = punk
+
+		self.assertIsNone(utils.UIATextRangeFromElement(textPattern, element))
+
+
 class Test_shouldSkipEventForHungWindow(TestCase):
 	def test_noWindowHandleIsNotSkipped(self):
 		with patch.object(winUser, "isHungAppWindow", side_effect=AssertionError("must not be called")):
@@ -97,3 +171,34 @@ class Test_shouldSkipEventForHungWindow(TestCase):
 		with patch.object(winUser, "isHungAppWindow", side_effect=RuntimeError("boom")):
 			# A failure inside the guard itself must never escape into the COM handler.
 			self.assertFalse(utils._shouldSkipEventForHungWindow(_FakeElement(cachedHandle=1)))
+
+
+class _FakeCachedClassElement:
+	CachedClassName = "_WwG"
+	CachedAutomationID = ""
+
+	@property
+	def currentClassName(self):
+		raise AssertionError("Local UIA event registration must not read currentClassName")
+
+
+class Test_addLocalEventHandlerGroupToElement(TestCase):
+	def test_usesCachedClassName(self) -> None:
+		handler = object.__new__(UIAHandler.UIAHandler)
+		handler.localEventHandlerGroup = object()
+		handler.localEventHandlerGroupWithTextChanges = object()
+		handler._localEventHandlerGroupElements = set()
+		handler.MTAThreadQueue = Mock()
+		handler.addEventHandlerGroup = Mock()
+		element = _FakeCachedClassElement()
+
+		handler.addLocalEventHandlerGroupToElement(element)
+		handler.MTAThreadQueue.put_nowait.assert_called_once()
+		queuedFunction = handler.MTAThreadQueue.put_nowait.call_args.args[0]
+		queuedFunction()
+
+		handler.addEventHandlerGroup.assert_called_once_with(
+			element,
+			handler.localEventHandlerGroupWithTextChanges,
+		)
+		self.assertIn(element, handler._localEventHandlerGroupElements)
