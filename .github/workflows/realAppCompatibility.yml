@@ -40,20 +40,20 @@ jobs:
       - name: Install Python x64
         uses: actions/setup-python@v6
         with:
-          python-version: "3.14.7"
+          python-version: "3.15.0-rc.2"
           architecture: x64
 
       - name: Install Python x86 for synth driver host
         uses: actions/setup-python@v6
         with:
-          python-version: "3.14.7"
+          python-version: "3.15.0-rc.2"
           architecture: x86
           update-environment: false
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
-          python-version: cpython-3.14.7-windows-x86_64-none
+          python-version: cpython-3.15.0rc2-windows-x86_64-none
 
       - name: Install Visual Studio Code
         shell: pwsh
@@ -71,11 +71,11 @@ jobs:
         shell: cmd
         run: scons source %sconsArgs% %sconsCores%
 
-      - name: Verify MathCAT native module on Python 3.14
+      - name: Verify MathCAT native module on Python 3.15
         shell: pwsh
         run: |
           $python = Join-Path $env:GITHUB_WORKSPACE ".venv\Scripts\python.exe"
-          & $python -c "import sys; assert sys.version_info[:2] == (3, 14), sys.version; sys.path.insert(0, r'source'); import libmathcat_py; print('MathCAT Python 3.14 import OK')"
+          & $python -c "import sys; assert sys.version_info[:2] == (3, 15), sys.version; sys.path.insert(0, r'source'); import libmathcat_py; print('MathCAT Python 3.15 import OK')"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Build launcher
