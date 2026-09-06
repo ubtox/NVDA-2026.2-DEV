@@ -258,16 +258,18 @@ class FocusManager:
 
 		:return: The (x, y) coordinates of the navigator object center, or None if not available
 		"""
-		navigatorObject = api.getNavigatorObject()
-		if navigatorObject:
-			try:
+		try:
+			navigatorObject = api.getNavigatorObject()
+			if navigatorObject:
 				left, top, width, _height = navigatorObject.location
 				x = left + width if _isWindowRTL(navigatorObject) else left
 				return Coordinates(x, top)
-			except Exception:
-				# Navigator object may not have a valid location
-				if _isDebug():
-					log.debug("Failed to get navigator object location", exc_info=True)
+		except Exception:
+			# #20488: UIA navigator creation itself can fail when a provider returns
+			# an invalid/stale text range. Treat this the same as an unavailable
+			# location so the magnifier keeps updating on subsequent cycles.
+			if _isDebug():
+				log.debug("Failed to get navigator object location", exc_info=True)
 		return None
 
 	def _getNavigatorObjectPosition(self) -> Coordinates:

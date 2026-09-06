@@ -1433,14 +1433,35 @@ def isFocusEditable() -> bool:
 	) and controlTypes.STATE_READONLY not in obj.states
 
 
-def speakTypedCharacters(ch: str):
-	typingIsProtected = api.isTypingProtected()
-	if typingIsProtected:
-		realChar = PROTECTED_CHAR
-	else:
-		realChar = ch
+def speakTypedCharacters(ch: str) -> None:
+	# Resolving protected state can require a blocking cross-process accessibility call.
+	# Keep the result lazy, and avoid the call entirely when neither speech nor secure
+	# word buffering needs it. Unlike the rejected #20694 approach, never buffer plain
+	# text when protection has not been checked.
+	cachedTypingIsProtected: bool | None = None
+	wordEchoMode = config.conf["keyboard"]["speakTypedWords"]
+	characterEchoMode = config.conf["keyboard"]["speakTypedCharacters"]
+
+	def typingIsProtected() -> bool:
+		"""Whether the focus object hides its input, fetched at most once per call."""
+		nonlocal cachedTypingIsProtected
+		if cachedTypingIsProtected is None:
+			cachedTypingIsProtected = api.isTypingProtected()
+		return cachedTypingIsProtected
+
+	def getRealChar() -> str:
+		"""The character to expose to speech/buffering, masked when protected."""
+		return PROTECTED_CHAR if typingIsProtected() else ch
+
+	bufferedWithoutProtectionCheck = False
 	if unicodedata.category(ch)[0] in "LMN":
-		_curWordChars.append(realChar)
+		if wordEchoMode == TypingEcho.OFF.value:
+			# Other NVDA code relies on the buffer length while filtering echoed terminal
+			# text. Preserve that length without storing unchecked plaintext passwords.
+			_curWordChars.append(PROTECTED_CHAR)
+			bufferedWithoutProtectionCheck = True
+		else:
+			_curWordChars.append(getRealChar())
 	elif ch == "\b":
 		# Backspace, so remove the last character from our buffer.
 		del _curWordChars[-1:]
@@ -1452,12 +1473,15 @@ def speakTypedCharacters(ch: str):
 		clearTypedWordBuffer()
 		if log.isEnabledFor(log.IO):
 			log.io("typed word: %s" % typedWord)  # noqa: UP031
-		typingEchoMode = config.conf["keyboard"]["speakTypedWords"]
-		if typingEchoMode != TypingEcho.OFF.value and not typingIsProtected:  # noqa: SIM102
-			if typingEchoMode == TypingEcho.ALWAYS.value or (
-				typingEchoMode == TypingEcho.EDIT_CONTROLS.value and isFocusEditable()
-			):
-				speakText(typedWord)
+		if (
+			wordEchoMode != TypingEcho.OFF.value
+			and (
+				wordEchoMode == TypingEcho.ALWAYS.value
+				or (wordEchoMode == TypingEcho.EDIT_CONTROLS.value and isFocusEditable())
+			)
+			and not typingIsProtected()
+		):
+			speakText(typedWord)
 	if _speechState._suppressSpeakTypedCharactersNumber > 0:
 		# We primarily suppress based on character count and still have characters to suppress.
 		# However, we time out after a short while just in case.
@@ -1470,11 +1494,15 @@ def speakTypedCharacters(ch: str):
 	else:
 		suppress = False
 
-	typingEchoMode = config.conf["keyboard"]["speakTypedCharacters"]
-	if not suppress and typingEchoMode != TypingEcho.OFF.value and ch >= FIRST_NONCONTROL_CHAR:  # noqa: SIM102
-		if typingEchoMode == TypingEcho.ALWAYS.value or (
-			typingEchoMode == TypingEcho.EDIT_CONTROLS.value and isFocusEditable()
+	if not suppress and characterEchoMode != TypingEcho.OFF.value and ch >= FIRST_NONCONTROL_CHAR:  # noqa: SIM102
+		if characterEchoMode == TypingEcho.ALWAYS.value or (
+			characterEchoMode == TypingEcho.EDIT_CONTROLS.value and isFocusEditable()
 		):
+			realChar = getRealChar()
+			# If character echo already established that this field is not protected, keep
+			# the traditional real-character buffer semantics without an extra UIA call.
+			if bufferedWithoutProtectionCheck and realChar != PROTECTED_CHAR:
+				_curWordChars[-1] = ch
 			speakSpelling(realChar)
 
 

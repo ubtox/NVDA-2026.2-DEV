@@ -49,6 +49,7 @@ from UIAHandler.utils import (
 	iterUIARangeByUnit,
 	UIAMixedAttributeError,
 	UIATextRangeFromElement,
+	normalizeUIAText,
 	_shouldUseWindowsTerminalNotifications,
 )
 from NVDAObjects.window import Window
@@ -486,16 +487,39 @@ class UIATextInfo(textInfos.TextInfo):
 				log.debugWarning("Could not clone range", exc_info=True)
 				raise RuntimeError("Could not clone range")
 		elif position in (textInfos.POSITION_CARET, textInfos.POSITION_SELECTION):
+			# Preserve NVDA's established TextPattern.GetSelection path first. This avoids
+			# adding an extra cross-process COM call for providers that already work well.
+			selectionError: COMError | None = None
 			try:
 				sel = self.obj.UIATextPattern.GetSelection()
-			except COMError:
-				raise RuntimeError("No selection available")
-			if sel.length > 0:
+			except COMError as e:
+				selectionError = e
+				sel = None
+			if sel is not None and sel.length > 0:
 				self._rangeObj: IUIAutomationTextRangeT = sel.getElement(0).clone()
+				if position == textInfos.POSITION_CARET:
+					self.collapse()
 			else:
+				# TextPattern2 is a fallback only for caret retrieval. Some modern UIA
+				# providers expose a valid caret even when GetSelection fails or returns
+				# an empty array. Keeping it as a fallback protects the normal x64 path.
+				if position == textInfos.POSITION_CARET:
+					textPattern2 = self.obj.UIATextPattern2
+					if textPattern2:
+						try:
+							caretResult = textPattern2.GetCaretRange()
+							if isinstance(caretResult, tuple):
+								isActive, caretRange = caretResult
+							else:
+								isActive, caretRange = True, caretResult
+							if isActive and caretRange:
+								self._rangeObj = caretRange.clone()
+								return
+						except (COMError, ValueError):
+							pass
+				if selectionError is not None:
+					raise RuntimeError("No selection available") from selectionError
 				raise NotImplementedError("UIAutomationTextRangeArray is empty")
-			if position == textInfos.POSITION_CARET:
-				self.collapse()
 		elif isinstance(position, UIATextInfo):  # bookmark
 			self._rangeObj = position._rangeObj
 		elif position == textInfos.POSITION_FIRST:
@@ -513,13 +537,11 @@ class UIATextInfo(textInfos.TextInfo):
 		elif isinstance(position, UIA) or isinstance(position, UIAHandler.IUIAutomationElement):  # noqa: SIM101
 			if isinstance(position, UIA):
 				position = position.UIAElement
-			try:
-				self._rangeObj: IUIAutomationTextRangeT | None = self.obj.UIATextPattern.rangeFromChild(
-					position,
-				)
-			except COMError:
-				raise LookupError
-			# sometimes rangeFromChild can return a NULL range
+			self._rangeObj: IUIAutomationTextRangeT | None = UIATextRangeFromElement(
+				self.obj.UIATextPattern,
+				position,
+			)
+			# Sometimes both patterns can legitimately return a NULL range.
 			if not self._rangeObj:
 				raise LookupError
 		elif isinstance(position, locationHelper.Point):
@@ -651,11 +673,15 @@ class UIATextInfo(textInfos.TextInfo):
 		return field
 
 	def _getTextFromUIARange(self, textRange: IUIAutomationTextRangeT) -> str:
+		"""Fetch plain text from a UI Automation text range and normalize UTF-16 surrogates.
+
+		Some UIA providers expose text in UTF-16 code units and may return a surrogate pair
+		as two Python surrogate characters, or even return an isolated surrogate while moving
+		by character. Python cannot safely log or speak isolated surrogates as UTF-8.
+		Re-decode only strings which contain surrogate code points: valid pairs become their
+		Unicode scalar value and unmatched halves become the replacement character.
 		"""
-		Fetches plain text from the given UI Automation text range.
-		Just calls getText(-1). This only exists to be overridden for filtering.
-		"""
-		return textRange.getText(-1)
+		return normalizeUIAText(textRange.getText(-1))
 
 	def _getTextWithFields_text(
 		self,
@@ -1631,8 +1657,10 @@ class UIA(Window):
 
 	def _get_shouldAllowUIAFocusEvent(self):
 		try:
-			# Focus may have moved since the event sender's cache was populated.
-			return bool(self.UIAElement.currentHasKeyboardFocus)
+			# Keep the cached event-sender property used by upstream NVDA. A live UIA
+			# property read here would add cross-process latency to every focus event and
+			# can block on a hung provider.
+			return bool(self._getUIACacheablePropertyValue(UIAHandler.UIA_HasKeyboardFocusPropertyId))
 		except COMError:
 			return True
 
@@ -1771,6 +1799,55 @@ class UIA(Window):
 		)
 		return self.UIATextPattern
 
+	def _get_UIATextPattern2(self):
+		try:
+			self.UIATextPattern2 = self._getUIAPattern(
+				UIAHandler.UIA_TextPattern2Id,
+				UIAHandler.IUIAutomationTextPattern2,
+				cache=False,
+			)
+		except (COMError, AttributeError):
+			# TextPattern2 is optional. Providers may expose only the original
+			# TextPattern and older UIAutomationClient type libraries may not define it.
+			self.UIATextPattern2 = None
+		return self.UIATextPattern2
+
+	def _get_UIAVirtualizedItemPattern(self):
+		try:
+			self.UIAVirtualizedItemPattern = self._getUIAPattern(
+				UIAHandler.UIA_VirtualizedItemPatternId,
+				UIAHandler.IUIAutomationVirtualizedItemPattern,
+			)
+		except (COMError, AttributeError):
+			self.UIAVirtualizedItemPattern = None
+		return self.UIAVirtualizedItemPattern
+
+	def _get_UIAScrollItemPattern(self):
+		try:
+			self.UIAScrollItemPattern = self._getUIAPattern(
+				UIAHandler.UIA_ScrollItemPatternId,
+				UIAHandler.IUIAutomationScrollItemPattern,
+			)
+		except (COMError, AttributeError):
+			self.UIAScrollItemPattern = None
+		return self.UIAScrollItemPattern
+
+	def realizeUIAVirtualizedItem(self) -> bool:
+		"""Ask a provider to materialize this element if it exposes VirtualizedItemPattern.
+
+		This is intentionally explicit rather than automatic: realizing an item may scroll
+		or otherwise alter an application's visual state. Consumers can opt in when they
+		need properties that a virtualized placeholder cannot provide.
+		"""
+		pattern = self.UIAVirtualizedItemPattern
+		if not pattern:
+			return False
+		try:
+			pattern.Realize()
+		except COMError:
+			return False
+		return True
+
 	def _get_UIATableItemPattern(self):
 		self.UIATableItemPattern = self._getUIAPattern(
 			UIAHandler.UIA_TableItemPatternId,
@@ -1814,6 +1891,15 @@ class UIA(Window):
 		return textInfo
 
 	def setFocus(self):
+		try:
+			self.UIAElement.setFocus()
+			return
+		except COMError:
+			# Virtualized WinUI/WPF items can reject SetFocus until they are realized.
+			# Realization is only attempted after the ordinary focus path fails, so
+			# providers that do not need it retain the existing behavior.
+			if not self.realizeUIAVirtualizedItem():
+				raise
 		self.UIAElement.setFocus()
 
 	def _get_devInfo(self):
@@ -2439,7 +2525,32 @@ class UIA(Window):
 		return info
 
 	def scrollIntoView(self):
-		pass
+		"""Scroll this UIA object into view using ScrollItemPattern when available.
+
+		Virtualized items are realized only when necessary, then ScrollItemPattern is
+		queried again because some providers expose it only after realization.
+		"""
+		pattern = self.UIAScrollItemPattern
+		if pattern:
+			try:
+				pattern.ScrollIntoView()
+				return
+			except COMError:
+				pass
+		if not self.realizeUIAVirtualizedItem():
+			return
+		# Drop a previously cached absence/failure and ask the provider again.
+		try:
+			del self.UIAScrollItemPattern
+		except AttributeError:
+			pass
+		pattern = self.UIAScrollItemPattern
+		if not pattern:
+			return
+		try:
+			pattern.ScrollIntoView()
+		except COMError:
+			log.debugWarning("UIA ScrollItemPattern.ScrollIntoView failed", exc_info=True)
 
 	def isDescendantOf(self, obj: NVDAObjects.NVDAObject) -> bool:
 		if isinstance(obj, UIA):
