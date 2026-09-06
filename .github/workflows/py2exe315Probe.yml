@@ -42,6 +42,9 @@ jobs:
             throw "Unexpected py2exe source revision: $actual"
           }
           git show -s --format=fuller HEAD
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Unable to inspect the pinned py2exe source revision.'
+          }
 
       - name: Install Python 3.15
         uses: actions/setup-python@v6
@@ -57,14 +60,27 @@ jobs:
         shell: pwsh
         run: |
           $path = 'setup.py'
-          $text = Get-Content $path -Raw
-          if ($text -notmatch "python_requires='>=3\.10, <3\.15'") {
-            throw 'Expected pinned py2exe Python upper bound was not found; inspect upstream before changing the patch.'
+          $encoding = [System.Text.UTF8Encoding]::new($false)
+          $text = [System.IO.File]::ReadAllText($path, $encoding)
+          $oldRequirement = "python_requires='>=3.10, <3.15'"
+          $newRequirement = "python_requires='>=3.10, <3.16'"
+          $occurrences = ([regex]::Matches($text, [regex]::Escape($oldRequirement))).Count
+          if ($occurrences -ne 1) {
+            throw "Expected exactly one pinned py2exe Python upper bound; found $occurrences. Inspect upstream before changing the patch."
           }
-          $text = $text.Replace("python_requires='>=3.10, <3.15'", "python_requires='>=3.10, <3.16'")
-          Set-Content -Path $path -Value $text -Encoding utf8
+          $text = $text.Replace($oldRequirement, $newRequirement)
+          # Preserve the upstream file's existing newline bytes instead of using
+          # Set-Content, which converted LF to CRLF and made git diff --check noisy.
+          [System.IO.File]::WriteAllText($path, $text, $encoding)
+
           git diff --check
+          if ($LASTEXITCODE -ne 0) {
+            throw 'The CPython 3.15 py2exe patch introduced a whitespace error.'
+          }
           git diff -- setup.py
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Unable to inspect the py2exe source patch.'
+          }
 
       - name: Build py2exe wheel from pinned source
         shell: pwsh
