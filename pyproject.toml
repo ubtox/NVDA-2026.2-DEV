@@ -9,7 +9,7 @@ description = "NonVisual Desktop Access (NVDA)"
 maintainers = [
 	{name = "NV Access", email = "info@nvaccess.org"},
 ]
-requires-python = ">=3.14,<3.15"
+requires-python = ">=3.15.0rc2,<3.16"
 classifiers = [
 	"Development Status :: 5 - Production/Stable",
 	"Intended Audience :: End Users/Desktop",
