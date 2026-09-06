@@ -36,7 +36,7 @@ jobs:
           }
           $text = $text.Replace($expectedDefault, "defaultPythonVersion: '3.15.0-rc.2'")
           $text = $text.Replace($expectedSupported, "supportedPythonVersions: '[`"3.15.0-rc.2`"]'")
-          Set-Content -Path $path -Value $text -Encoding utf8NoBOM
+          [System.IO.File]::WriteAllText($path, $text, [System.Text.UTF8Encoding]::new($false))
           if (Select-String -Path $path -Pattern "3\.14\.7" -Quiet) {
             throw 'Python 3.14.7 remains in the primary workflow after migration.'
           }
