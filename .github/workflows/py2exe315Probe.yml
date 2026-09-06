@@ -5,11 +5,18 @@ on:
   push:
     branches:
       - 'try-evolution/2027.1-python315-platform'
+      - 'fix/python315-pinned-source-provenance'
     paths:
       - '.github/workflows/py2exe315Probe.yml'
 
 permissions:
   contents: read
+
+env:
+  PYTHON_VERSION: '3.15.0-rc.2'
+  # Immutable upstream source revision. Do not move this without re-running both
+  # architecture probes and reviewing the upstream delta.
+  PY2EXE_REF: '1be98bd71ac737f73aa146631ab902b2b1cc43f7'
 
 jobs:
   probe:
@@ -21,34 +28,45 @@ jobs:
         arch: [x64, x86]
 
     steps:
-      - name: Checkout py2exe upstream
+      - name: Checkout pinned py2exe upstream source
         uses: actions/checkout@v7
         with:
           repository: py2exe/py2exe
-          ref: master
+          ref: ${{ env.PY2EXE_REF }}
+
+      - name: Verify pinned py2exe source revision
+        shell: pwsh
+        run: |
+          $actual = (git rev-parse HEAD).Trim()
+          if ($actual -ne '${{ env.PY2EXE_REF }}') {
+            throw "Unexpected py2exe source revision: $actual"
+          }
+          git show -s --format=fuller HEAD
 
       - name: Install Python 3.15
         uses: actions/setup-python@v6
         with:
-          python-version: '3.15.0-rc.2'
+          python-version: ${{ env.PYTHON_VERSION }}
           architecture: ${{ matrix.arch }}
 
       - name: Install build tools
         shell: pwsh
         run: python -m pip install --upgrade pip setuptools wheel build
 
-      - name: Open metadata gate only for the probe
+      - name: Apply reviewed CPython 3.15 source compatibility patch
         shell: pwsh
         run: |
           $path = 'setup.py'
           $text = Get-Content $path -Raw
           if ($text -notmatch "python_requires='>=3\.10, <3\.15'") {
-            throw 'Expected py2exe Python upper bound was not found; inspect upstream before changing the probe.'
+            throw 'Expected pinned py2exe Python upper bound was not found; inspect upstream before changing the patch.'
           }
           $text = $text.Replace("python_requires='>=3.10, <3.15'", "python_requires='>=3.10, <3.16'")
           Set-Content -Path $path -Value $text -Encoding utf8
+          git diff --check
+          git diff -- setup.py
 
-      - name: Build py2exe wheel from source
+      - name: Build py2exe wheel from pinned source
         shell: pwsh
         run: python -m build --wheel
 
