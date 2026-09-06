@@ -92,18 +92,18 @@ jobs:
             PowerShell -Command "Set-ExecutionPolicy Bypass"
             PowerShell -Command "Set-PSRepository PSGallery -InstallationPolicy Trusted"
             PowerShell -Command "Install-Module -Name SignPath -Force"
-        - name: Install Python
-          uses: actions/setup-python@v6
-          with:
-            python-version: ${{ matrix.pythonVersion }}
-            architecture: ${{ matrix.arch }}
-            update-environment: true
-        - name: Install Python (32 bit)
-          uses: actions/setup-python@v6
-          with:
-            python-version: ${{ matrix.pythonVersion }}
-            architecture: x86
-            update-environment: false
+    - name: Install Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: ${{ matrix.pythonVersion }}
+        architecture: ${{ matrix.arch }}
+        update-environment: true
+    - name: Install Python (32 bit)
+      uses: actions/setup-python@v6
+      with:
+        python-version: ${{ matrix.pythonVersion }}
+        architecture: x86
+        update-environment: false
     - name: Install the latest version of uv
       uses: astral-sh/setup-uv@v7
       with:
