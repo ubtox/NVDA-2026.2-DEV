@@ -41,10 +41,11 @@ jobs:
           & '${{ steps.python32.outputs.python-path }}' -c "import platform, sys; assert sys.version_info[:2] == (3, 15), sys.version; assert platform.architecture()[0] == '32bit'; print(sys.version, platform.architecture())"
 
   pipBootstrap:
-    name: pip on CPython 3.15 x64 and x86
+    name: ensurepip and pip on CPython 3.15 x64 and x86
     runs-on: windows-2025-vs2026
     steps:
       - name: Install Python 3.15 x64
+        id: python64
         uses: actions/setup-python@v6
         with:
           python-version: "3.15.0-rc.2"
@@ -56,7 +57,20 @@ jobs:
           python-version: "3.15.0-rc.2"
           architecture: x86
           update-environment: false
-      - name: Verify pip on both interpreters
+      - name: Bootstrap pip with ensurepip on both interpreters
+        shell: pwsh
+        run: |
+          $venv64 = Join-Path $env:RUNNER_TEMP 'ensurepip-cp315-x64'
+          $venv32 = Join-Path $env:RUNNER_TEMP 'ensurepip-cp315-x86'
+          python -m venv --without-pip $venv64
+          & '${{ steps.python32.outputs.python-path }}' -m venv --without-pip $venv32
+          & (Join-Path $venv64 'Scripts\python.exe') -m ensurepip --upgrade
+          & (Join-Path $venv32 'Scripts\python.exe') -m ensurepip --upgrade
+          & (Join-Path $venv64 'Scripts\python.exe') -m pip --version
+          & (Join-Path $venv64 'Scripts\python.exe') -m pip check
+          & (Join-Path $venv32 'Scripts\python.exe') -m pip --version
+          & (Join-Path $venv32 'Scripts\python.exe') -m pip check
+      - name: Verify runner pip on both interpreters
         shell: pwsh
         run: |
           python -m pip --version
@@ -99,6 +113,7 @@ jobs:
         shell: pwsh
         run: git submodule update --init --depth 1 miscDeps include/nvda-mathcat
       - name: Install Python 3.15 x64
+        id: python64
         uses: actions/setup-python@v6
         with:
           python-version: "3.15.0-rc.2"
@@ -107,10 +122,22 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           version: "0.12.5"
-          python-version: cpython-3.15.0rc2-windows-x86_64-none
-      - name: Dry-run dependency resolution
+      - name: Bind uv to the setup-python interpreter
         shell: pwsh
-        run: uv sync --dry-run --no-install-project
+        run: |
+          $pythonPath = '${{ steps.python64.outputs.python-path }}'
+          if (-not (Test-Path $pythonPath)) {
+            throw "setup-python interpreter not found: $pythonPath"
+          }
+          "UV_PYTHON=$pythonPath" >> $env:GITHUB_ENV
+          "UV_PYTHON_DOWNLOADS=never" >> $env:GITHUB_ENV
+          & $pythonPath -c "import sys; assert sys.version_info[:2] == (3, 15), sys.version; print('uv CP315 interpreter:', sys.executable)"
+      - name: Resolve and install NVDA application dependencies
+        shell: pwsh
+        run: |
+          uv python find --no-managed-python
+          uv sync --no-dev --no-install-project --locked
+          uv pip check
 
   sourceBuildSmoke:
     name: Prepare NVDA source on CPython 3.15
@@ -122,6 +149,7 @@ jobs:
           submodules: recursive
           fetch-depth: 1
       - name: Install Python 3.15 x64
+        id: python64
         uses: actions/setup-python@v6
         with:
           python-version: "3.15.0-rc.2"
@@ -132,11 +160,20 @@ jobs:
           python-version: "3.15.0-rc.2"
           architecture: x86
           update-environment: false
-      - name: Install uv with canonical CPython 3.15 prerelease identifier
+      - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
           version: "0.12.5"
-          python-version: cpython-3.15.0rc2-windows-x86_64-none
+      - name: Bind uv to the setup-python interpreter
+        shell: pwsh
+        run: |
+          $pythonPath = '${{ steps.python64.outputs.python-path }}'
+          if (-not (Test-Path $pythonPath)) {
+            throw "setup-python interpreter not found: $pythonPath"
+          }
+          "UV_PYTHON=$pythonPath" >> $env:GITHUB_ENV
+          "UV_PYTHON_DOWNLOADS=never" >> $env:GITHUB_ENV
+          uv python find --no-managed-python $pythonPath
       - name: Prepare NVDA source
         shell: cmd
         run: scons source --all-cores
