@@ -3,33 +3,34 @@
 # This file may be used under the terms of the GNU General Public License, version 2 or later, as modified by the NVDA license.
 # For full terms and any additional permissions, see the NVDA license file: https://github.com/nvaccess/nvda/blob/master/copying.txt
 
-from comtypes import COMError  # noqa: I001
-from comtypes.automation import VARIANT
+import re
 from ctypes import byref
 
-import textUtils
-from . import (
-	UIATextInfo,
-	UIA,
-)
-
-from logHandler import log
+import aria
 import controlTypes
 import cursorManager
-import re
-import aria
 import textInfos
+import textUtils
+import UIAHandler
+from comtypes.automation import VARIANT
+from logHandler import log
 from UIAHandler.browseMode import (
 	UIABrowseModeDocument,
 	UIABrowseModeDocumentTextInfo,
-	UIATextRangeQuickNavItem,
 	UIAControlQuicknavIterator,
+	UIATextRangeQuickNavItem,
 )
 from UIAHandler.utils import (
+	UIATextRangeFromElement,
 	createUIAMultiPropertyCondition,
 	getUIATextAttributeValueFromRange,
+	normalizeUIAText,
 )
-import UIAHandler
+
+from . import (
+	UIA,
+	UIATextInfo,
+)
 
 """
 UIA.web module provides a common base for behavior and utilities relevant to web browsers.
@@ -125,11 +126,10 @@ class UIAWebTextInfo(UIATextInfo):
 				ariaProperties = element.getCachedPropertyValue(UIAHandler.UIA_AriaPropertiesPropertyId)
 				if ("label=" in ariaProperties) or ("labelledby=" in ariaProperties):
 					return element
-				try:
-					textRange = self.obj.UIATextPattern.rangeFromChild(element)
-				except COMError:
+				textRange = UIATextRangeFromElement(self.obj.UIATextPattern, element)
+				if not textRange:
 					return
-				text = textRange.getText(-1)
+				text = normalizeUIAText(textRange.getText(-1))
 				if not text or text.isspace():
 					return element
 			element = walker.getParentElementBuildCache(element, cacheRequest)
@@ -143,9 +143,8 @@ class UIAWebTextInfo(UIATextInfo):
 		element = self.UIAElementAtStartWithReplacedContent
 		if not element:
 			return
-		try:
-			textRange = self.obj.UIATextPattern.rangeFromChild(element)
-		except COMError:
+		textRange = UIATextRangeFromElement(self.obj.UIATextPattern, element)
+		if not textRange:
 			return
 		if not back:
 			textRange.MoveEndpointByRange(
