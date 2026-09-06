@@ -3,11 +3,6 @@ name: Build wxPython wheel for Python 3.15
 on:
   workflow_call:
   workflow_dispatch:
-  push:
-    branches:
-      - 'fix/python315-pinned-source-provenance'
-    paths:
-      - '.github/workflows/wxpython315Build.yml'
 
 permissions:
   actions: read
