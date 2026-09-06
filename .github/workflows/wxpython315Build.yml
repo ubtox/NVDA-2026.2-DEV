@@ -10,6 +10,7 @@ on:
       - '.github/workflows/wxpython315Build.yml'
 
 permissions:
+  actions: read
   contents: read
 
 concurrency:
@@ -53,12 +54,59 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           architecture: x64
 
+      - name: Restore validated wxPython CP315 wheel cache
+        id: wxWheelCache
+        uses: actions/cache/restore@v5
+        with:
+          path: dist/wxPython-${{ env.WXPYTHON_VERSION }}-cp315-cp315-win_amd64.whl
+          key: wxpython-cp315-${{ runner.os }}-${{ runner.arch }}-${{ env.PYTHON_VERSION }}-${{ env.WXPYTHON_VERSION }}-${{ env.WXPYTHON_SDIST_SHA256 }}-cython${{ env.CYTHON_VERSION }}-sip${{ env.SIP_VERSION }}
+
+      - name: Restore last validated wxPython wheel artifact on cache miss
+        id: priorWheel
+        if: steps.wxWheelCache.outputs.cache-hit != 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $expectedName = "wxPython-$env:WXPYTHON_VERSION-cp315-cp315-win_amd64.whl"
+          $branch = '${{ github.head_ref || github.ref_name }}'
+          try {
+            $encodedBranch = [Uri]::EscapeDataString($branch)
+            $runs = gh api "/repos/$env:GITHUB_REPOSITORY/actions/workflows/wxpython315Build.yml/runs?branch=$encodedBranch&status=success&per_page=10" | ConvertFrom-Json
+            foreach ($run in $runs.workflow_runs) {
+              $artifacts = gh api "/repos/$env:GITHUB_REPOSITORY/actions/runs/$($run.id)/artifacts?per_page=100" | ConvertFrom-Json
+              if ($artifacts.artifacts.name -notcontains 'wxpython-cp315-win-amd64') {
+                continue
+              }
+              Remove-Item -Recurse -Force .artifacts\prior -ErrorAction SilentlyContinue
+              New-Item -ItemType Directory -Force -Path .artifacts\prior | Out-Null
+              gh run download $run.id --repo $env:GITHUB_REPOSITORY --name wxpython-cp315-win-amd64 --dir .artifacts\prior
+              if ($LASTEXITCODE -ne 0) {
+                continue
+              }
+              $wheel = Get-ChildItem .artifacts\prior -Recurse -File -Filter $expectedName | Select-Object -First 1
+              if ($wheel) {
+                New-Item -ItemType Directory -Force -Path dist | Out-Null
+                Copy-Item $wheel.FullName (Join-Path dist $expectedName) -Force
+                Write-Host "Restored validated wheel from workflow run $($run.id): $expectedName"
+                "artifact-restored=true" >> $env:GITHUB_OUTPUT
+                exit 0
+              }
+            }
+          }
+          catch {
+            Write-Warning "Unable to restore a previous wxPython artifact; source build will be used: $_"
+          }
+          "artifact-restored=false" >> $env:GITHUB_OUTPUT
+
       - name: Set up MSVC x64
+        if: steps.wxWheelCache.outputs.cache-hit != 'true' && steps.priorWheel.outputs.artifact-restored != 'true'
         uses: step-security/msvc-dev-cmd@v1
         with:
           arch: x64
 
       - name: Install CPython 3.15 build dependencies from wheels only
+        if: steps.wxWheelCache.outputs.cache-hit != 'true' && steps.priorWheel.outputs.artifact-restored != 'true'
         shell: pwsh
         run: |
           python -m pip install --only-binary=:all: --upgrade `
@@ -71,6 +119,7 @@ jobs:
           python -c "import Cython, sys; assert sys.version_info[:2] == (3, 15); assert Cython.__version__ == '$env:CYTHON_VERSION'; print('Cython CP315 build dependency:', Cython.__version__)"
 
       - name: Download and verify official wxPython 4.2.4 source distribution
+        if: steps.wxWheelCache.outputs.cache-hit != 'true' && steps.priorWheel.outputs.artifact-restored != 'true'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path dist | Out-Null
@@ -90,6 +139,7 @@ jobs:
           Write-Host "Verified wxPython sdist: $fileName SHA256=$actualHash"
 
       - name: Build wxPython CP315 wheel from verified release source
+        if: steps.wxWheelCache.outputs.cache-hit != 'true' && steps.priorWheel.outputs.artifact-restored != 'true'
         shell: pwsh
         run: |
           $sdist = (Get-ChildItem dist -File -Filter "wxpython-$env:WXPYTHON_VERSION.tar.gz" | Select-Object -First 1).FullName
@@ -107,8 +157,10 @@ jobs:
         shell: pwsh
         run: |
           $wheel = (Get-ChildItem dist -File -Filter "wxPython-$env:WXPYTHON_VERSION-cp315-cp315-win_amd64.whl" | Select-Object -First 1).FullName
+          if (-not $wheel) { throw 'Validated wxPython CP315 wheel is missing.' }
+          Write-Host "Using wheel SHA256=$((Get-FileHash -Algorithm SHA256 $wheel).Hash.ToLowerInvariant())"
           python -m pip install --force-reinstall --no-deps $wheel
-          if ($LASTEXITCODE -ne 0) { throw 'Unable to install the generated wxPython CP315 wheel.' }
+          if ($LASTEXITCODE -ne 0) { throw 'Unable to install the wxPython CP315 wheel.' }
           python -c "import platform, sys, wx; assert sys.version_info[:2] == (3, 15), sys.version; assert platform.architecture()[0] == '64bit'; assert wx.version().startswith('4.2.4'), wx.version(); print('wxPython CP315:', wx.version(), wx.PlatformInfo)"
           if ($LASTEXITCODE -ne 0) { throw 'wxPython base import failed.' }
           $modules = @('adv','aui','dataview','glcanvas','grid','html2','media','propgrid','ribbon','richtext','siplib','stc','xml','xrc')
@@ -117,7 +169,14 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw "wx.$module import failed" }
           }
           python -m pip check
-          if ($LASTEXITCODE -ne 0) { throw 'Generated wxPython wheel failed pip check.' }
+          if ($LASTEXITCODE -ne 0) { throw 'wxPython wheel failed pip check.' }
+
+      - name: Save validated wxPython CP315 wheel cache
+        if: steps.wxWheelCache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: dist/wxPython-${{ env.WXPYTHON_VERSION }}-cp315-cp315-win_amd64.whl
+          key: wxpython-cp315-${{ runner.os }}-${{ runner.arch }}-${{ env.PYTHON_VERSION }}-${{ env.WXPYTHON_VERSION }}-${{ env.WXPYTHON_SDIST_SHA256 }}-cython${{ env.CYTHON_VERSION }}-sip${{ env.SIP_VERSION }}
 
       - name: Stage license and provenance
         shell: pwsh
@@ -137,7 +196,7 @@ jobs:
           Build dependency SIP: $env:SIP_VERSION
           Generated wheel: $($wheel.Name)
           Generated wheel SHA256: $wheelHash
-          Build method: official wxPython 4.2.4 source distribution compiled with MSVC for CPython 3.15
+          Build method: official wxPython 4.2.4 source distribution compiled with MSVC for CPython 3.15; later runs may restore the byte-identical validated wheel from GitHub Actions cache/artifacts
           Local source patches: none
           License: wxWindows Library Licence; see LICENSE.txt
           "@ | Set-Content -Encoding utf8 dist\provenance\SOURCE-PROVENANCE.txt
