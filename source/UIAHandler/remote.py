@@ -21,6 +21,7 @@ from ._remoteOps.remoteTypes import (
 )
 from ._remoteOps import operation
 from ._remoteOps import remoteAPI
+from .utils import normalizeUIAText
 from ._remoteOps.lowLevel import (
 	TextUnit,
 	TextPatternRangeEndpoint,
@@ -321,8 +322,8 @@ def collectAllHeadingsInTextRange(
 					label = paragraphRange.getText(-1)
 					ra.Yield(level, label, paragraphRange)
 
-	for level, label, paragraphRange in op.iterExecute(maxTries=20):  # noqa: UP028
-		yield level, label, paragraphRange
+	for level, label, paragraphRange in op.iterExecute(maxTries=20):
+		yield level, normalizeUIAText(cast(str, label)), paragraphRange
 
 
 def findFirstHeadingInTextRange(
@@ -364,6 +365,6 @@ def findFirstHeadingInTextRange(
 		return None
 	return (
 		cast(int, level),
-		cast(str, label),
+		normalizeUIAText(cast(str, label)),
 		cast(UIA.IUIAutomationTextRange, paragraphRange),
 	)
