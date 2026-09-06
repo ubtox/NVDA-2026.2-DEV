@@ -2,7 +2,7 @@
 
 Last review: 2026-09-06
 
-This file applies the repository-wide engineering policy to critical CPython 3.15 dependencies. It records only demonstrated or currently blocked states. A component is not considered integrated into NVDA merely because an isolated build succeeds.
+This file applies the repository-wide engineering policy to critical CPython 3.15 dependencies. It records only demonstrated or currently blocked states. A component is not considered fully integrated into NVDA merely because an isolated build succeeds.
 
 ## py2exe
 
@@ -10,7 +10,7 @@ Component: py2exe
 
 Role: freezes the Python application into Windows executable artifacts used by the NVDA packaging chain.
 
-State: `SOURCE_BUILD` for the isolated CPython 3.15 probe; `BLOCKED_EXTERNAL` for normal NVDA dependency resolution until the validated source artifact is wired into the project dependency path.
+State: `SOURCE_INTEGRATED` for the CPython 3.15 project dependency path; final NVDA build/packaging/runtime validation remains required.
 
 Upstream repository: https://github.com/py2exe/py2exe
 
@@ -25,13 +25,20 @@ Reason the upstream release artifact is insufficient:
 - The NVDA CPython 3.15 resolver therefore cannot obtain a permitted source build from PyPI.
 - Upstream `master` at the pinned revision also still carries the `<3.15` metadata bound.
 
-Local source patch location: `.github/workflows/py2exe315Probe.yml` currently applies the minimum reviewed metadata change to the pinned source checkout. This metadata change is not considered compatibility proof by itself; the workflow must successfully compile the native wheel, import it, freeze a CPython 3.15 program containing native standard-library modules, and execute the resulting EXE.
+Project-owned integration:
+
+- `[tool.uv.sources]` now points `py2exe` directly at the immutable upstream Git revision above.
+- `tool.uv.dependency-metadata` records the reviewed CPython 3.15 metadata override while preserving the upstream dependency set.
+- `tool.uv.no-binary-package = ["py2exe"]` keeps the project on the source-build path.
+- `uv.lock` is regenerated for `requires-python = "==3.15.*"` and records the exact Git source revision.
+- GitHub Actions run `34044595281` passed source pinning, CPython 3.15 lock regeneration, lock provenance verification, source build/install and `py2exe.runtime` import.
+- Generated project state was committed as `8d41887770ce12aba5e47f6ebbdbec608187d2ad` (`build: consume pinned py2exe source on Python 3.15`).
+
+Isolated compatibility proof: `.github/workflows/py2exe315Probe.yml` applies the minimum reviewed metadata change to the pinned source checkout and validates x64/x86 source wheel build, import, freeze and execution.
 
 Build environment: GitHub Actions `windows-2025-vs2026`, CPython `3.15.0-rc.2`.
 
-Architectures: x64 and x86.
-
-Produced artifacts: `py2exe` CP315 wheels uploaded by the isolated workflow after all probe steps pass.
+Architectures: x64 and x86 for the isolated compatibility probe; project dependency integration is currently validated on x64.
 
 Isolated tests:
 
@@ -46,11 +53,9 @@ Production packaging scope:
 - NVDA `source/setup.py` uses py2exe with `bundle_files=3`.
 - `runtime-builders/synthDriverHost32/setup-runtime.py` also uses `bundle_files=3`.
 - The CP315 probe intentionally uses the same mode so its freeze/execution evidence matches the current NVDA packaging path.
-- The py2exe memimporter path that references the removed private CPython symbol `_PyImport_FixupExtensionObject` is therefore not exercised by the current NVDA production packaging mode. It remains a real py2exe CP315 full-feature compatibility debt, and this probe does not claim compatibility for native-extension in-memory bundle modes.
+- The py2exe memimporter path that references the removed private CPython symbol `_PyImport_FixupExtensionObject` is therefore not exercised by the current NVDA production packaging mode. It remains py2exe full-feature compatibility debt, but it is not a demonstrated blocker for NVDA's current `bundle_files=3` path.
 
-NVDA integration tests: currently failing at deterministic `uv sync --dry-run --no-install-project` because the project still resolves `py2exe==0.14.2.0` from the release path rather than the source-built CP315 artifact.
-
-Known limitation: source-build proof and NVDA dependency integration are separate stages. Do not mark py2exe CP315 as fully integrated until the deterministic NVDA dependency resolution, build and packaging gates consume the validated source-derived artifact.
+Remaining validation: run the complete NVDA dependency gate against the committed CP315 lock, then prove the real NVDA build, packaging, launcher/installable artifacts and runtime path consume this source-integrated py2exe successfully.
 
 Exit strategy: replace the project source-build path with an upstream release only when upstream publishes an equivalent or better CPython 3.15 artifact and the NVDA gates pass against it.
 
@@ -108,6 +113,6 @@ Exit strategy: prefer a maintained upstream `nvda-misc-deps`/BRLTTY CP315 integr
 
 ## Current gate interpretation
 
-At the reviewed project head, Python 3.15 x64/x86 runtime checks and MathCAT import have passed, while deterministic dependency resolution and rejection of old CPython-tagged native modules have failed for the exact blockers above.
+The py2exe source dependency is now pinned and committed for CPython 3.15. The remaining demonstrated native ABI blocker is `miscDeps/python/brlapi.cp313-win_amd64.pyd`; the BRLAPI source-build/overlay workflow is responsible for proving its CP315 replacement before the old module is removed from the validated dependency chain.
 
-These failures remain intentional release blockers. Do not weaken or suppress the gates to obtain a green status.
+Failures remain release blockers. Do not weaken or suppress gates to obtain a green status.
