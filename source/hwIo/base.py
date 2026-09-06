@@ -179,6 +179,11 @@ class IoBase:
 			)
 
 	def close(self):
+		# close() can be called explicitly and again from __del__. Keep it idempotent
+		# so cancellation and event-handle teardown happen only once.
+		if getattr(self, "_closed", False):
+			return
+		self._closed = True
 		if _isDebug():
 			log.debug("Closing")
 		self._onReceive = None
@@ -186,7 +191,9 @@ class IoBase:
 		if hasattr(self, "_file") and self._file is not INVALID_HANDLE_VALUE:
 			winBindings.kernel32.CancelIoEx(self._file, byref(self._readOl))
 		if hasattr(self, "_writeFile") and self._writeFile not in (self._file, INVALID_HANDLE_VALUE):
-			winBindings.kernel32.CancelIoEx(self._writeFile, byref(self._readOl))
+			# Writes are issued with _writeOl, so CancelIoEx must target the same
+			# OVERLAPPED structure rather than _readOl.
+			winBindings.kernel32.CancelIoEx(self._writeFile, byref(self._writeOl))
 		winKernel.closeHandle(self._recvEvt)
 
 	def __del__(self):
@@ -403,11 +410,16 @@ class Bulk(IoBase):
 		)
 
 	def close(self):
+		if getattr(self, "_bulkClosed", False):
+			return
+		self._bulkClosed = True
 		super().close()
 		if hasattr(self, "_file") and self._file is not INVALID_HANDLE_VALUE:
 			winKernel.closeHandle(self._file)
+			self._file = INVALID_HANDLE_VALUE
 		if hasattr(self, "_writeFile") and self._writeFile is not INVALID_HANDLE_VALUE:
 			winKernel.closeHandle(self._writeFile)
+			self._writeFile = INVALID_HANDLE_VALUE
 
 
 def boolToByte(arg: bool) -> bytes:
