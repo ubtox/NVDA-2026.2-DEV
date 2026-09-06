@@ -19,4 +19,6 @@ if errorlevel 1 (
 	exit /b 1
 )
 
-powershell -ExecutionPolicy Bypass -NoProfile -File "%here%\ensureuv.ps1" run --directory "%here%" SCons %*
+rem A build needs the project runtime dependencies plus the dev/build group only.
+rem Do not pull lint, docs, unit-test or system-test groups into every SCons invocation.
+powershell -ExecutionPolicy Bypass -NoProfile -File "%here%\ensureuv.ps1" run --no-default-groups --group dev --directory "%here%" SCons %*

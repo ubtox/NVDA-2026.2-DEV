@@ -106,8 +106,6 @@ jobs:
         update-environment: false
     - name: Install the latest version of uv
       uses: astral-sh/setup-uv@v7
-      with:
-        python-version: cpython-${{ matrix.pythonVersion }}-windows-${{ env.uv-arch }}-none
     - name: Set version variables
       run: ci/scripts/setBuildVersionVars.ps1
     - name: Set scons args
@@ -317,8 +315,6 @@ jobs:
             architecture: ${{ matrix.arch }}
     - name: Install the latest version of uv
       uses: astral-sh/setup-uv@v7
-      with:
-        python-version: cpython-${{ matrix.pythonVersion }}-windows-${{ env.uv-arch }}-none
     - name: Run unit tests
       run: ci/scripts/tests/unitTests.ps1
     - name: Replace relative paths in unit test results
@@ -409,8 +405,6 @@ jobs:
             architecture: ${{ matrix.arch }}
     - name: Install the latest version of uv
       uses: astral-sh/setup-uv@v7
-      with:
-        python-version: cpython-${{ matrix.pythonVersion }}-windows-${{ env.uv-arch }}-none
     - name: Set version variables
       run: ci/scripts/setBuildVersionVars.ps1
     - name: Set scons args
@@ -534,8 +528,6 @@ jobs:
     - parallel:
         - name: Install the latest version of uv
           uses: astral-sh/setup-uv@v7
-          with:
-            python-version: cpython-${{ matrix.pythonVersion }}-windows-${{ env.uv-arch }}-none
         - name: Install NVDA
           run: ci/scripts/installNVDA.ps1
           env:

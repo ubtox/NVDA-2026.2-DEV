@@ -1,0 +1,241 @@
+name: Build native runtime wheels for Python 3.15
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'fix/python315-pinned-source-provenance'
+    paths:
+      - '.github/workflows/nativeRuntimeWheels315Build.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-runtime-wheels315-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.15.0-rc.2"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+jobs:
+  fastDiffMatchPatch:
+    name: fast-diff-match-patch 2.1.0 CPython 3.15 x64 wheel
+    runs-on: windows-2025-vs2026
+    env:
+      PACKAGE_NAME: "fast_diff_match_patch"
+      PACKAGE_VERSION: "2.1.0"
+      SOURCE_REPO: "JoshData/fast_diff_match_patch"
+      SOURCE_REF: "2910eeedcd5433b353f54f53ce1cf508f6d64b99"
+      SDIST_SHA256: "ac402d7bff04a84f363cc5bfa948509bc4ef8442c6ebdd564c44dc39613bec40"
+    steps:
+      - name: Checkout exact upstream release source
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ env.SOURCE_REPO }}
+          ref: ${{ env.SOURCE_REF }}
+          submodules: recursive
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify exact source revision
+        shell: pwsh
+        run: |
+          $actual = (git rev-parse HEAD).Trim()
+          if ($actual -ne $env:SOURCE_REF) { throw "Unexpected source revision: $actual" }
+
+      - name: Set up CPython 3.15 x64
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          architecture: x64
+
+      - name: Set up MSVC x64
+        uses: step-security/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Install build tooling from wheels only
+        shell: pwsh
+        run: |
+          python -m pip install --only-binary=:all: --upgrade setuptools wheel
+          if ($LASTEXITCODE -ne 0) { throw 'Build tooling wheel installation failed.' }
+
+      - name: Download and verify official source distribution
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $metadata = Invoke-RestMethod -Uri "https://pypi.org/pypi/$env:PACKAGE_NAME/$env:PACKAGE_VERSION/json"
+          $fileName = "$env:PACKAGE_NAME-$env:PACKAGE_VERSION.tar.gz"
+          $sdistInfo = $metadata.urls | Where-Object { $_.packagetype -eq 'sdist' -and $_.filename -eq $fileName } | Select-Object -First 1
+          if (-not $sdistInfo) { throw "Source distribution $fileName not found." }
+          if ($sdistInfo.digests.sha256.ToLowerInvariant() -ne $env:SDIST_SHA256) { throw "PyPI metadata SHA256 mismatch: $($sdistInfo.digests.sha256)" }
+          $sdistPath = Join-Path (Resolve-Path dist).Path $fileName
+          Invoke-WebRequest -Uri $sdistInfo.url -OutFile $sdistPath
+          $actualHash = (Get-FileHash -Algorithm SHA256 $sdistPath).Hash.ToLowerInvariant()
+          if ($actualHash -ne $env:SDIST_SHA256) { throw "Downloaded sdist SHA256 mismatch: $actualHash" }
+          Write-Host "Verified $fileName SHA256=$actualHash"
+
+      - name: Build CP315 wheel
+        shell: pwsh
+        run: |
+          $sdist = (Get-ChildItem dist -File -Filter "$env:PACKAGE_NAME-$env:PACKAGE_VERSION.tar.gz" | Select-Object -First 1).FullName
+          python -m pip wheel --verbose --no-build-isolation --no-deps $sdist --wheel-dir dist
+          if ($LASTEXITCODE -ne 0) { throw "$env:PACKAGE_NAME CP315 source build failed." }
+          $wheel = Get-ChildItem dist -File -Filter "$env:PACKAGE_NAME-$env:PACKAGE_VERSION-cp315-cp315-win_amd64.whl" | Select-Object -First 1
+          if (-not $wheel) { throw "$env:PACKAGE_NAME CP315 win_amd64 wheel was not produced." }
+          Write-Host "Built: $($wheel.Name)"
+          Write-Host "SHA256: $((Get-FileHash -Algorithm SHA256 $wheel.FullName).Hash.ToLowerInvariant())"
+
+      - name: Verify compiled module and behavior
+        shell: pwsh
+        run: |
+          $wheel = (Get-ChildItem dist -File -Filter "$env:PACKAGE_NAME-$env:PACKAGE_VERSION-cp315-cp315-win_amd64.whl" | Select-Object -First 1).FullName
+          python -m pip install --force-reinstall --no-deps $wheel
+          if ($LASTEXITCODE -ne 0) { throw 'Generated wheel installation failed.' }
+          python -c "import pathlib, sys, fast_diff_match_patch as m; from fast_diff_match_patch import diff; assert sys.version_info[:2] == (3, 15); assert pathlib.Path(m.__file__).suffix.lower() == '.pyd', m.__file__; assert diff('Hello world.', 'Goodbye moon.'), 'empty diff'; print('fast_diff_match_patch CP315:', m.__file__)"
+          if ($LASTEXITCODE -ne 0) { throw 'Compiled module smoke test failed.' }
+          python -m pip check
+
+      - name: Stage license and provenance
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist\provenance | Out-Null
+          Copy-Item LICENSE dist\provenance\LICENSE -Force
+          $wheel = Get-ChildItem dist -File -Filter "$env:PACKAGE_NAME-$env:PACKAGE_VERSION-cp315-cp315-win_amd64.whl" | Select-Object -First 1
+          $wheelHash = (Get-FileHash -Algorithm SHA256 $wheel.FullName).Hash.ToLowerInvariant()
+          @"
+          Component: fast-diff-match-patch
+          Version: $env:PACKAGE_VERSION
+          Upstream: https://github.com/$env:SOURCE_REPO
+          Source commit: $env:SOURCE_REF
+          Official source distribution SHA256: $env:SDIST_SHA256
+          Target: CPython $env:PYTHON_VERSION x64 Windows
+          Generated wheel: $($wheel.Name)
+          Generated wheel SHA256: $wheelHash
+          Local source patches: none
+          License: Apache-2.0; see LICENSE
+          "@ | Set-Content -Encoding utf8 dist\provenance\SOURCE-PROVENANCE.txt
+
+      - name: Upload CP315 wheel
+        uses: actions/upload-artifact@v7
+        with:
+          name: fast-diff-match-patch-cp315-win-amd64
+          path: |
+            dist/fast_diff_match_patch-${{ env.PACKAGE_VERSION }}-cp315-cp315-win_amd64.whl
+            dist/provenance/LICENSE
+            dist/provenance/SOURCE-PROVENANCE.txt
+          if-no-files-found: error
+
+  fuzzysearch:
+    name: fuzzysearch 0.8.1 CPython 3.15 x64 wheel
+    runs-on: windows-2025-vs2026
+    env:
+      PACKAGE_NAME: "fuzzysearch"
+      PACKAGE_VERSION: "0.8.1"
+      SOURCE_REPO: "taleinat/fuzzysearch"
+      SOURCE_REF: "4f6d9d87bc1a290281a40903546b0882dd6e8c59"
+      SDIST_SHA256: "e5f50962c6b1c3dfc6c8cdfd5e2604838c95cb10118e4cab518e5292e9e0b1c6"
+    steps:
+      - name: Checkout exact upstream release source
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ env.SOURCE_REPO }}
+          ref: ${{ env.SOURCE_REF }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify exact source revision
+        shell: pwsh
+        run: |
+          $actual = (git rev-parse HEAD).Trim()
+          if ($actual -ne $env:SOURCE_REF) { throw "Unexpected source revision: $actual" }
+
+      - name: Set up CPython 3.15 x64
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          architecture: x64
+
+      - name: Set up MSVC x64
+        uses: step-security/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Install build and runtime dependencies from wheels only
+        shell: pwsh
+        run: |
+          python -m pip install --only-binary=:all: --upgrade setuptools wheel "attrs>=19.3"
+          if ($LASTEXITCODE -ne 0) { throw 'Build/runtime dependency wheel installation failed.' }
+
+      - name: Download and verify official source distribution
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $metadata = Invoke-RestMethod -Uri "https://pypi.org/pypi/$env:PACKAGE_NAME/$env:PACKAGE_VERSION/json"
+          $fileName = "$env:PACKAGE_NAME-$env:PACKAGE_VERSION.tar.gz"
+          $sdistInfo = $metadata.urls | Where-Object { $_.packagetype -eq 'sdist' -and $_.filename -eq $fileName } | Select-Object -First 1
+          if (-not $sdistInfo) { throw "Source distribution $fileName not found." }
+          if ($sdistInfo.digests.sha256.ToLowerInvariant() -ne $env:SDIST_SHA256) { throw "PyPI metadata SHA256 mismatch: $($sdistInfo.digests.sha256)" }
+          $sdistPath = Join-Path (Resolve-Path dist).Path $fileName
+          Invoke-WebRequest -Uri $sdistInfo.url -OutFile $sdistPath
+          $actualHash = (Get-FileHash -Algorithm SHA256 $sdistPath).Hash.ToLowerInvariant()
+          if ($actualHash -ne $env:SDIST_SHA256) { throw "Downloaded sdist SHA256 mismatch: $actualHash" }
+          Write-Host "Verified $fileName SHA256=$actualHash"
+
+      - name: Build CP315 wheel
+        shell: pwsh
+        run: |
+          $sdist = (Get-ChildItem dist -File -Filter "$env:PACKAGE_NAME-$env:PACKAGE_VERSION.tar.gz" | Select-Object -First 1).FullName
+          python -m pip wheel --verbose --no-build-isolation --no-deps $sdist --wheel-dir dist
+          if ($LASTEXITCODE -ne 0) { throw "$env:PACKAGE_NAME CP315 source build failed." }
+          $wheel = Get-ChildItem dist -File -Filter "$env:PACKAGE_NAME-$env:PACKAGE_VERSION-cp315-cp315-win_amd64.whl" | Select-Object -First 1
+          if (-not $wheel) {
+            Get-ChildItem dist -File -Filter '*.whl' | ForEach-Object { Write-Host $_.Name }
+            throw 'fuzzysearch built without its C extensions; a pure-Python fallback is not accepted for this CP315 wheel.'
+          }
+          Write-Host "Built: $($wheel.Name)"
+          Write-Host "SHA256: $((Get-FileHash -Algorithm SHA256 $wheel.FullName).Hash.ToLowerInvariant())"
+
+      - name: Verify compiled modules and behavior
+        shell: pwsh
+        run: |
+          $wheel = (Get-ChildItem dist -File -Filter "$env:PACKAGE_NAME-$env:PACKAGE_VERSION-cp315-cp315-win_amd64.whl" | Select-Object -First 1).FullName
+          python -m pip install --force-reinstall --no-deps $wheel
+          if ($LASTEXITCODE -ne 0) { throw 'Generated wheel installation failed.' }
+          python -c "import pathlib, sys, fuzzysearch, fuzzysearch._common as c, fuzzysearch._substitutions_only as s; from fuzzysearch import find_near_matches; assert sys.version_info[:2] == (3, 15); assert pathlib.Path(c.__file__).suffix.lower() == '.pyd', c.__file__; assert pathlib.Path(s.__file__).suffix.lower() == '.pyd', s.__file__; m=find_near_matches('abc','xxabcxx',max_l_dist=0); assert m and m[0].start == 2 and m[0].end == 5, m; print('fuzzysearch CP315:', c.__file__, s.__file__)"
+          if ($LASTEXITCODE -ne 0) { throw 'Compiled fuzzysearch smoke test failed.' }
+          python -m pip check
+
+      - name: Stage license and provenance
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist\provenance | Out-Null
+          Copy-Item LICENSE dist\provenance\LICENSE -Force
+          $wheel = Get-ChildItem dist -File -Filter "$env:PACKAGE_NAME-$env:PACKAGE_VERSION-cp315-cp315-win_amd64.whl" | Select-Object -First 1
+          $wheelHash = (Get-FileHash -Algorithm SHA256 $wheel.FullName).Hash.ToLowerInvariant()
+          @"
+          Component: fuzzysearch
+          Version: $env:PACKAGE_VERSION
+          Upstream: https://github.com/$env:SOURCE_REPO
+          Source commit: $env:SOURCE_REF
+          Official source distribution SHA256: $env:SDIST_SHA256
+          Target: CPython $env:PYTHON_VERSION x64 Windows
+          Generated wheel: $($wheel.Name)
+          Generated wheel SHA256: $wheelHash
+          Required native modules: fuzzysearch._common, fuzzysearch._substitutions_only
+          Local source patches: none
+          License: MIT; see LICENSE
+          "@ | Set-Content -Encoding utf8 dist\provenance\SOURCE-PROVENANCE.txt
+
+      - name: Upload CP315 wheel
+        uses: actions/upload-artifact@v7
+        with:
+          name: fuzzysearch-cp315-win-amd64
+          path: |
+            dist/fuzzysearch-${{ env.PACKAGE_VERSION }}-cp315-cp315-win_amd64.whl
+            dist/provenance/LICENSE
+            dist/provenance/SOURCE-PROVENANCE.txt
+          if-no-files-found: error

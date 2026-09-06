@@ -1,0 +1,153 @@
+name: Build wxPython wheel for Python 3.15
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'fix/python315-pinned-source-provenance'
+    paths:
+      - '.github/workflows/wxpython315Build.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wxpython315-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.15.0-rc.2"
+  WXPYTHON_VERSION: "4.2.4"
+  WXPYTHON_REF: "6573a469930db94e018509f1894cc575a3c6dbbc"
+  WXPYTHON_SDIST_SHA256: "2eb123979c87bcb329e8a2452269d60ff8f9f651e9bf25c67579e53c4ebbae3c"
+  CYTHON_VERSION: "3.3.0"
+  SIP_VERSION: "6.12.0"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+jobs:
+  wheel:
+    name: wxPython 4.2.4 CPython 3.15 x64 wheel
+    runs-on: windows-2025-vs2026
+    steps:
+      - name: Checkout pinned wxPython Phoenix source for provenance and license
+        uses: actions/checkout@v7
+        with:
+          repository: wxWidgets/Phoenix
+          ref: ${{ env.WXPYTHON_REF }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify exact Phoenix release source revision
+        shell: pwsh
+        run: |
+          $actual = (git rev-parse HEAD).Trim()
+          if ($actual -ne $env:WXPYTHON_REF) {
+            throw "Unexpected wxPython Phoenix source revision: $actual"
+          }
+          git show -s --format=fuller HEAD
+
+      - name: Set up CPython 3.15 x64
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          architecture: x64
+
+      - name: Set up MSVC x64
+        uses: step-security/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Install CPython 3.15 build dependencies from wheels only
+        shell: pwsh
+        run: |
+          python -m pip install --only-binary=:all: --upgrade `
+            "setuptools>=70.1" `
+            "Cython==$env:CYTHON_VERSION" `
+            "requests>=2.26.0" `
+            "sip==$env:SIP_VERSION" `
+            wheel
+          if ($LASTEXITCODE -ne 0) { throw 'A wxPython build dependency has no CP315-compatible wheel.' }
+          python -c "import Cython, sys; assert sys.version_info[:2] == (3, 15); assert Cython.__version__ == '$env:CYTHON_VERSION'; print('Cython CP315 build dependency:', Cython.__version__)"
+
+      - name: Download and verify official wxPython 4.2.4 source distribution
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $metadata = Invoke-RestMethod -Uri "https://pypi.org/pypi/wxPython/$env:WXPYTHON_VERSION/json"
+          $fileName = "wxpython-$env:WXPYTHON_VERSION.tar.gz"
+          $sdistInfo = $metadata.urls | Where-Object { $_.packagetype -eq 'sdist' -and $_.filename -eq $fileName } | Select-Object -First 1
+          if (-not $sdistInfo) { throw 'Pinned wxPython source distribution was not found in PyPI metadata.' }
+          if ($sdistInfo.digests.sha256.ToLowerInvariant() -ne $env:WXPYTHON_SDIST_SHA256) {
+            throw "PyPI metadata SHA256 mismatch: $($sdistInfo.digests.sha256)"
+          }
+          $sdistPath = Join-Path (Resolve-Path dist).Path $fileName
+          Invoke-WebRequest -Uri $sdistInfo.url -OutFile $sdistPath
+          $actualHash = (Get-FileHash -Algorithm SHA256 $sdistPath).Hash.ToLowerInvariant()
+          if ($actualHash -ne $env:WXPYTHON_SDIST_SHA256) {
+            throw "wxPython sdist SHA256 mismatch: $actualHash"
+          }
+          Write-Host "Verified wxPython sdist: $fileName SHA256=$actualHash"
+
+      - name: Build wxPython CP315 wheel from verified release source
+        shell: pwsh
+        run: |
+          $sdist = (Get-ChildItem dist -File -Filter "wxpython-$env:WXPYTHON_VERSION.tar.gz" | Select-Object -First 1).FullName
+          python -m pip wheel --verbose --no-build-isolation --no-deps $sdist --wheel-dir dist
+          if ($LASTEXITCODE -ne 0) { throw 'wxPython CP315 source build failed.' }
+          $wheel = Get-ChildItem dist -File -Filter "wxPython-$env:WXPYTHON_VERSION-cp315-cp315-win_amd64.whl" | Select-Object -First 1
+          if (-not $wheel) {
+            Get-ChildItem dist -File -Filter '*.whl' | ForEach-Object { Write-Host $_.FullName }
+            throw 'wxPython CP315 win_amd64 wheel was not produced.'
+          }
+          Write-Host "Built wxPython CP315 wheel: $($wheel.FullName)"
+          Write-Host "Wheel SHA256: $((Get-FileHash -Algorithm SHA256 $wheel.FullName).Hash.ToLowerInvariant())"
+
+      - name: Verify wheel metadata and imports
+        shell: pwsh
+        run: |
+          $wheel = (Get-ChildItem dist -File -Filter "wxPython-$env:WXPYTHON_VERSION-cp315-cp315-win_amd64.whl" | Select-Object -First 1).FullName
+          python -m pip install --force-reinstall --no-deps $wheel
+          if ($LASTEXITCODE -ne 0) { throw 'Unable to install the generated wxPython CP315 wheel.' }
+          python -c "import platform, sys, wx; assert sys.version_info[:2] == (3, 15), sys.version; assert platform.architecture()[0] == '64bit'; assert wx.version().startswith('4.2.4'), wx.version(); print('wxPython CP315:', wx.version(), wx.PlatformInfo)"
+          if ($LASTEXITCODE -ne 0) { throw 'wxPython base import failed.' }
+          $modules = @('adv','aui','dataview','glcanvas','grid','html2','media','propgrid','ribbon','richtext','siplib','stc','xml','xrc')
+          foreach ($module in $modules) {
+            python -c "import importlib; importlib.import_module('wx.$module'); print('wx.$module OK')"
+            if ($LASTEXITCODE -ne 0) { throw "wx.$module import failed" }
+          }
+          python -m pip check
+          if ($LASTEXITCODE -ne 0) { throw 'Generated wxPython wheel failed pip check.' }
+
+      - name: Stage license and provenance
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist\provenance | Out-Null
+          Copy-Item LICENSE.txt dist\provenance\LICENSE.txt -Force
+          $wheel = Get-ChildItem dist -File -Filter "wxPython-$env:WXPYTHON_VERSION-cp315-cp315-win_amd64.whl" | Select-Object -First 1
+          $wheelHash = (Get-FileHash -Algorithm SHA256 $wheel.FullName).Hash.ToLowerInvariant()
+          @"
+          Component: wxPython / Phoenix
+          Version: $env:WXPYTHON_VERSION
+          Upstream: https://github.com/wxWidgets/Phoenix
+          Source commit: $env:WXPYTHON_REF
+          Official source distribution SHA256: $env:WXPYTHON_SDIST_SHA256
+          Target: CPython $env:PYTHON_VERSION x64 Windows
+          Build dependency Cython: $env:CYTHON_VERSION (CP315 wheel)
+          Build dependency SIP: $env:SIP_VERSION
+          Generated wheel: $($wheel.Name)
+          Generated wheel SHA256: $wheelHash
+          Build method: official wxPython 4.2.4 source distribution compiled with MSVC for CPython 3.15
+          Local source patches: none
+          License: wxWindows Library Licence; see LICENSE.txt
+          "@ | Set-Content -Encoding utf8 dist\provenance\SOURCE-PROVENANCE.txt
+
+      - name: Upload wxPython CP315 wheel
+        uses: actions/upload-artifact@v7
+        with:
+          name: wxpython-cp315-win-amd64
+          path: |
+            dist/wxPython-${{ env.WXPYTHON_VERSION }}-cp315-cp315-win_amd64.whl
+            dist/provenance/LICENSE.txt
+            dist/provenance/SOURCE-PROVENANCE.txt
+          if-no-files-found: error

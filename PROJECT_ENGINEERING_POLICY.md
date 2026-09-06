@@ -34,18 +34,18 @@ source -> native libraries -> bindings -> Python packages/wheels -> NVDA integra
 
 The same rule applies outside Python:
 
-- C and C++ libraries;
-- Windows APIs and SDKs;
-- MSVC, clang, MinGW and build tools;
-- SCons and other generators;
-- Python packaging and freezing tools;
-- Cython, pybind11 and native bindings;
-- braille stacks and drivers;
-- speech and audio components;
-- UIA, IA2, Java Access Bridge and browser integration;
-- add-on/runtime bridges;
-- CI, signing, installer and distribution tooling;
-- test frameworks and development utilities.
+* C and C++ libraries;
+* Windows APIs and SDKs;
+* MSVC, clang, MinGW and build tools;
+* SCons and other generators;
+* Python packaging and freezing tools;
+* Cython, pybind11 and native bindings;
+* braille stacks and drivers;
+* speech and audio components;
+* UIA, IA2, Java Access Bridge and browser integration;
+* add-on/runtime bridges;
+* CI, signing, installer and distribution tooling;
+* test frameworks and development utilities.
 
 No external critical component should remain an uncontrolled blocker when a legally and technically maintainable source-based solution can be produced.
 
@@ -55,13 +55,13 @@ Do not declare compatibility by changing metadata alone.
 
 In particular, do not treat any of the following as proof by themselves:
 
-- widening `Requires-Python` without validating the code and native artifacts;
-- suppressing dependency resolver errors;
-- disabling a failing test or CI job without a documented replacement check;
-- copying an older ABI-tagged native module into a newer runtime;
-- ignoring missing DLL dependencies;
-- swallowing a non-zero exit code;
-- marking an external blocker as successful without a reproducible artifact.
+* widening `Requires-Python` without validating the code and native artifacts;
+* suppressing dependency resolver errors;
+* disabling a failing test or CI job without a documented replacement check;
+* copying an older ABI-tagged native module into a newer runtime;
+* ignoring missing DLL dependencies;
+* swallowing a non-zero exit code;
+* marking an external blocker as successful without a reproducible artifact.
 
 Compatibility is demonstrated by execution under the target environment, not by metadata.
 
@@ -69,14 +69,14 @@ Compatibility is demonstrated by execution under the target environment, not by 
 
 Every carried third-party source, fork, generated binary, patch, or replacement must retain enough information to reproduce and audit it:
 
-- upstream project and repository;
-- exact tag or commit when practical;
-- license and required notices;
-- local changes and their purpose;
-- build toolchain and architecture;
-- artifact version/hash where relevant;
-- known limitations;
-- upstream tracking or replacement status.
+* upstream project and repository;
+* exact tag or commit when practical;
+* license and required notices;
+* local changes and their purpose;
+* build toolchain and architecture;
+* artifact version/hash where relevant;
+* known limitations;
+* upstream tracking or replacement status.
 
 License compatibility is a release requirement, not a post-release cleanup task.
 
@@ -84,13 +84,13 @@ License compatibility is a release requirement, not a post-release cleanup task.
 
 A critical dependency should be classified using one of these states:
 
-- `UPSTREAM_OK`: maintained upstream artifact is compatible and validated.
-- `UPSTREAM_PATCH`: project consumes or carries a small upstream-compatible patch.
-- `SOURCE_BUILD`: project reproducibly builds the upstream source itself.
-- `PROJECT_FORK`: project maintains a fork because upstream is insufficient.
-- `PROJECT_REPLACEMENT`: project owns a replacement implementation.
-- `BLOCKED_EXTERNAL`: no safe solution is currently proven; exact blocker and evidence are recorded.
-- `RETIRE`: component is being removed after a proven replacement path.
+* `UPSTREAM_OK`: maintained upstream artifact is compatible and validated.
+* `UPSTREAM_PATCH`: project consumes or carries a small upstream-compatible patch.
+* `SOURCE_BUILD`: project reproducibly builds the upstream source itself.
+* `PROJECT_FORK`: project maintains a fork because upstream is insufficient.
+* `PROJECT_REPLACEMENT`: project owns a replacement implementation.
+* `BLOCKED_EXTERNAL`: no safe solution is currently proven; exact blocker and evidence are recorded.
+* `RETIRE`: component is being removed after a proven replacement path.
 
 Transitions toward a local fork or replacement require stronger tests and maintenance documentation, not weaker validation.
 
@@ -131,35 +131,35 @@ CI should minimize feedback time without lowering the final proof standard.
 
 Run on ordinary development pushes where applicable:
 
-- diff/whitespace checks;
-- deterministic dependency/lock checks;
-- formatting and lint;
-- compile/import smoke tests;
-- targeted unit tests;
-- dependency-pyramid policy checks relevant to changed files.
+* diff/whitespace checks;
+* deterministic dependency/lock checks;
+* formatting and lint;
+* compile/import smoke tests;
+* targeted unit tests;
+* dependency-pyramid policy checks relevant to changed files.
 
 ### Integration gate
 
 Run for integration branches and pull requests:
 
-- broader unit tests;
-- Pyright and ty;
-- source build;
-- native import checks;
-- affected subsystem tests;
-- functional non-regression tests.
+* broader unit tests;
+* Pyright and ty;
+* source build;
+* native import checks;
+* affected subsystem tests;
+* functional non-regression tests.
 
 ### Heavy/release gate
 
 Run when a block is ready for release-level evidence:
 
-- clean full build;
-- launcher/installer/portable/distribution artifacts as applicable;
-- system/browser/application tests;
-- security and license checks;
-- upstream delta audit;
-- final dependency inventory;
-- artifact provenance/hashes where relevant.
+* clean full build;
+* launcher/installer/portable/distribution artifacts as applicable;
+* system/browser/application tests;
+* security and license checks;
+* upstream delta audit;
+* final dependency inventory;
+* artifact provenance/hashes where relevant.
 
 Expensive native dependencies should be built in dedicated workflows when their source or build recipe changes, then consumed as pinned, validated artifacts by normal CI where appropriate.
 
@@ -186,10 +186,10 @@ Dependency modernization, architecture cleanup, Python migration, x64 work, CI o
 
 For each major integration block, identify the affected functionality and provide one or more of:
 
-- existing regression tests;
-- new unit tests;
-- system/application tests;
-- deterministic manual validation instructions when automation is not currently possible.
+* existing regression tests;
+* new unit tests;
+* system/application tests;
+* deterministic manual validation instructions when automation is not currently possible.
 
 A technical cleanup with an unmeasured functional regression is a failed change.
 
@@ -199,11 +199,11 @@ Current official NVDA remains a reference source for useful fixes and architectu
 
 Before declaring a major project phase complete:
 
-- fetch/inspect current official upstream;
-- identify useful upstream changes not yet present;
-- integrate or explicitly reject them with a technical reason;
-- compare the fork against the current upstream state;
-- avoid unsupported claims that the fork is ahead of official NVDA.
+* fetch/inspect current official upstream;
+* identify useful upstream changes not yet present;
+* integrate or explicitly reject them with a technical reason;
+* compare the fork against the current upstream state;
+* avoid unsupported claims that the fork is ahead of official NVDA.
 
 ## 12. Definition of proven completion
 
@@ -211,20 +211,20 @@ A project phase is complete only for the scope actually demonstrated by evidence
 
 The final release candidate should have, as applicable:
 
-- known branch/commit topology;
-- clean working tree at release commit;
-- current upstream audit;
-- deterministic dependency resolution;
-- supported Python runtime validation;
-- native dependency validation;
-- clean and incremental builds;
-- packaging validation;
-- unit, integration and system tests;
-- lint, formatting and type checks;
-- accessibility/functionality regressions covered;
-- security/license/dependency checks;
-- CI green for the required matrix;
-- documented external blockers, if any, with exact logs and impact.
+* known branch/commit topology;
+* clean working tree at release commit;
+* current upstream audit;
+* deterministic dependency resolution;
+* supported Python runtime validation;
+* native dependency validation;
+* clean and incremental builds;
+* packaging validation;
+* unit, integration and system tests;
+* lint, formatting and type checks;
+* accessibility/functionality regressions covered;
+* security/license/dependency checks;
+* CI green for the required matrix;
+* documented external blockers, if any, with exact logs and impact.
 
 Anything not proven remains `UNKNOWN` or `BLOCKED`; it must not be reported as successful.
 

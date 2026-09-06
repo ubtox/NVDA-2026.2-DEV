@@ -4,11 +4,11 @@ Use this matrix to report project status without unsupported certainty.
 
 Allowed status values:
 
-- `PASS`: current reproducible evidence demonstrates the check.
-- `FAIL`: current evidence demonstrates a failure.
-- `BLOCKED`: the check cannot currently complete; blocker and evidence are known.
-- `UNKNOWN`: no current evidence is available.
-- `N/A`: check is not applicable to the reviewed scope.
+* `PASS`: current reproducible evidence demonstrates the check.
+* `FAIL`: current evidence demonstrates a failure.
+* `BLOCKED`: the check cannot currently complete; blocker and evidence are known.
+* `UNKNOWN`: no current evidence is available.
+* `N/A`: check is not applicable to the reviewed scope.
 
 Do not convert `UNKNOWN` or `BLOCKED` into `PASS` because adjacent checks succeed.
 
