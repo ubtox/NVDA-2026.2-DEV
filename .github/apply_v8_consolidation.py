@@ -35,7 +35,7 @@ replace_once(
 
 replace_once(
 	UIA,
-	'''\t\telif position in (textInfos.POSITION_CARET, textInfos.POSITION_SELECTION):
+	"""\t\telif position in (textInfos.POSITION_CARET, textInfos.POSITION_SELECTION):
 \t\t\ttry:
 \t\t\t\tsel = self.obj.UIATextPattern.GetSelection()
 \t\t\texcept COMError:
@@ -46,8 +46,8 @@ replace_once(
 \t\t\t\traise NotImplementedError("UIAutomationTextRangeArray is empty")
 \t\t\tif position == textInfos.POSITION_CARET:
 \t\t\t\tself.collapse()
-''',
-	'''\t\telif position in (textInfos.POSITION_CARET, textInfos.POSITION_SELECTION):
+""",
+	"""\t\telif position in (textInfos.POSITION_CARET, textInfos.POSITION_SELECTION):
 \t\t\t# Preserve NVDA's established TextPattern.GetSelection path first. This avoids
 \t\t\t# adding an extra cross-process COM call for providers that already work well.
 \t\t\tselectionError: COMError | None = None
@@ -81,13 +81,13 @@ replace_once(
 \t\t\t\tif selectionError is not None:
 \t\t\t\t\traise RuntimeError("No selection available") from selectionError
 \t\t\t\traise NotImplementedError("UIAutomationTextRangeArray is empty")
-''',
+""",
 	"UIA TextPattern2 caret fallback",
 )
 
 replace_once(
 	UIA,
-	'''\t\telif isinstance(position, UIA) or isinstance(position, UIAHandler.IUIAutomationElement):  # noqa: SIM101
+	"""\t\telif isinstance(position, UIA) or isinstance(position, UIAHandler.IUIAutomationElement):  # noqa: SIM101
 \t\t\tif isinstance(position, UIA):
 \t\t\t\tposition = position.UIAElement
 \t\t\ttry:
@@ -99,8 +99,8 @@ replace_once(
 \t\t\t# sometimes rangeFromChild can return a NULL range
 \t\t\tif not self._rangeObj:
 \t\t\t\traise LookupError
-''',
-	'''\t\telif isinstance(position, UIA) or isinstance(position, UIAHandler.IUIAutomationElement):  # noqa: SIM101
+""",
+	"""\t\telif isinstance(position, UIA) or isinstance(position, UIAHandler.IUIAutomationElement):  # noqa: SIM101
 \t\t\tif isinstance(position, UIA):
 \t\t\t\tposition = position.UIAElement
 \t\t\tself._rangeObj: IUIAutomationTextRangeT | None = UIATextRangeFromElement(
@@ -110,7 +110,7 @@ replace_once(
 \t\t\t# Sometimes both patterns can legitimately return a NULL range.
 \t\t\tif not self._rangeObj:
 \t\t\t\traise LookupError
-''',
+""",
 	"UIA TextChild range fallback",
 )
 
@@ -139,14 +139,14 @@ replace_once(
 
 replace_once(
 	UIA,
-	'''\tdef _get_shouldAllowUIAFocusEvent(self):
+	"""\tdef _get_shouldAllowUIAFocusEvent(self):
 \t\ttry:
 \t\t\t# Focus may have moved since the event sender's cache was populated.
 \t\t\treturn bool(self.UIAElement.currentHasKeyboardFocus)
 \t\texcept COMError:
 \t\t\treturn True
-''',
-	'''\tdef _get_shouldAllowUIAFocusEvent(self):
+""",
+	"""\tdef _get_shouldAllowUIAFocusEvent(self):
 \t\ttry:
 \t\t\t# Keep the cached event-sender property used by upstream NVDA. A live UIA
 \t\t\t# property read here would add cross-process latency to every focus event and
@@ -154,19 +154,21 @@ replace_once(
 \t\t\treturn bool(self._getUIACacheablePropertyValue(UIAHandler.UIA_HasKeyboardFocusPropertyId))
 \t\texcept COMError:
 \t\t\treturn True
-''',
+""",
 	"UIA cached keyboard focus state",
 )
 
-old_pattern = '''\tdef _get_UIATextPattern(self):
+old_pattern = """\tdef _get_UIATextPattern(self):
 \t\tself.UIATextPattern = self._getUIAPattern(
 \t\t\tUIAHandler.UIA_TextPatternId,
 \t\t\tUIAHandler.IUIAutomationTextPattern,
 \t\t\tcache=False,
 \t\t)
 \t\treturn self.UIATextPattern
-'''
-new_pattern = old_pattern + '''
+"""
+new_pattern = (
+	old_pattern
+	+ '''
 \tdef _get_UIATextPattern2(self):
 \t\ttry:
 \t\t\tself.UIATextPattern2 = self._getUIAPattern(
@@ -216,14 +218,15 @@ new_pattern = old_pattern + '''
 \t\t\treturn False
 \t\treturn True
 '''
+)
 replace_once(UIA, old_pattern, new_pattern, "UIA modern patterns and virtualization")
 
 replace_once(
 	UIA,
-	'''\tdef setFocus(self):
+	"""\tdef setFocus(self):
 \t\tself.UIAElement.setFocus()
-''',
-	'''\tdef setFocus(self):
+""",
+	"""\tdef setFocus(self):
 \t\ttry:
 \t\t\tself.UIAElement.setFocus()
 \t\t\treturn
@@ -234,15 +237,15 @@ replace_once(
 \t\t\tif not self.realizeUIAVirtualizedItem():
 \t\t\t\traise
 \t\tself.UIAElement.setFocus()
-''',
+""",
 	"UIA virtualized focus recovery",
 )
 
 replace_once(
 	UIA,
-	'''\tdef scrollIntoView(self):
+	"""\tdef scrollIntoView(self):
 \t\tpass
-''',
+""",
 	'''\tdef scrollIntoView(self):
 \t\t"""Scroll this UIA object into view using ScrollItemPattern when available.
 
@@ -274,7 +277,7 @@ replace_once(
 	"UIA scroll/realize fallback",
 )
 
-old_speech = '''def speakTypedCharacters(ch: str):
+old_speech = """def speakTypedCharacters(ch: str):
 \ttypingIsProtected = api.isTypingProtected()
 \tif typingIsProtected:
 \t\trealChar = PROTECTED_CHAR
@@ -317,7 +320,7 @@ old_speech = '''def speakTypedCharacters(ch: str):
 \t\t\ttypingEchoMode == TypingEcho.EDIT_CONTROLS.value and isFocusEditable()
 \t\t):
 \t\t\tspeakSpelling(realChar)
-'''
+"""
 new_speech = '''def speakTypedCharacters(ch: str) -> None:
 \t# Resolving protected state can require a blocking cross-process accessibility call.
 \t# Keep the result lazy, and avoid the call entirely when neither speech nor secure
