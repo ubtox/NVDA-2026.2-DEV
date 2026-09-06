@@ -1657,10 +1657,10 @@ class UIA(Window):
 
 	def _get_shouldAllowUIAFocusEvent(self):
 		try:
-			# Keep the cached event-sender property used by upstream NVDA. A live UIA
-			# property read here would add cross-process latency to every focus event and
-			# can block on a hung provider.
-			return bool(self._getUIACacheablePropertyValue(UIAHandler.UIA_HasKeyboardFocusPropertyId))
+			# Focus may have moved since the event sender's cache was populated.
+			# Keep the upstream #20764 current-state check so stale intermediate UIA
+			# focus events (notably Qt/WeChat Page Up/Down) remain filtered.
+			return bool(self.UIAElement.currentHasKeyboardFocus)
 		except COMError:
 			return True
 
