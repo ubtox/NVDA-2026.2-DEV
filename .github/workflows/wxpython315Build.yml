@@ -1,0 +1,177 @@
+name: Build wxPython wheel for Python 3.15
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wxpython315-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.15.0-rc.2"
+  WXPYTHON_VERSION: "4.2.4"
+  WXPYTHON_REF: "6573a469930db94e018509f1894cc575a3c6dbbc"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+jobs:
+  source:
+    name: Generate wxPython 4.2.4 source distribution
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.generate.outputs.version }}
+    steps:
+      - name: Checkout pinned wxPython Phoenix source
+        uses: actions/checkout@v7
+        with:
+          repository: wxWidgets/Phoenix
+          ref: ${{ env.WXPYTHON_REF }}
+          submodules: recursive
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify exact Phoenix source revision
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = "$WXPYTHON_REF"
+          git show -s --format=fuller HEAD
+
+      - name: Checkout release-specific submodule refs
+        shell: bash
+        run: buildtools/checkout_submodule_refs.sh
+
+      - name: Set up code-generation Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          architecture: x64
+
+      - name: Install code-generation dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext dos2unix
+          python -m pip install --upgrade -r requirements.txt
+
+      - name: Generate wrapper code
+        id: generate
+        shell: bash
+        run: |
+          python build.py setrev dox etg sip --nodoc
+          VERSION=$(python build.py --quiet version)
+          test "$VERSION" = "$WXPYTHON_VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Create source distribution
+        shell: bash
+        run: |
+          python build.py sdist
+          test -f "dist/wxPython-${WXPYTHON_VERSION}.tar.gz"
+
+      - name: Upload generated source distribution
+        uses: actions/upload-artifact@v7
+        with:
+          name: wxpython-cp315-source
+          path: dist/wxPython-${{ env.WXPYTHON_VERSION }}.tar.gz
+          if-no-files-found: error
+
+  wheel:
+    name: wxPython 4.2.4 CPython 3.15 x64 wheel
+    needs: source
+    runs-on: windows-2025-vs2026
+    steps:
+      - name: Checkout pinned wxPython Phoenix source for provenance
+        uses: actions/checkout@v7
+        with:
+          repository: wxWidgets/Phoenix
+          ref: ${{ env.WXPYTHON_REF }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify exact Phoenix source revision
+        shell: pwsh
+        run: |
+          $actual = (git rev-parse HEAD).Trim()
+          if ($actual -ne $env:WXPYTHON_REF) {
+            throw "Unexpected wxPython Phoenix source revision: $actual"
+          }
+
+      - name: Download generated wxPython source distribution
+        uses: actions/download-artifact@v5
+        with:
+          name: wxpython-cp315-source
+          path: dist
+
+      - name: Set up CPython 3.15 x64
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          architecture: x64
+
+      - name: Set up MSVC x64
+        uses: step-security/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Install Python build dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade -r requirements.txt
+          python -m pip install --upgrade wheel
+
+      - name: Build wxPython CP315 wheel from pinned source
+        shell: pwsh
+        env:
+          WXPYTHON_BUILD_ARGS: "--cairo --relwithdebug"
+        run: |
+          Push-Location dist
+          python -m pip wheel --verbose --no-deps "wxPython-$env:WXPYTHON_VERSION.tar.gz" --wheel-dir .
+          Pop-Location
+          $wheel = Get-ChildItem dist -File -Filter "wxPython-$env:WXPYTHON_VERSION-cp315-cp315-win_amd64.whl" | Select-Object -First 1
+          if (-not $wheel) {
+            Get-ChildItem dist -File -Filter '*.whl' | ForEach-Object { Write-Host $_.FullName }
+            throw 'wxPython CP315 win_amd64 wheel was not produced.'
+          }
+          Write-Host "Built wxPython CP315 wheel: $($wheel.FullName)"
+
+      - name: Verify wheel metadata and imports
+        shell: pwsh
+        run: |
+          $wheel = (Get-ChildItem dist -File -Filter "wxPython-$env:WXPYTHON_VERSION-cp315-cp315-win_amd64.whl" | Select-Object -First 1).FullName
+          python -m pip install --force-reinstall --no-deps $wheel
+          python -c "import platform, sys, wx; assert sys.version_info[:2] == (3, 15), sys.version; assert platform.architecture()[0] == '64bit'; assert wx.version().startswith('4.2.4'), wx.version(); print('wxPython CP315:', wx.version(), wx.PlatformInfo)"
+          $modules = @('adv','aui','dataview','glcanvas','grid','html2','media','propgrid','ribbon','richtext','siplib','stc','xml','xrc')
+          foreach ($module in $modules) {
+            python -c "import importlib; importlib.import_module('wx.$module'); print('wx.$module OK')"
+            if ($LASTEXITCODE -ne 0) { throw "wx.$module import failed" }
+          }
+          python -m pip check
+
+      - name: Stage license and provenance
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist\provenance | Out-Null
+          Copy-Item LICENSE.txt dist\provenance\LICENSE.txt -Force
+          @"
+          Component: wxPython / Phoenix
+          Version: $env:WXPYTHON_VERSION
+          Upstream: https://github.com/wxWidgets/Phoenix
+          Source commit: $env:WXPYTHON_REF
+          Target: CPython $env:PYTHON_VERSION x64 Windows
+          Build recipe: wxWidgets/Phoenix 4.2.4 CI wheel recipe adapted for CPython 3.15
+          Local source patches: none
+          License: wxWindows Library Licence; see LICENSE.txt
+          "@ | Set-Content -Encoding utf8 dist\provenance\SOURCE-PROVENANCE.txt
+
+      - name: Upload wxPython CP315 wheel
+        uses: actions/upload-artifact@v7
+        with:
+          name: wxpython-cp315-win-amd64
+          path: |
+            dist/wxPython-${{ env.WXPYTHON_VERSION }}-cp315-cp315-win_amd64.whl
+            dist/provenance/LICENSE.txt
+            dist/provenance/SOURCE-PROVENANCE.txt
+          if-no-files-found: error
