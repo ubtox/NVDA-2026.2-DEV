@@ -106,8 +106,6 @@ jobs:
         update-environment: false
     - name: Install the latest version of uv
       uses: astral-sh/setup-uv@v7
-      with:
-        python-version: cpython-${{ matrix.pythonVersion }}-windows-${{ env.uv-arch }}-none
     - name: Set version variables
       run: ci/scripts/setBuildVersionVars.ps1
     - name: Set scons args
@@ -119,7 +117,7 @@ jobs:
       run: echo "SCONS_CACHE_KEY=${RUNNER_OS}-${ImageVersion}" >> $GITHUB_ENV
     # On Github Actions, it can take more than two minutes for SCons to collect information about MSVC tooling, majorly impacting build performance.
     # This information is static for the current Github Actions runner image.
-    # Therefore, cache this information with a key scoped to the current image version, ensuring that subsequent workflow runs will be much faster.
+    # Therefore, cache this information with a key scoped to the current image version, ensuring that subsequent SCons invocations will be much faster.
     - name: SCons MSVC Cache
       uses: actions/cache@v5
       with:
@@ -317,8 +315,6 @@ jobs:
             architecture: ${{ matrix.arch }}
     - name: Install the latest version of uv
       uses: astral-sh/setup-uv@v7
-      with:
-        python-version: cpython-${{ matrix.pythonVersion }}-windows-${{ env.uv-arch }}-none
     - name: Run unit tests
       run: ci/scripts/tests/unitTests.ps1
     - name: Replace relative paths in unit test results
@@ -409,8 +405,6 @@ jobs:
             architecture: ${{ matrix.arch }}
     - name: Install the latest version of uv
       uses: astral-sh/setup-uv@v7
-      with:
-        python-version: cpython-${{ matrix.pythonVersion }}-windows-${{ env.uv-arch }}-none
     - name: Set version variables
       run: ci/scripts/setBuildVersionVars.ps1
     - name: Set scons args
@@ -534,8 +528,6 @@ jobs:
     - parallel:
         - name: Install the latest version of uv
           uses: astral-sh/setup-uv@v7
-          with:
-            python-version: cpython-${{ matrix.pythonVersion }}-windows-${{ env.uv-arch }}-none
         - name: Install NVDA
           run: ci/scripts/installNVDA.ps1
           env:
