@@ -9,7 +9,7 @@ description = "NVDA 32 bit synth driver host"
 maintainers = [
 	{name = "NV Access", email = "info@nvaccess.org"},
 ]
-requires-python = ">=3.14,<3.15"
+requires-python = ">=3.15.0rc2,<3.16"
 classifiers = [
 	"Development Status :: 5 - Production/Stable",
 	"Intended Audience :: End Users/Desktop",
@@ -21,10 +21,10 @@ classifiers = [
 readme = "readme.md"
 license = {file = "copying.txt"}
 dependencies = [
-	"comtypes==1.4.11",
+	"comtypes==1.4.16",
 	"pyserial==3.5",
 	"rpyc==6.0.2",
-	"pywin32==311",
+	"pywin32==312",
 	"configobj",
 ]
 
@@ -41,7 +41,7 @@ required-version = ">=0.7.9"
 
 [dependency-groups]
 dev = [
-	# Packaging NVDA
+	# Packaging NVDA. py2exe currently blocks Python 3.15 and must be ported before this builder can package successfully.
 	"py2exe==0.14.1.1",
 	"setuptools~=84.0.0",
 ]
