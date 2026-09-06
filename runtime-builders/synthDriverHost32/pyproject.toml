@@ -37,12 +37,23 @@ Issues = "https://github.com/nvaccess/nvda/issues"
 default-groups = "all"
 python-preference = "only-system"
 environments = ["sys_platform == 'win32'"]
-required-version = ">=0.7.9"
+required-version = ">=0.9"
+no-binary-package = ["py2exe"]
+
+[[tool.uv.dependency-metadata]]
+name = "py2exe"
+version = "0.14.2.0"
+requires-python = ">=3.10,<3.16"
+requires-dist = ["cachetools", "packaging", "pefile"]
+
+[tool.uv.sources]
+py2exe = { git = "https://github.com/py2exe/py2exe", rev = "1be98bd71ac737f73aa146631ab902b2b1cc43f7" }
+configobj = { git = "https://github.com/DiffSK/configobj", rev = "9c8a0a80c767bf8a3d6493ed01df6c351bddca42" }
 
 [dependency-groups]
 dev = [
-	# Packaging NVDA. py2exe currently blocks Python 3.15 and must be ported before this builder can package successfully.
-	"py2exe==0.14.1.1",
+	# Package the 32-bit synth driver host from the same validated py2exe source revision as NVDA.
+	"py2exe==0.14.2.0",
 	"setuptools~=84.0.0",
 ]
 

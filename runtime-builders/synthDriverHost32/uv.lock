@@ -1,12 +1,20 @@
 version = 1
 revision = 3
-requires-python = "==3.14.*"
+requires-python = "==3.15.*"
 resolution-markers = [
     "sys_platform == 'win32'",
 ]
 supported-markers = [
     "sys_platform == 'win32'",
 ]
+
+[manifest]
+
+[[manifest.dependency-metadata]]
+name = "py2exe"
+version = "0.14.2.0"
+requires-dist = ["cachetools", "packaging", "pefile"]
+requires-python = ">=3.10, <3.16"
 
 [[package]]
 name = "cachetools"
@@ -19,21 +27,17 @@ wheels = [
 
 [[package]]
 name = "comtypes"
-version = "1.4.11"
+version = "1.4.16"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/3c/b9/4431119a640f568190499fd76fac4b4ccb5695659c4b3aac570329c150ea/comtypes-1.4.11.zip", hash = "sha256:0a4259370ec48b685fe4483b0944ba1df0aa45163922073fe9b7df1d187db09e", size = 272448, upload-time = "2025-05-14T23:32:11.608Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c6/2a/65274c13327f637ec13af8d39f2cf579d9ebe7a0e683696b5f05236d2805/comtypes-1.4.16.tar.gz", hash = "sha256:cd66d1add01265cface4df51ba1e31cd1657e04463c281c802e737e79e1ba93c", size = 260252, upload-time = "2026-03-02T23:11:42.413Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f1/f4/7b7fdbb613992013c4518a0bf8fee2915f79ec07bcfa6180569bca7fa8ef/comtypes-1.4.11-py3-none-any.whl", hash = "sha256:1760d5059ca7ca1d61b574c998378d879c271a86c41f88926619ea97497592bb", size = 246365, upload-time = "2025-05-14T23:32:10.427Z" },
+    { url = "https://files.pythonhosted.org/packages/5f/7c/0eb685107290b6221c03c46d39214a4e42a124189691cb83ae3228257f46/comtypes-1.4.16-py3-none-any.whl", hash = "sha256:e18d85179ff12955524c5a8c3bc09cb3c0d890f1da4d7123d14244c7b78f84c8", size = 296230, upload-time = "2026-03-02T23:11:41.049Z" },
 ]
 
 [[package]]
 name = "configobj"
-version = "5.0.9"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f5/c4/c7f9e41bc2e5f8eeae4a08a01c91b2aea3dfab40a3e14b25e87e7db8d501/configobj-5.0.9.tar.gz", hash = "sha256:03c881bbf23aa07bccf1b837005975993c4ab4427ba57f959afdd9d1a2386848", size = 101518, upload-time = "2024-09-21T12:47:46.315Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/a6/c4/0679472c60052c27efa612b4cd3ddd2a23e885dcdc73461781d2c802d39e/configobj-5.0.9-py2.py3-none-any.whl", hash = "sha256:1ba10c5b6ee16229c79a05047aeda2b55eb4e80d7c7d8ecf17ec1ca600c79882", size = 35615, upload-time = "2024-11-26T14:03:32.972Z" },
-]
+version = "5.1.0.dev0"
+source = { git = "https://github.com/DiffSK/configobj?rev=9c8a0a80c767bf8a3d6493ed01df6c351bddca42#9c8a0a80c767bf8a3d6493ed01df6c351bddca42" }
 
 [[package]]
 name = "packaging"
@@ -64,16 +68,12 @@ wheels = [
 
 [[package]]
 name = "py2exe"
-version = "0.14.1.1"
-source = { registry = "https://pypi.org/simple" }
+version = "0.14.2.0"
+source = { git = "https://github.com/py2exe/py2exe?rev=1be98bd71ac737f73aa146631ab902b2b1cc43f7#1be98bd71ac737f73aa146631ab902b2b1cc43f7" }
 dependencies = [
     { name = "cachetools" },
     { name = "packaging" },
     { name = "pefile" },
-]
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/d8/5e/7ded2823e24c6ec114acca27a69808d4eace1a4c62189eda95f757659465/py2exe-0.14.1.1-cp314-cp314-win32.whl", hash = "sha256:8f14c19d73616b3c633c7cc5eedc7ddd8181f48c349c5d23c1c8d8068d158d00", size = 115237, upload-time = "2026-06-05T21:06:10.815Z" },
-    { url = "https://files.pythonhosted.org/packages/3f/99/8a95b97176a422bb6766b0d2c39c0cd06ec9dd065090054864b4fced66dd/py2exe-0.14.1.1-cp314-cp314-win_amd64.whl", hash = "sha256:8c39011d79899cfaa1e762b1186c15a25f5ec40df2f80900c569a4b821c1ff5b", size = 122724, upload-time = "2026-06-05T21:06:11.944Z" },
 ]
 
 [[package]]
@@ -87,12 +87,12 @@ wheels = [
 
 [[package]]
 name = "pywin32"
-version = "311"
+version = "312"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c9/31/097f2e132c4f16d99a22bfb777e0fd88bd8e1c634304e102f313af69ace5/pywin32-311-cp314-cp314-win32.whl", hash = "sha256:b7a2c10b93f8986666d0c803ee19b5990885872a7de910fc460f9b0c2fbf92ee", size = 8840714, upload-time = "2025-07-14T20:13:32.449Z" },
-    { url = "https://files.pythonhosted.org/packages/90/4b/07c77d8ba0e01349358082713400435347df8426208171ce297da32c313d/pywin32-311-cp314-cp314-win_amd64.whl", hash = "sha256:3aca44c046bd2ed8c90de9cb8427f581c479e594e99b5c0bb19b29c10fd6cb87", size = 9656800, upload-time = "2025-07-14T20:13:34.312Z" },
-    { url = "https://files.pythonhosted.org/packages/c0/d2/21af5c535501a7233e734b8af901574572da66fcc254cb35d0609c9080dd/pywin32-311-cp314-cp314-win_arm64.whl", hash = "sha256:a508e2d9025764a8270f93111a970e1d0fbfc33f4153b388bb649b7eec4f9b42", size = 8932540, upload-time = "2025-07-14T20:13:36.379Z" },
+    { url = "https://files.pythonhosted.org/packages/eb/61/caa39686032d2ebdd04ff0ab5cbe163126c0066d98e00c9018646e42393b/pywin32-312-cp315-cp315-win32.whl", hash = "sha256:5c1fbe4a937a73ae9297384a3da38518cbc694c68ad8a809b2e19acd350f03ed", size = 6471159, upload-time = "2026-06-04T07:49:50.035Z" },
+    { url = "https://files.pythonhosted.org/packages/0f/cd/7e1de64a4a6f69c04214169657ccab0d93a670ea50e35eb8f489d7378249/pywin32-312-cp315-cp315-win_amd64.whl", hash = "sha256:c2f03a0f73f804a13c2735b99392b0cd426bb4f2c4d0178e5ac966a0f21618d5", size = 7025293, upload-time = "2026-06-04T07:49:54.857Z" },
+    { url = "https://files.pythonhosted.org/packages/23/ed/4532e9388e65fa16b46776ef47ad631a64eda1631884488af707666350ed/pywin32-312-cp315-cp315-win_arm64.whl", hash = "sha256:a8597d28f267b39074aef51fa593530082b39cbe5a074226096857b1fed2dfb9", size = 6840337, upload-time = "2026-06-04T07:49:57.531Z" },
 ]
 
 [[package]]
@@ -135,15 +135,15 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "comtypes", specifier = "==1.4.11" },
-    { name = "configobj" },
+    { name = "comtypes", specifier = "==1.4.16" },
+    { name = "configobj", git = "https://github.com/DiffSK/configobj?rev=9c8a0a80c767bf8a3d6493ed01df6c351bddca42" },
     { name = "pyserial", specifier = "==3.5" },
-    { name = "pywin32", specifier = "==311" },
+    { name = "pywin32", specifier = "==312" },
     { name = "rpyc", specifier = "==6.0.2" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "py2exe", specifier = "==0.14.1.1" },
+    { name = "py2exe", git = "https://github.com/py2exe/py2exe?rev=1be98bd71ac737f73aa146631ab902b2b1cc43f7" },
     { name = "setuptools", specifier = "~=84.0.0" },
 ]
