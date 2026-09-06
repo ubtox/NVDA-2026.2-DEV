@@ -107,7 +107,7 @@ def UIATextRangeFromElement(documentTextPattern, element):
 			UIAHandler.TextPatternRangeEndpoint_Start,
 		)
 		return textChildRange
-	except (COMError, AttributeError):
+	except COMError, AttributeError:
 		return None
 
 
