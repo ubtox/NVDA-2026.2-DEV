@@ -1,4 +1,5 @@
 # Keep the isolated 32-bit runtime builder on the same deterministic uv toolchain as NVDA.
+# Project dependency sources remain in [tool.uv.sources] in this runtime's pyproject.toml.
 required-version = "==0.12.5"
 default-groups = "all"
 python-preference = "only-system"
@@ -10,7 +11,3 @@ name = "py2exe"
 version = "0.14.2.0"
 requires-python = ">=3.10,<3.16"
 requires-dist = ["cachetools", "packaging", "pefile"]
-
-[sources]
-py2exe = { git = "https://github.com/py2exe/py2exe", rev = "1be98bd71ac737f73aa146631ab902b2b1cc43f7" }
-configobj = { git = "https://github.com/DiffSK/configobj", rev = "9c8a0a80c767bf8a3d6493ed01df6c351bddca42" }
