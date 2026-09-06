@@ -6,7 +6,7 @@
 # See the file COPYING for more details.
 
 from dataclasses import dataclass
-import types  # noqa: I001
+import types
 from queue import SimpleQueue
 from time import perf_counter
 from logHandler import log
@@ -158,7 +158,7 @@ def _getEventQueueDiagnostics() -> _EventQueueDiagnostics:
 
 def _flushEventQueueForPump() -> None:
 	"""Flush event work for one core pump cycle with fairness between NVDA subsystems."""
-	global _lastEventQueueDiagnostics  # noqa: PLW0603
+	global _lastEventQueueDiagnostics
 	immediatePendingBefore = _immediateEventQueue.qsize()
 	normalPendingBefore = eventQueue.qsize()
 	pumpStartedAt = perf_counter()
