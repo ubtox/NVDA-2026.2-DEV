@@ -111,10 +111,13 @@ jobs:
       - name: Stage BRLAPI Python 3.15 artifacts
         run: |
           mkdir -p cp315/{bin,python}
-          cp Bindings/Python/dist/* cp315/python/
+          egg="$(find Bindings/Python/dist -maxdepth 1 -name 'Brlapi-*-py3.15-win-amd64.egg' -print -quit)"
+          test -n "$egg"
+          python -m zipfile -e "$egg" cp315/python
           cp Programs/brlapi-*.dll cp315/bin/
-          ls -la cp315/python cp315/bin
-          test -n "$(find cp315/python -maxdepth 1 -name 'brlapi.cp315-win_amd64.pyd' -print -quit)"
+          find cp315/python -maxdepth 3 -type f -print
+          ls -la cp315/bin
+          test -n "$(find cp315/python -name 'brlapi.cp315-win_amd64.pyd' -print -quit)"
 
       - name: Verify BRLAPI CP315 import
         shell: pwsh
@@ -122,7 +125,7 @@ jobs:
           $pythonDir = (Resolve-Path 'cp315\python').Path
           $binDir = (Resolve-Path 'cp315\bin').Path
           $env:PATH = "$binDir;$env:PATH"
-          python -c "import pathlib, sys; assert sys.version_info[:2] == (3, 15), sys.version; sys.path.insert(0, str(pathlib.Path(r'cp315/python').resolve())); import brlapi; print('BRLAPI Python 3.15 import OK:', brlapi.__file__)"
+          python -c "import pathlib, sys; assert sys.version_info[:2] == (3, 15), sys.version; sys.path.insert(0, str(pathlib.Path(r'cp315/python').resolve())); import brlapi; assert 'cp315' in brlapi.__file__.lower(), brlapi.__file__; print('BRLAPI Python 3.15 import OK:', brlapi.__file__)"
 
       - name: Upload BRLAPI CP315 artifacts
         uses: actions/upload-artifact@v7
