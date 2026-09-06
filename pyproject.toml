@@ -389,6 +389,13 @@ default-groups = "all"
 python-preference = "only-system"
 environments = ["sys_platform == 'win32'"]
 required-version = ">=0.9"
+no-binary-package = ["py2exe"]
+
+[[tool.uv.dependency-metadata]]
+name = "py2exe"
+version = "0.14.2.0"
+requires-python = ">=3.10,<3.16"
+requires-dist = ["cachetools", "packaging", "pefile"]
 
 [tool.setuptools]
 package-dir = {"" = "source"}
