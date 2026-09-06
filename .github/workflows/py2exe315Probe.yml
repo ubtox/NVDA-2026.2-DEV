@@ -61,6 +61,39 @@ jobs:
         run: |
           python -c "import sys, py2exe; assert sys.version_info[:2] == (3, 15), sys.version; import py2exe.runtime; print('py2exe CP315 import OK:', py2exe.__file__)"
 
+      - name: Freeze and execute a CP315 native-extension probe
+        shell: pwsh
+        run: |
+          @'
+          import _ssl
+          import math
+          import sqlite3
+          import sys
+          import zlib
+
+          assert sys.version_info[:2] == (3, 15), sys.version
+          print("PY2EXE_CP315_RUNTIME_OK")
+          '@ | Set-Content -Path cp315_probe.py -Encoding utf8
+
+          @'
+          from py2exe import freeze
+
+          freeze(
+              console=[{"script": "cp315_probe.py"}],
+              options={"bundle_files": 3, "dist_dir": "cp315_dist"},
+          )
+          '@ | Set-Content -Path freeze_cp315_probe.py -Encoding utf8
+
+          python freeze_cp315_probe.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $output = & .\cp315_dist\cp315_probe.exe 2>&1
+          $exitCode = $LASTEXITCODE
+          $output | ForEach-Object { Write-Host $_ }
+          if ($exitCode -ne 0) { exit $exitCode }
+          if (($output -join "`n") -notmatch 'PY2EXE_CP315_RUNTIME_OK') {
+            throw 'Frozen CPython 3.15 executable did not produce the expected runtime marker.'
+          }
+
       - name: Upload CP315 wheel
         if: success()
         uses: actions/upload-artifact@v7
