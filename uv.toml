@@ -10,10 +10,8 @@ required-version = ">=0.9"
 # because the registry has no pre-built cp315 wheel.
 no-binary-package = ["py2exe"]
 
-[sources]
-nvda-misc-deps = { path = "miscDeps" }
-configobj = { git = "https://github.com/DiffSK/configobj", rev = "9c8a0a80c767bf8a3d6493ed01df6c351bddca42" }
-nvda-mathcat = { path = "include/nvda-mathcat" }
+# Project sources belong in [tool.uv.sources] in pyproject.toml. Keeping them
+# here makes current uv reject uv.toml before dependency resolution starts.
 
 [[dependency-metadata]]
 name = "py2exe"
